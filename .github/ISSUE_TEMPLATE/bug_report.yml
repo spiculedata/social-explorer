@@ -32,4 +32,14 @@ body:
     id: logs
     attributes:
       label: Logs or screenshots
-      description: Please remove any secrets, tokens or personal data first.
+      description: Please remove any secrets, tokens, collected posts or other personal data first.
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: |
+        How we will know this is done, as a checklist (`- [ ] ...`). Optional for reporters. A maintainer
+        needs it before they can label the issue `issue-approved` for an agent to work on.
+      placeholder: |
+        - [ ] The behaviour above no longer happens
+        - [ ] A test covers it (synthetic data only)

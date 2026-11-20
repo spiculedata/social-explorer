@@ -22,8 +22,13 @@ logs/
 # Temp / scratch
 temp/
 
-# Local AI-assistant tooling (per-developer; see .mcp.json.example)
-.claude/
+# Local AI-assistant tooling (per-developer; see .mcp.json.example). Per-user state under .claude/
+# stays ignored; the shared agent settings, memory and skills link are committed (AGENTS.md).
+.claude/*
+!.claude/settings.json
+!.claude/memory/
+!.claude/session-summary.md
+!.claude/skills
 .pi/
 .mcp.json
 

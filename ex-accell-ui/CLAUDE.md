@@ -72,7 +72,7 @@ set `DATABASE_URL`, `SESSION_SECRET` (32+ chars) and, for the first login, `ADMI
   argument array, never a shell string.
 - Escape before using `{@html}`; use `highlightKeywords` for highlighted text.
 - SvelteKit's `error()` **throws**. Validate input before a `try` block or the 4xx becomes a 500.
-- Do not log or commit secrets. `.mcp.json`, `.claude/` and `.env` are intentionally untracked.
+- Do not log or commit secrets. `.mcp.json` and `.env` are intentionally untracked; so is everything under `.claude/` except the shared `settings.json`, `memory/`, `session-summary.md` and the `skills` link (see the root `AGENTS.md`).
 
 ## Testing and workflow
 
