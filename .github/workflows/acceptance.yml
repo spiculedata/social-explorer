@@ -1,0 +1,51 @@
+name: acceptance
+
+# The `acceptance/<issue>/` convention (acceptance/README.md): a pull request that closes issue N
+# (at or above the cutoff) ships acceptance/N/spec.json first, and the spec must fail on the base
+# branch and pass on the PR head. The logic lives in spiculedata/acceptance-spec, called at a full
+# commit SHA. The SAME pin is used by thin-caller-gate.yml and acceptance-pin-health.yml; bump all
+# three together (thin-caller-gate reports drift).
+#
+# REPORT MODE, and outside `ci`: the three callers only warn, and nothing in test.yml waits for
+# them. That is the rollout the shared repository recommends (docs/adopting.md): watch a few pull
+# requests, then switch `mode` to `enforce` here and add the jobs to the `ci` rollup in a separate,
+# reviewed change. Command specs only: the callers build and start nothing (an `api` spec would be
+# recorded `not-run`). A spec that needs the web app installs its own dependencies in its command.
+#
+# SECURITY. `pull_request` only (the shared workflows refuse every other event, and
+# `pull_request_target` is never used), `contents: read`, no secrets passed: a fork or Dependabot
+# pull request runs exactly what anyone's does. The runner executes the PR's own spec files, which is
+# the point of the check; with a read-only token and no secrets there is nothing for them to take.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: acceptance-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  convention:
+    name: acceptance
+    uses: spiculedata/acceptance-spec/.github/workflows/convention.yml@e1ee02261986f510ca3be97f09b07546dd0614be # v1 acceptance-spec@e1ee022
+    with:
+      mode: report
+      # Rollout cutoff: the latest issue or pull request number at adoption (302) plus one. Only issues
+      # numbered at or above it owe a spec. Do not lower it.
+      enforce-from-issue: "303"
+
+  specs:
+    name: acceptance
+    uses: spiculedata/acceptance-spec/.github/workflows/run-specs.yml@e1ee02261986f510ca3be97f09b07546dd0614be # v1 acceptance-spec@e1ee022
+    with:
+      mode: report
+
+  spec-first:
+    name: acceptance
+    uses: spiculedata/acceptance-spec/.github/workflows/base-check.yml@e1ee02261986f510ca3be97f09b07546dd0614be # v1 acceptance-spec@e1ee022
+    with:
+      mode: report
