@@ -17,7 +17,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { MARKER, WATCHED_WORKFLOWS, buildComment, buildResolved, cleanLine, collect, excerpt, fence, findComment, run, upsert } from "../ci-feedback.mjs";
+import { MARKER, WATCHED_WORKFLOWS, buildComment, buildResolved, cleanLine, collect, excerpt, fetchLog, fence, findComment, run, upsert } from "../ci-feedback.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const SHA = "0123456789abcdef0123456789abcdef01234567";
@@ -348,5 +348,20 @@ describe("the watched workflows", () => {
       jobs: { 1: [{ id: 11, name: "gitleaks", conclusion: "failure", html_url: "https://j/11" }] },
     });
     assert.deepEqual(collect({ gh, repo: REPO, sha: SHA }).failures, []);
+  });
+});
+
+describe("fetching a job log", () => {
+  it("asks gh to print colour codes, and retries without the flag on an older gh", () => {
+    const seen = [];
+    const gh = (args) => {
+      seen.push(args);
+      if (args.includes("--allow-escape-sequences")) throw new Error("unknown flag: --allow-escape-sequences");
+      return "error: boom";
+    };
+    assert.equal(fetchLog({ gh, repo: "o/r", jobId: 7 }), "error: boom");
+    assert.equal(seen.length, 2);
+    assert.ok(seen[0].includes("--allow-escape-sequences"));
+    assert.ok(!seen[1].includes("--allow-escape-sequences"));
   });
 });
