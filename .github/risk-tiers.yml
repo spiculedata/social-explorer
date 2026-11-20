@@ -1,0 +1,228 @@
+# Risk tiers: what each change to this repository demands.
+#
+# Read by scripts/classify-change.mjs, which .github/workflows/tier-classifier.yml
+# runs on every pull request. The classifier labels the pull request and posts
+# one comment (updated in place) naming the tier and its review requirement. It
+# never blocks a merge and it is not a required check: the judgement stays with
+# the reviewer.
+#
+# How a change is classified
+# --------------------------
+# Every changed path is tested against every pattern in every tier. The pull
+# request takes the highest rank any one path matched, so one file under
+# ex-accell-ui/src/lib/server/auth/ makes the whole pull request critical however
+# many docs it also touches. Ranks are explicit rather than ordered by position
+# in this file, so reordering the file cannot quietly re-tier anything.
+#
+#   critical  authentication and access control, schema migrations, anything
+#             that publishes data over IPFS, deployment and the production
+#             stack, secrets, and gates that decide what a merge may skip.
+#             Social Explorer stores collected posts and user accounts and can
+#             deploy to a server, so a mistake here is a data leak or an
+#             unrecoverable change.
+#   high      the rest of the server surface: API routes, server and service
+#             code, the ETL, radio and Jupyter code, dependency manifests,
+#             container images and the CI helper scripts.
+#   standard  the web UI, its tests and its tooling, and the docs site code,
+#             where lint, the type checker, unit tests and the build are a real
+#             safety net.
+#   low       documentation and process: wrong is cheap and visible.
+#
+# Changing a tier
+# ---------------
+# Edit this file and run `node --test "scripts/tests/*.test.mjs"`. The tests fail if
+# a tier loses its summary or review text, reuses a label, or lists a pattern that no
+# longer matches any file in the repository (a renamed file would otherwise be quietly
+# downgraded to the default tier).
+#
+# Scope: this classifies repository risk from file PATHS. It does not read the
+# pull request title, body, branch or comments, and it never calls a model.
+
+version: 1
+
+# The tier for a pull request whose files match nothing below. It is a real tier
+# with its own review requirement, not a fallback that says nothing.
+default_tier: standard
+
+tiers:
+  - id: critical
+    label: risk/critical
+    rank: 4
+    summary: >-
+      Authentication, access control, schema migrations, public data sharing,
+      deployment, secrets, and the gates that decide what a merge may skip. A
+      weakened guard exposes collected posts or lets a viewer run code, an applied
+      migration cannot be undone by re-running it, a published dataset cannot be
+      withdrawn, and a changed workflow lets the next bad change through unseen.
+    review: >-
+      A named human reviews this before merge, and the PR body says what was
+      checked and how: the guard exercised signed out, as a viewer and as an
+      admin, a migration applied to a copy of a real database, a workflow change
+      traced to the secrets it can reach. Say what was not run. Run the checks in
+      AGENTS.md locally.
+    paths:
+      - match: .github/workflows/**
+        why: CI defines what a merge is allowed to skip, and deploy.yml reaches the deploy and registry secrets. A workflow change is a gate change.
+      - match: .github/risk-tiers.yml
+        why: This file. Editing it changes what every future change is held to.
+      - match: .github/auto-qa-tuning.json
+        why: Bounds and values for the self-tuning gates. A bot proposes changes to it, so a human has to read what moved and whether it loosened anything.
+      - match: .coverage-thresholds.json
+        why: The coverage ratchet. Lowering it is a quiet gate change.
+      - match: AGENTS.md
+        why: The rules coding agents follow in this repository. Prose does not stop anything, but changing it changes what agents are told.
+      - match: CLAUDE.md
+        why: The same instructions for a different tool.
+      - match: .github/copilot-instructions.md
+        why: The same instructions for GitHub Copilot.
+      - match: .cursor/rules/**
+        why: The same instructions for Cursor.
+      - match: .claude/settings.json
+        why: The agent permission layers (deny, ask, allow). Loosening one widens what an agent may do unattended.
+      - match: docs/security/**
+        why: The AI security policy. It states what may leave the machine and who decides.
+      - match: SECURITY.md
+        why: Vulnerability reporting and deployment hardening guidance.
+      - match: ex-accell-ui/src/hooks.server.ts
+        why: Authenticates and authorises every request before routes run. A change here can leave a route open without a test failing.
+      - match: ex-accell-ui/src/lib/server/auth/**
+        why: Passwords, sessions, CSRF, login throttling and the access guard that lists public and admin-only routes. A wrong answer is cross-user or unauthenticated access.
+      - match: ex-accell-ui/db/migrations/**
+        why: Schema migrations, applied once each to real databases. An applied step is not repairable by re-running it, so a wrong or edited one is data loss.
+      - match: ex-accell-ui/src/lib/server/migrations/**
+        why: The migration runner that applies the files above on first sign-in.
+      - match: ex-accell-ui/src/lib/server/dataSharing/**
+        why: Server side of IPFS publishing. Anything published is public and cannot be withdrawn.
+      - match: ex-accell-ui/src/routes/api/data-sharing/**
+        why: The data sharing endpoints; the only way a dataset reaches the IPFS network.
+      - match: docker-compose.yml
+        why: The full production-shaped stack, its ports, volumes and environment. A published port or a changed default is an exposure.
+      - match: deploy/**
+        why: Dapr components (state store and pub/sub) the stack runs with.
+      - match: ex-accell-ui/components/**
+        why: Dapr components for local runs, including the secret store definition.
+      - match: .env.example
+        why: Names every secret the stack expects. A real value pasted here is a leaked credential, and a missing name is a broken deploy.
+      - match: ex-accell-ui/secrets.example.json
+        why: The template of the local Dapr secret store. A real value pasted here is a leaked credential.
+
+  - id: high
+    label: risk/high
+    rank: 3
+    summary: >-
+      The server surface and the data pipelines: API routes, server-only and
+      service code, the ETL, radio ingestion and Jupyter code, dependency
+      manifests, container images, and the helper scripts CI runs. A regression
+      is a wrong answer, a leaked row or a broken pipeline, and the unit tests
+      cover helpers rather than every route.
+    review: >-
+      A human reads the diff and checks that every query is parameterised and
+      scoped, input is validated at the boundary, errors do not leak internals
+      and no shell is built from user input. The PR body names the manual check
+      the tests cannot do, such as calling the route as a viewer and as an
+      admin. Run the checks in AGENTS.md locally.
+    paths:
+      - match: ex-accell-ui/src/routes/api/**
+        why: Every API route handler. Anything not already critical still takes user input and touches the database.
+      - match: ex-accell-ui/src/lib/server/**
+        why: Server-only code such as query builders, request validation, Jupyter process management, safe fetching. Anything not already critical is still logic that routes trust.
+      - match: ex-accell-ui/src/lib/services/**
+        why: Data access and integrations, including the Postgres pool, the Dapr clients and the IPFS service.
+      - match: ex-accell-ui/src/lib/utils/pathSafety.ts
+        why: Path and identifier validation. Loosening it opens path traversal or argument injection.
+      - match: etl/**
+        why: Pipelines that download and load collected data into the analytics database, run in a container with database credentials.
+      - match: wavepulse/**
+        why: The radio recording and transcription service, including the API server and the optional managed transcription backend.
+      - match: jupyter/**
+        why: The Jupyter image and helper modules that run notebooks with database access.
+      - match: scripts/**
+        why: Helpers the workflows execute (classifier, gates, reports). They run in CI with a token, so a change can alter what a gate decides.
+      - match: ex-accell-ui/package.json
+        why: Scripts and dependencies in one file. A dependency can add a network path or an install script.
+      - match: ex-accell-ui/package-lock.json
+        why: The resolved dependency tree. Read the lockfile diff, not just the version bump.
+      - match: ex-accell-ui/pyproject.toml
+        why: Python dependencies of the notebook environment.
+      - match: ex-accell-ui/poetry.lock
+        why: The resolved Python dependency tree.
+      - match: "**/requirements*.txt"
+        why: Pinned Python dependencies of the ETL, Jupyter and radio images.
+      - match: jupyter/requirements.lock
+        why: The resolved Jupyter image dependency tree.
+      - match: "**/Dockerfile"
+        why: Container images that ship to the server; a base image or user change is a runtime change.
+      - match: ex-accell-ui/dapr.yaml
+        why: The local multi-app Dapr run configuration.
+      - match: .pre-commit-config.yaml
+        why: The local secret-scan and notebook-output hooks. Removing one weakens a safeguard that CI also enforces.
+
+  - id: standard
+    label: risk/standard
+    rank: 2
+    summary: >-
+      The web UI, its tests and its tooling, the docs site code, and the
+      notebooks. Lint, the type checker, the unit tests and the build catch most
+      regressions, and what they miss is visible.
+    review: >-
+      Normal review. The checks in AGENTS.md must be green, and a UI change should
+      say what was looked at in the browser, including a narrow viewport if layout
+      changed.
+    paths:
+      - match: ex-accell-ui/src/**
+        why: Pages, components, stores, styles and tests of the web app. A regression is visible rather than silent.
+      - match: ex-accell-ui/tests/**
+        why: The Playwright suite. A weakened test is a deleted gate, so it is reviewed as code and not skimmed as docs.
+      - match: ex-accell-ui/static/**
+        why: Static assets served as-is.
+      - match: ex-accell-ui/scripts/**
+        why: Developer and demo scripts, not run by the deployed app.
+      - match: ex-accell-ui/notebooks/**
+        why: Notebook templates the app offers to researchers.
+      - match: ex-accell-ui/vitest.config.ts
+        why: Which unit tests run and the coverage floor. Lowering a threshold is a quiet gate change.
+      - match: ex-accell-ui/playwright.config.ts
+        why: How the end-to-end suite runs.
+      - match: ex-accell-ui/eslint.config.js
+        why: Which lint rules are errors. Downgrading one is a quiet gate change.
+      - match: ex-accell-ui/tsconfig.json
+        why: Compiler strictness. Loosening it turns type errors into runtime bugs.
+      - match: ex-accell-ui/vite.config.ts
+        why: Build and dev server configuration.
+      - match: ex-accell-ui/svelte.config.js
+        why: SvelteKit adapter and compiler configuration.
+      - match: docs-site/.vitepress/**
+        why: The VitePress configuration and theme of the documentation site.
+      - match: docs-site/scripts/**
+        why: The wiki sync script and its test. It pushes to the wiki repository when enabled.
+      - match: docs-site/package.json
+        why: Documentation site dependencies and scripts.
+
+  - id: low
+    label: risk/low
+    rank: 1
+    summary: >-
+      Documentation, process files and repository metadata. Wrong here is cheap,
+      visible, and fixable in the next pull request.
+    review: >-
+      A skim is enough. The only question worth asking is whether the prose is
+      still true.
+    paths:
+      - match: docs/**
+        why: Process and policy notes (the security policy is critical by its own rule). Not shipped; wrong is cheap.
+      - match: "**/*.md"
+        why: Any markdown in the repository.
+      - match: .github/ISSUE_TEMPLATE/**
+        why: Issue forms, not code.
+      - match: .github/PULL_REQUEST_TEMPLATE.md
+        why: Pull request prompt text.
+      - match: .github/labeler.yml
+        why: Path-to-label rules for pull requests. A wrong label is cosmetic.
+      - match: .github/dependabot.yml
+        why: Update schedule for dependencies. Updates still arrive as pull requests that are classified on their own.
+      - match: .gitignore
+        why: What stays out of the repository.
+      - match: LICENSE
+        why: The Apache-2.0 licence text; a change here is a legal matter, but cheap to review.
+      - match: NOTICE
+        why: Third-party attribution notices that must stay intact.

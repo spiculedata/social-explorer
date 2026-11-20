@@ -145,6 +145,24 @@ jobs:
           path: ex-accell-ui/test-results/
           if-no-files-found: ignore
 
+  # CI tooling tests: the Node scripts under scripts/ (change classifier, issue gate, reports, ...)
+  # that the repository's own workflows run. Hermetic: node:test, no dependencies, no install step.
+  scripts:
+    name: Scripts (node tests)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - name: Test
+        run: node --test "scripts/tests/*.test.mjs"
+
   # Single stable check name for the merge convention, the review rubric and the hive's auto-red
   # watcher. The `protect main` ruleset is meant to require this check by name. It rolls up the jobs
   # of THIS workflow only; Jupyter, Docs, Demo script, Secret scan and Dependency audit are separate,
@@ -155,7 +173,7 @@ jobs:
   # failed) is a failure, not a pass.
   ci:
     name: ci
-    needs: [build, unit-tests, playwright-e2e]
+    needs: [build, unit-tests, playwright-e2e, scripts]
     if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -168,9 +186,10 @@ jobs:
           BUILD_RESULT: ${{ needs.build.result }}
           UNIT_TESTS_RESULT: ${{ needs.unit-tests.result }}
           E2E_RESULT: ${{ needs.playwright-e2e.result }}
+          SCRIPTS_RESULT: ${{ needs.scripts.result }}
         run: |
           fail=0
-          for entry in "build=$BUILD_RESULT" "unit-tests=$UNIT_TESTS_RESULT" "playwright-e2e=$E2E_RESULT"; do
+          for entry in "build=$BUILD_RESULT" "unit-tests=$UNIT_TESTS_RESULT" "playwright-e2e=$E2E_RESULT" "scripts=$SCRIPTS_RESULT"; do
             if [ "${entry#*=}" = "success" ]; then
               echo "ok: $entry"
             else

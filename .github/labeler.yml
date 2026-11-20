@@ -1,0 +1,75 @@
+# Pull request labels, applied by .github/workflows/labeler.yml (actions/labeler
+# v7). Each key is a label; a PR gets it when any changed file matches any glob.
+#
+# Every label below already exists in the repository (documentation, dependencies,
+# github_actions, docker, javascript, python, tests, database). If a label is
+# deleted the labeler step may fail or skip it; the workflow is continue-on-error,
+# so that never turns a pull request red.
+#
+# Risk labels (risk/critical ... risk/low) are applied separately by
+# tier-classifier.yml and are intentionally not listed here.
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "docs-site/**/*.md"
+          - "**/*.md"
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "ex-accell-ui/package.json"
+          - "ex-accell-ui/package-lock.json"
+          - "docs-site/package.json"
+          - "docs-site/package-lock.json"
+          - "ex-accell-ui/pyproject.toml"
+          - "ex-accell-ui/poetry.lock"
+          - "**/requirements*.txt"
+          - "jupyter/requirements.lock"
+
+github_actions:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+
+docker:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/Dockerfile"
+          - "docker-compose.yml"
+
+javascript:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "ex-accell-ui/src/**"
+          - "ex-accell-ui/scripts/**"
+          - "docs-site/.vitepress/**"
+          - "docs-site/scripts/**"
+          - "scripts/**"
+
+python:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "etl/**/*.py"
+          - "wavepulse/**/*.py"
+          - "jupyter/**/*.py"
+          - "ex-accell-ui/pyproject.toml"
+
+database:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "ex-accell-ui/db/**"
+          - "ex-accell-ui/sql/**"
+          - "ex-accell-ui/src/lib/server/migrations/**"
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "ex-accell-ui/tests/**"
+          - "ex-accell-ui/src/**/*.test.ts"
+          - "ex-accell-ui/vitest.config.ts"
+          - "ex-accell-ui/playwright.config.ts"
+          - "jupyter/tests/**"
+          - "etl/test_*.py"
+          - "scripts/tests/**"
