@@ -1,0 +1,157 @@
+name: nightly-compliance
+
+# The daily loop. test.yml answers "is this change safe to merge"; this answers
+# "is main still true this morning".
+#
+# It catches what PR CI structurally cannot: breakage that arrives after the
+# merge (a dependency publishes a bad version, the runner image changes),
+# dependency drift, and advisories published since the last PR.
+#
+# It runs the checks the `ci` job covers, minus the browser suite (web lint,
+# unit tests with coverage, build) plus the Python tests of the Jupyter helpers
+# and the ETL, and the production-only `npm audit` at HIGH+ (what audit.yml
+# runs weekly). It also produces a full `npm audit` report that includes dev
+# dependencies. That report is informational and never fails the job; the file
+# is uploaded as an artifact and summarised in the job summary. The Playwright
+# suite needs PostgreSQL with pg_duckdb and stays in test.yml.
+#
+# On failure it opens (or comments on) a single tracking issue. On success it
+# closes that issue. The issue-writing token is scoped to the report job only.
+# Nothing here is a required check and test.yml does not depend on it. It never touches
+# deploy.yml, and it uses no secrets.
+
+on:
+  schedule:
+    # 04:17 UTC. Off the hour: GitHub's scheduler is oversubscribed at :00.
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: nightly-compliance
+  # A nightly that cancels itself halfway through reports nothing.
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: Nightly gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ex-accell-ui/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ex-accell-ui
+        run: npm ci
+
+      - name: Full audit report (all dependencies, informational)
+        # Never blocks: the production-only HIGH+ audit below is the policy. This is the wider
+        # picture, including dev tooling and moderate advisories.
+        continue-on-error: true
+        working-directory: ex-accell-ui
+        run: |
+          npm audit > audit-full.txt 2>&1 || true
+          npm audit --json > audit-full.json 2>&1 || true
+          {
+            echo "## npm audit (all dependencies, informational)"
+            echo
+            echo '```'
+            tail -n 60 audit-full.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: npm-audit-full
+          path: |
+            ex-accell-ui/audit-full.txt
+            ex-accell-ui/audit-full.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Lint
+        working-directory: ex-accell-ui
+        run: npm run lint
+
+      - name: Unit tests (with the coverage floor)
+        working-directory: ex-accell-ui
+        run: npm run test:unit:coverage
+
+      - name: Build
+        working-directory: ex-accell-ui
+        run: npm run build
+
+      - name: Security audit (production dependencies, HIGH+)
+        # Same policy as audit.yml, so a red nightly means a new advisory or a red main.
+        working-directory: ex-accell-ui
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Python tests (Jupyter helpers and ETL)
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install --quiet pytest requests
+          (cd jupyter && ../.venv/bin/python -m pytest -q)
+          (cd etl && ../.venv/bin/python -m pytest -q test_safe_http.py)
+
+  report:
+    name: Nightly report
+    needs: gate
+    # `always()` because this job is about the failure case, which by definition
+    # means an upstream job that did not succeed.
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    # issues:write is granted here and only here.
+    permissions:
+      contents: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GATE_RESULT: ${{ needs.gate.result }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      COMMIT: ${{ github.sha }}
+    steps:
+      - name: File or update the tracking issue
+        if: needs.gate.result != 'success'
+        run: |
+          marker='[nightly-compliance]'
+          body=$(printf '%s\n' \
+            "$marker main failed the nightly gate (result: $GATE_RESULT)." \
+            "" \
+            "Run: $RUN_URL" \
+            "Commit: $COMMIT" \
+            "" \
+            "The gate runs web lint, unit tests with coverage, the build, the production npm audit (HIGH and above) and the Python tests, so a red nightly means main is red or an advisory landed. The Playwright suite is not part of it." \
+            "The full \`npm audit\` report (dev dependencies included) is attached to the run as the \`npm-audit-full\` artifact." \
+            "Fix it on a branch. The next green nightly closes this issue.")
+          existing=$(gh issue list -R "$GITHUB_REPOSITORY" --state open --search "$marker in:title" \
+            --json number,title --jq "[.[] | select(.title | contains(\"$marker\"))][0].number // empty")
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" -R "$GITHUB_REPOSITORY" --body "$body"
+          else
+            gh issue create -R "$GITHUB_REPOSITORY" \
+              --title "$marker Nightly gate failed on main" --body "$body"
+          fi
+
+      - name: Close the tracking issue when main is green
+        if: needs.gate.result == 'success'
+        run: |
+          marker='[nightly-compliance]'
+          for n in $(gh issue list -R "$GITHUB_REPOSITORY" --state open --search "$marker in:title" \
+            --json number,title --jq ".[] | select(.title | contains(\"$marker\")) | .number"); do
+            gh issue close "$n" -R "$GITHUB_REPOSITORY" --comment "Nightly gate is green again: $RUN_URL"
+          done

@@ -1,0 +1,78 @@
+name: Coverage gate
+
+# Fails when coverage of the web app (ex-accell-ui: src/lib and src/routes/api, the files
+# vitest.config.ts includes) drops below the thresholds in .coverage-thresholds.json. A ratchet:
+# raise the numbers as coverage grows, never lower them. It is stricter than the floor in
+# ex-accell-ui/vitest.config.ts that the `unit-tests` job in test.yml already enforces.
+#
+# Advisory in the same way as the other add-on workflows: `ci` does not depend on it. It is
+# path-filtered, so it only runs when something that can change coverage changes. Python is not
+# gated: no coverage tool is configured for the Jupyter or ETL tests. No secrets are used.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "ex-accell-ui/src/**"
+      - "ex-accell-ui/package.json"
+      - "ex-accell-ui/package-lock.json"
+      - "ex-accell-ui/vitest.config.ts"
+      - ".coverage-thresholds.json"
+      - "scripts/check-coverage.mjs"
+      - ".github/workflows/coverage-gate.yml"
+  push:
+    branches: [main]
+    paths:
+      - "ex-accell-ui/src/**"
+      - "ex-accell-ui/package.json"
+      - "ex-accell-ui/package-lock.json"
+      - "ex-accell-ui/vitest.config.ts"
+      - ".coverage-thresholds.json"
+
+concurrency:
+  group: coverage-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    name: coverage gate (web)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ex-accell-ui/package-lock.json
+
+      - name: Install
+        working-directory: ex-accell-ui
+        run: npm ci
+
+      - name: Run tests with coverage
+        working-directory: ex-accell-ui
+        run: npx vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=text-summary
+
+      - name: Enforce thresholds
+        # pipefail: without it `tee` would hide a failing check (exit 1 below a threshold).
+        run: |
+          set -o pipefail
+          node scripts/check-coverage.mjs --component web --summary ex-accell-ui/coverage/coverage-summary.json | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-web
+          path: ex-accell-ui/coverage/coverage-summary.json
+          if-no-files-found: warn
+          retention-days: 14

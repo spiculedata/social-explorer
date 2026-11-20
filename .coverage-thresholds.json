@@ -1,0 +1,11 @@
+{
+  "rationale": "Ratchet, not a target: set a few points below the coverage measured on 2026-11-20 so the gate blocks regressions without failing today. Web app (Vitest, v8, over the files vitest.config.ts includes: src/lib and src/routes/api, excluding component .svelte files and service types), 210 test files and 3492 tests: statements 78.09, branches 73, functions 80.9, lines 77.23. Python (Jupyter helpers, ETL, the radio service) is not gated: the Jupyter and ETL suites exist but no coverage tool is configured for them, and wavepulse has no tests. Raise these as coverage grows; never lower them. ex-accell-ui/vitest.config.ts keeps its own, lower floor that test.yml already enforces.",
+  "thresholds": {
+    "web": {
+      "statements": 75,
+      "branches": 70,
+      "functions": 77,
+      "lines": 74
+    }
+  }
+}

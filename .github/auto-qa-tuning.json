@@ -1,0 +1,69 @@
+{
+  "criterion": "acmm:auto-qa-tuning",
+  "version": 1,
+  "description": "Advisory quality thresholds for Social Explorer CI, retuned from recent `Tests` workflow runs (test.yml) by scripts/auto-qa-tuner.mjs. Nothing in CI reads these values automatically: they are suggestions a human wires into test.yml. The tuner only ever edits this file, and only through a bot-opened pull request that a human merges. It never pushes to main.",
+  "bounds": {
+    "rule": "Each parameter has a baseline (authored by a human), hard min and max bounds, and maxStep (the largest change per run). `loosen` says which direction makes the gate weaker. The bound on the loosen side is the documented limit: the tuner can never move a value past it, however bad the data looks. The tuner only writes `value` and `history`; it never edits baseline, min, max or maxStep, so widening a bound is always a human edit in a reviewed PR. `--check` fails if a value is outside its bounds.",
+    "tighteningIsFree": true,
+    "looseningIsBoundedBy": "min or max on the loosen side, plus maxStep per run"
+  },
+  "source": {
+    "workflowFile": "test.yml",
+    "branch": "main",
+    "jobName": "Unit Tests (Vitest)",
+    "testStepName": "Run unit tests"
+  },
+  "controller": {
+    "windowRuns": 30,
+    "minObservations": 10,
+    "historyLimit": 10,
+    "flakyRecoveryRateThreshold": 0.1
+  },
+  "parameters": [
+    {
+      "id": "ciTimeoutMinutes",
+      "description": "Suggested timeout-minutes for the Unit Tests (Vitest) job in test.yml (today it has none, so the 360 minute default applies). Measured: about 1.6 minutes per run on 2026-11-12. Target is twice the observed p95 job duration.",
+      "unit": "minutes",
+      "value": 10,
+      "baseline": 10,
+      "min": 5,
+      "max": 20,
+      "maxStep": 5,
+      "loosen": "up"
+    },
+    {
+      "id": "testStepBudgetSeconds",
+      "description": "Suggested wall-clock budget for the `Run unit tests` step (Vitest with coverage). Measured: about 76 seconds on 2026-11-12. Target is three times the observed p95 duration of that step.",
+      "unit": "seconds",
+      "value": 240,
+      "baseline": 240,
+      "min": 120,
+      "max": 480,
+      "maxStep": 60,
+      "loosen": "up"
+    },
+    {
+      "id": "flakeRetries",
+      "description": "How many automatic re-runs of the unit tests are tolerated before a failure counts. 0 unless at least 10 percent of recent successful runs needed a manual re-run (run_attempt above 1). The maximum is 1: more than one retry hides real failures.",
+      "unit": "retries",
+      "value": 0,
+      "baseline": 0,
+      "min": 0,
+      "max": 1,
+      "maxStep": 1,
+      "loosen": "up"
+    },
+    {
+      "id": "ciPassRateFloorPct",
+      "description": "Suggested minimum pass rate for the Tests workflow on main over the window, below which the nightly report should be treated as unhealthy. Target is the observed pass rate minus 5 points. Cannot fall below 80.",
+      "unit": "percent",
+      "value": 85,
+      "baseline": 85,
+      "min": 80,
+      "max": 95,
+      "maxStep": 2,
+      "loosen": "down"
+    }
+  ],
+  "history": []
+}
