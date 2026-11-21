@@ -43,7 +43,7 @@ calls and AI providers on 2026-11-20. Destinations are configured by the operato
 
 | Destination | What is sent | Notes |
 | --- | --- | --- |
-| Anthropic | Repository source, issue, PR and comment text | Only when `claude.yml` or `claude-code-review.yml` runs (they use the `ANTHROPIC_API_KEY` secret, which is set) |
+| Anthropic | Repository source, issue, PR and comment text | Only when `claude.yml` runs (it uses the `ANTHROPIC_API_KEY` secret, which is set) |
 | Scaleway container registry and the production server (SSH) | Built images, a deploy script | `deploy.yml`, manual only (`workflow_dispatch`) |
 
 Rules:
@@ -65,8 +65,8 @@ fixing one is a separate change, and repository settings are the maintainers' to
    GitHub. The maintainers plan a ruleset that requires `ci`.
 2. **The repository default workflow token is read-write** and Actions may approve pull requests
    (`gh api repos/spiculedata/social-explorer/actions/permissions/workflow`). Workflows that do not
-   declare `permissions:` get write access. `test.yml`, `claude.yml` and `claude-code-review.yml`
-   have no workflow-level `permissions:` block (the Claude workflows set it per job).
+   declare `permissions:` get write access. `test.yml` and `claude.yml`
+   have no workflow-level `permissions:` block (`claude.yml` sets it per job).
 3. **The `production` environment has no protection rules**
    (`gh api repos/spiculedata/social-explorer/environments`), so nothing but the manual trigger
    stands between a write-access user and `deploy.yml` reaching the deploy secrets.
@@ -111,12 +111,11 @@ never discard them and never commit them.
 ### AI agents in CI
 
 **`claude.yml`** answers `@claude` in issue and PR comments, reviews and new issues, and only for
-authors with OWNER, MEMBER or COLLABORATOR association. **`claude-code-review.yml`** reviews each
-pull request from a branch in this repository (forks are skipped because they get no secrets) and
-comments on it. Both run `anthropics/claude-code-action` pinned to a commit SHA with the
+authors with OWNER, MEMBER or COLLABORATOR association. (An automatic per-PR review workflow existed and was removed because it failed on nearly every run.)
+It runs `anthropics/claude-code-action` pinned to a commit SHA with the
 `ANTHROPIC_API_KEY` secret and read-only content permissions. Issue, PR and comment text is
-untrusted input that these workflows pass to a model with Bash tools limited by the action's
-defaults and, for the review, an explicit allowlist.
+untrusted input that this workflow passes to a model with Bash tools limited by the action's
+defaults.
 
 ## 5. Prompts and untrusted content
 

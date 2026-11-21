@@ -187,7 +187,6 @@ Already here before the onboarding, unchanged:
 
 - `claude.yml`: responds to `@claude` in issue and PR comments, reviews, and new issues, only for
   authors with OWNER, MEMBER or COLLABORATOR association. Uses the `ANTHROPIC_API_KEY` secret.
-- `claude-code-review.yml`: reviews each same-repository pull request and comments on it.
 - `deploy.yml`: manual (`workflow_dispatch`) build and push of images to the Scaleway registry and
   SSH deploy. Agents never run it.
 - `docs.yml`, `wiki.yml`: build the VitePress site and sync the wiki; publishing is gated by the

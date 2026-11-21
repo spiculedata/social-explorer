@@ -6,10 +6,9 @@ const DIR = ".github/workflows";
 // These workflows predate the ACMM onboarding and are deliberately left as they were. The
 // properties below describe the workflows added by the onboarding pull requests, so a legacy
 // workflow without a top-level permissions block does not fail them. (claude.yml and
-// claude-code-review.yml set permissions per job; test.yml sets them per job too.)
+// test.yml set permissions per job.)
 const LEGACY = new Set([
   "audit.yml",
-  "claude-code-review.yml",
   "claude.yml",
   "demo-script.yml",
   "deploy.yml",

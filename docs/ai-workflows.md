@@ -9,7 +9,6 @@ under is [`docs/security/SECURITY-AI.md`](security/SECURITY-AI.md).
 | `ai-fix.yml` | A user with write access adds the **`ai-fix-requested`** label to an issue | Attempts the fix on a new `ai-fix/...` branch and opens a pull request that says `Fixes #N` | **Live as soon as it merges**: the `ANTHROPIC_API_KEY` secret already exists |
 | `auto-review.yml` | **Disabled.** Was: a maintainer adds **`apply-review`** to a same-repository pull request | Applied the changes reviewers asked for as a new commit on that PR's branch | Disabled (`if: ${{ false }}`) because it ran PR-controlled install scripts with write credentials |
 | `claude.yml` (existing) | `@claude` in an issue, comment, review or new issue, by an OWNER, MEMBER or COLLABORATOR | Answers in the thread; the token is read-only (`contents: read`), so it cannot push | Live, untouched |
-| `claude-code-review.yml` (existing) | Every pull request opened or updated from a branch of this repository | Reviews the diff and comments | Live, untouched; see "Overlap" |
 
 ## Overlap between the existing workflows and the new ones
 
@@ -19,16 +18,9 @@ under is [`docs/security/SECURITY-AI.md`](security/SECURITY-AI.md).
   not conflict. The one thing to watch is that an issue containing `@claude` from a maintainer starts
   `claude.yml` on `opened`, and the same issue labelled `ai-fix-requested` starts `ai-fix.yml`; they can run
   side by side.
-- **`claude-code-review.yml` vs `auto-review.yml`.** Opposite directions: the first produces a review, the
-  second (disabled) would have applied one. `claude-code-review.yml` also overlaps with the hive's own review
-  agents, and it runs on every push to every same-repository pull request, including Dependabot's.
+- **`claude-code-review.yml` (removed).** It failed on 29 of its last 30 runs, added a red check to most pull requests and spent API credit on every push, so it was deleted.
 - **Recommendation.** Keep `claude.yml` as it is. Keep `ai-fix.yml` (with `AI_FIX_ALLOWED_BOTS` empty, see
-  below). Leave `auto-review.yml` disabled until it is redesigned. Decide deliberately about
-  `claude-code-review.yml`: when this was written 29 of its last 30 runs (2026-11-12 to 2026-11-20) had failed (the Claude step
-  reports `is_error: true` in the log, on branches unrelated to this work), so today it adds a red,
-  non-required check to most pull requests and spends API credit on each push. Either fix the failure and keep
-  it, or limit it (skip bot authors, run on `opened` only, or on a label) or retire it in favour of the
-  hive's reviewers. None of this was changed here.
+  below). Leave `auto-review.yml` disabled until it is redesigned.
 
 ## What keeps `ai-fix.yml` bounded
 
@@ -85,5 +77,5 @@ under is [`docs/security/SECURITY-AI.md`](security/SECURITY-AI.md).
 
 ## Turning them off
 
-Deleting the `ANTHROPIC_API_KEY` secret would also stop `claude.yml` and `claude-code-review.yml`, so to stop
+Deleting the `ANTHROPIC_API_KEY` secret would also stop `claude.yml`, so to stop
 only `ai-fix` delete `.github/workflows/ai-fix.yml`. To stop everything AI, delete the secret.
