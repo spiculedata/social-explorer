@@ -411,3 +411,17 @@ describe('Navigation project and workspace selectors', () => {
     expect((await screen.findAllByText('Ada Admin')).length).toBeGreaterThan(0);
   });
 });
+
+describe('Navigation active item', () => {
+  const homeLinks = () => screen.getAllByRole('link', { name: 'Home' });
+
+  it('marks the link for the current page and follows client-side navigation', async () => {
+    setPage('/', null);
+    render(Navigation);
+    expect(homeLinks().some((link) => link.getAttribute('aria-current') === 'page')).toBe(true);
+
+    setMockPage({ url: new URL('http://localhost/dashboards') });
+
+    await waitFor(() => expect(homeLinks().every((link) => link.getAttribute('aria-current') === null)).toBe(true));
+  });
+});
