@@ -40,7 +40,7 @@ set `DATABASE_URL`, `SESSION_SECRET` (32+ chars) and, for the first login, `ADMI
 ## Layout
 
 - `src/routes/` pages and `src/routes/api/**/+server.ts` endpoints
-- `sveltekit.options.js` is the SvelteKit configuration (adapter, CSP, alias). SvelteKit 3 no longer reads
+- `sveltekit.options.js` is the SvelteKit configuration (adapter, CSP). SvelteKit 3 no longer reads
   `svelte.config.js`; `vite.config.ts` and `vitest.config.ts` pass these options to the `sveltekit()` plugin.
 - `src/hooks.server.ts` authenticates and authorises every request before routes run
 - `src/lib/server/` server-only code: `auth/` (passwords, sessions, access guard, login throttle,
