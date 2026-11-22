@@ -7,22 +7,22 @@
   import WorkspaceSelector from '#lib/components/navigation/WorkspaceSelector.svelte';
   import { dataFlagsFromSummary, navigationItems, navigationUrl, type NavItem, type NavProject, type NavTarget, type NavUser, type NavWorkspace, type WorkspaceSummary } from '#lib/components/navigation/navItems.ts';
   import { goto } from '$app/navigation';
-  import { page } from '#lib/stores/pageStore.svelte.ts';
-  import { onMount } from 'svelte';
+  import { page } from '$app/state';
+  import { onMount, untrack } from 'svelte';
   import { browser } from '$app/env';
   import { workspaceIdFromRoute } from '#lib/utils/workspaceRoute.ts';
   import { currentProject, loadCurrentProject } from '#lib/stores/projectStore.ts';
 
 
-  let mobileMenuOpen = false;
-  let projectSwitcherOpen = false;
-  let workspaceSwitcherOpen = false;
-  let openDropdowns: Record<string, boolean> = {}; // Track which dropdowns are open
-  let availableProjects: NavProject[] = [];
-  let availableWorkspaces: NavWorkspace[] = [];
-  let currentWorkspace: NavWorkspace | null = null;
-  let workspaceDataSummary: WorkspaceSummary | null = null;
-  let workspaceSummaries: Record<string, WorkspaceSummary> = {}; // Cache summaries for all workspaces
+  let mobileMenuOpen = $state(false);
+  let projectSwitcherOpen = $state(false);
+  let workspaceSwitcherOpen = $state(false);
+  let openDropdowns: Record<string, boolean> = $state({}); // Track which dropdowns are open
+  let availableProjects: NavProject[] = $state([]);
+  let availableWorkspaces: NavWorkspace[] = $state([]);
+  let currentWorkspace: NavWorkspace | null = $state(null);
+  let workspaceDataSummary: WorkspaceSummary | null = $state(null);
+  let workspaceSummaries: Record<string, WorkspaceSummary> = $state({}); // Cache summaries for all workspaces
 
   onMount(() => {
     loadCurrentProject();
@@ -158,17 +158,8 @@
 
   // The header names the workspace of the page you are on, however you got there (a link, a new workspace, the switcher).
   // One request per workspace at a time; the answer is used only if the page is still about that workspace.
-  let loadingWorkspaceId: string | null = null;
-  let missingWorkspaceId: string | null = null;
-  $: routeWorkspaceId = workspaceIdFromRoute($page.route.id, $page.params, $page.url.searchParams);
-  $: if (routeWorkspaceId !== missingWorkspaceId) missingWorkspaceId = null; // asked again if the visitor comes back to it
-  $: if (
-    browser &&
-    routeWorkspaceId &&
-    String(currentWorkspace?.id) !== routeWorkspaceId &&
-    routeWorkspaceId !== loadingWorkspaceId &&
-    routeWorkspaceId !== missingWorkspaceId
-  ) followWorkspace(routeWorkspaceId);
+  let loadingWorkspaceId: string | null = $state(null);
+  let missingWorkspaceId: string | null = $state(null);
 
   async function followWorkspace(workspaceId: string) {
     loadingWorkspaceId = workspaceId;
@@ -198,14 +189,8 @@
     }
   }
 
-  // Reload workspaces when project changes
-  $: if ($currentProject) {
-    loadWorkspaces($currentProject.id);
-  }
 
 
-  // Helper functions to check data availability
-  $: dataFlags = dataFlagsFromSummary(workspaceDataSummary);
 
   function toggleDropdown(itemName: string) {
     openDropdowns = {
@@ -233,12 +218,33 @@
     if (event.detail.collapse) openDropdowns = {};
   }
   
-  $: currentPath = $page.url.pathname;
-  $: updatedNavItems = navigationItems.map(item => ({
+  const routeWorkspaceId = $derived(workspaceIdFromRoute(page.route.id, page.params, page.url.searchParams));
+  $effect(() => {
+    // asked again if the visitor comes back to it
+    if (routeWorkspaceId !== missingWorkspaceId) missingWorkspaceId = null;
+  });
+  $effect(() => {
+    if (
+      browser &&
+      routeWorkspaceId &&
+      String(currentWorkspace?.id) !== routeWorkspaceId &&
+      routeWorkspaceId !== loadingWorkspaceId &&
+      routeWorkspaceId !== missingWorkspaceId
+    ) untrack(() => followWorkspace(routeWorkspaceId));
+  });
+  // Reload workspaces when project changes
+  $effect(() => {
+    const project = $currentProject;
+    if (project) untrack(() => loadWorkspaces(project.id));
+  });
+  // Helper functions to check data availability
+  const dataFlags = $derived(dataFlagsFromSummary(workspaceDataSummary));
+  const currentPath = $derived(page.url.pathname);
+  const updatedNavItems = $derived(navigationItems.map(item => ({
     ...item,
     current: item.href === currentPath
-  }));
-  $: user = $page.data.user as NavUser | null | undefined;
+  })));
+  const user = $derived(page.data.user as NavUser | null | undefined);
 </script>
 
 <nav aria-label="Main navigation" class="bg-white border-b border-ink-200">
@@ -285,7 +291,7 @@
           </div>
         {:else}
           <button
-            on:click={() => goto('/projects')}
+            onclick={() => goto('/projects')}
             class="hidden md:flex items-center px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors border border-gray-300 border-dashed">
             <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -301,7 +307,7 @@
           <button
             type="button"
             class="text-gray-600 hover:text-gray-900 hover:bg-gray-50 p-2 rounded-md"
-            on:click={() => mobileMenuOpen = !mobileMenuOpen}
+            onclick={() => mobileMenuOpen = !mobileMenuOpen}
             aria-expanded={mobileMenuOpen}
             aria-label="Toggle menu"
           >

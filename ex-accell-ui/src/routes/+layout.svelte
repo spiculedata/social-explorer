@@ -1,6 +1,6 @@
 <script>
   import '../app.css';
-  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import { page } from '$app/state';
   import { beforeNavigate } from '$app/navigation';
   import { dismissApiErrors } from '#lib/stores/apiErrors.ts';
   import Navigation from '#lib/components/Navigation.svelte';
@@ -8,6 +8,13 @@
   import { onMount } from 'svelte';
   import { projectNotice } from '#lib/stores/projectStore.ts';
   import { sessionExpired, watchForExpiredSession } from '#lib/utils/sessionExpiry.ts';
+  /**
+   * @typedef {Object} Props
+   * @property {import('svelte').Snippet} [children]
+   */
+
+  /** @type {Props} */
+  const { children } = $props();
 
   // Failures belong to the page that requested the data; don't carry them to the next one
   // A notice about the project has been seen by the time the visitor moves on
@@ -16,7 +23,7 @@
   onMount(() => watchForExpiredSession(window, () => sessionExpired.set(true), window.location.origin, () => sessionExpired.set(false)));
 
   // Hide nav on full-screen investigation workbench and the login page
-  $: isFullScreen = $page.url.pathname.match(/^\/investigations\/\d+/) || $page.url.pathname === '/login';
+  const isFullScreen = $derived(page.url.pathname.match(/^\/investigations\/\d+/) || page.url.pathname === '/login');
 </script>
 
 {#if !isFullScreen}
@@ -31,15 +38,15 @@
     {#if !isFullScreen && $sessionExpired}
       <div class="mx-auto mt-4 flex max-w-7xl items-start justify-between gap-3 rounded-lg border border-danger-300 bg-danger-50 px-4 py-3 text-sm text-ink-900">
         <p>Your session has expired, so some data could not load.</p>
-        <a class="shrink-0 font-medium text-primary-700 hover:underline" href="/login?next={encodeURIComponent($page.url.pathname + $page.url.search)}">Sign in again</a>
+        <a class="shrink-0 font-medium text-primary-700 hover:underline" href="/login?next={encodeURIComponent(page.url.pathname + page.url.search)}">Sign in again</a>
       </div>
     {/if}
     {#if !isFullScreen && $projectNotice}
       <div class="mx-auto mt-4 flex max-w-7xl items-start justify-between gap-3 rounded-lg border border-signal-300 bg-signal-50 px-4 py-3 text-sm text-ink-900">
         <p>{$projectNotice}</p>
-        <button type="button" class="shrink-0 font-medium text-primary-700 hover:underline" on:click={() => projectNotice.set(null)}>Dismiss</button>
+        <button type="button" class="shrink-0 font-medium text-primary-700 hover:underline" onclick={() => projectNotice.set(null)}>Dismiss</button>
       </div>
     {/if}
   </div>
-  <slot />
+  {@render children?.()}
 </main>

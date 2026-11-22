@@ -7,7 +7,7 @@
   import { runExport, downloadCsv, IDLE_EXPORT, type ExportState } from '#lib/utils/exportAction.ts';
   import { toCsv } from '#lib/utils/evidenceExport.ts';
   import ExportStatus from '#lib/components/ui/ExportStatus.svelte';
-  import FilterBar from '#lib/components/ui/FilterBar.svelte';
+  import FilterBar, { type FilterChange } from '#lib/components/ui/FilterBar.svelte';
   import { page } from '#lib/stores/pageStore.svelte.ts';
   import { currentProject } from '#lib/stores/projectStore.ts';
   import { sentimentAnalysisDb } from '#lib/services/sentimentAnalysisDb.ts';
@@ -29,8 +29,7 @@
     loadSentimentData();
   }
 
-  function handleFilterChange(event: CustomEvent) {
-    const detail = event.detail || {};
+  function handleFilterChange(detail: FilterChange) {
     currentFilterParams = {};
     if (detail.workspaceId) currentFilterParams.workspace_id = detail.workspaceId;
     currentFilterParams.platforms = (detail.platforms || []).join(',');
@@ -476,7 +475,7 @@
 
     <!-- Data Source Filter -->
     <div class="mb-6">
-      <FilterBar workspaceId={workspaceId} datasetTypes={["social_media"]} onReady={handleFilterReady} on:change={handleFilterChange} />
+      <FilterBar workspaceId={workspaceId} datasetTypes={["social_media"]} onReady={handleFilterReady} onchange={handleFilterChange} />
     </div>
     <div class="mb-6">
       <MethodNote>

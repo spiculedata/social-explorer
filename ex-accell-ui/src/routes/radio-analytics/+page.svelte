@@ -6,7 +6,7 @@
   import { getSentimentColor } from '#lib/utils/colorUtils.ts';
   import { onMount } from 'svelte';
   import { radioAnalyticsDb } from '#lib/services/radioAnalyticsDb.ts';
-  import FilterBar from '#lib/components/ui/FilterBar.svelte';
+  import FilterBar, { type FilterChange } from '#lib/components/ui/FilterBar.svelte';
   import WorkspaceBanner from '#lib/components/ui/WorkspaceBanner.svelte';
   import { waitForEcharts, initChart } from '#lib/utils/echarts.ts';
   import { formatNumber } from '#lib/utils/formatUtils.ts';
@@ -52,8 +52,7 @@
     loadData();
   }
 
-  function handleFilterChange(event: CustomEvent) {
-    const detail = event.detail || {};
+  function handleFilterChange(detail: FilterChange) {
     currentFilterParams = {};
     if (detail.workspaceId) currentFilterParams.workspace_id = detail.workspaceId;
     currentFilterParams.platforms = (detail.platforms || []).join(',');
@@ -333,7 +332,7 @@
 
     <!-- Filter Bar -->
     <div class="mb-6">
-      <FilterBar workspaceId={workspaceId} datasetTypes={["radio"]} onReady={handleFilterReady} on:change={handleFilterChange} />
+      <FilterBar workspaceId={workspaceId} datasetTypes={["radio"]} onReady={handleFilterReady} onchange={handleFilterChange} />
     </div>
 
     {#if loading}

@@ -1,34 +1,55 @@
+<script module lang="ts">
+  /** What the bar reports to its page whenever the sources or the date range change. */
+  export interface FilterChange {
+    workspaceId: string | null;
+    enabledDatasets: number[];
+    platforms: string[];
+    datasetTypes: string[];
+    dateStart: string | null;
+    dateEnd: string | null;
+  }
+</script>
+
 <script lang="ts">
   import { dataSourceBadgeClass } from '#lib/utils/categoryColours.ts';
   import { onMount } from 'svelte';
   import { browser } from '$app/env';
-  import { page } from '#lib/stores/pageStore.svelte.ts';
-  import { createEventDispatcher } from 'svelte';
+  import { page } from '$app/state';
   import { replaceState } from '$app/navigation';
   import { validateDayRange } from '#lib/utils/calendarDay.ts';
   import { noSourcesMessage } from '#lib/utils/sourceLabels.ts';
   import { applyRangeToParams, readRange, rememberRange } from '#lib/utils/filterRange.ts';
 
-  export let workspaceId: string | null = null;
-  export let compact = false;
-  export let datesOnly = false;  // Just the date range, for pages whose data does not depend on which sources are switched on
-  export let datasetTypes: string[] = [];  // Filter to only show these dataset types (empty = all)
-  export let onReady: ((params: Record<string, string>) => void) | null = null;  // Called once after initial load
+  interface Props {
+    workspaceId?: string | null;
+    compact?: boolean;
+    datesOnly?: boolean; // Just the date range, for pages whose data does not depend on which sources are switched on
+    datasetTypes?: string[]; // Filter to only show these dataset types (empty = all)
+    onReady?: ((params: Record<string, string>) => void) | null; // Called once after initial load
+    onchange?: (change: FilterChange) => void; // Called when the sources or the dates change
+  }
 
-  const dispatch = createEventDispatcher();
+  const {
+    workspaceId = null,
+    compact = false,
+    datesOnly = false,
+    datasetTypes = [],
+    onReady = null,
+    onchange
+  }: Props = $props();
 
   // Filter state
-  let datasets: any[] = [];
-  let enabledIds = new Set<number>();
+  let datasets: any[] = $state([]);
+  let enabledIds = $state(new Set<number>());
   let readyCalled = false;
-  let dateStart = '';
-  let dateEnd = '';
-  let loading = true;
-  let rangeProblem: string | null = null;
+  let dateStart = $state('');
+  let dateEnd = $state('');
+  let loading = $state(true);
+  let rangeProblem: string | null = $state(null);
 
   // The date range is shared by every analysis page: restored from the URL, else from this session
   if (browser) {
-    const saved = readRange($page.url.searchParams, sessionStorage);
+    const saved = readRange(page.url.searchParams, sessionStorage);
     dateStart = saved.dateStart;
     dateEnd = saved.dateEnd;
   }
@@ -38,22 +59,22 @@
     const range = { dateStart, dateEnd };
     rememberRange(range, sessionStorage);
     try {
-      const params = applyRangeToParams($page.url.searchParams, range);
-      const next = new URL($page.url.href);
+      const params = applyRangeToParams(page.url.searchParams, range);
+      const next = new URL(page.url.href);
       next.search = params.toString();
-      if (next.href !== $page.url.href) replaceState(next, $page.state);
+      if (next.href !== page.url.href) replaceState(next, page.state);
     } catch {
       // The router may not be ready yet; the range is still remembered for the session
     }
   }
 
   // Filter datasets by allowed types (prop), then by user toggle
-  $: visibleDatasets = datasetTypes.length > 0
+  const visibleDatasets = $derived(datasetTypes.length > 0
     ? datasets.filter(d => datasetTypes.includes(d.dataset_type))
-    : datasets;
-  $: activeDatasets = visibleDatasets.filter(d => enabledIds.has(d.id ?? d.dataset_id));
-  $: platforms = [...new Set(activeDatasets.map((d: any) => d.source_platform).filter(Boolean))];
-  $: derivedDatasetTypes = [...new Set(activeDatasets.map((d: any) => d.dataset_type).filter(Boolean))];
+    : datasets);
+  const activeDatasets = $derived(visibleDatasets.filter(d => enabledIds.has(d.id ?? d.dataset_id)));
+  const platforms = $derived([...new Set(activeDatasets.map((d: any) => d.source_platform).filter(Boolean))]);
+  const derivedDatasetTypes = $derived([...new Set(activeDatasets.map((d: any) => d.dataset_type).filter(Boolean))]);
 
 
   let lastLoadKey = '';
@@ -145,7 +166,7 @@
     const currentEnabled = currentVisible.filter(d => enabledIds.has(d.id ?? d.dataset_id));
     const currentPlatforms = [...new Set(currentEnabled.map((d: any) => d.source_platform).filter(Boolean))];
 
-    dispatch('change', {
+    onchange?.({
       workspaceId,
       enabledDatasets: [...enabledIds],
       platforms: currentPlatforms,
@@ -207,7 +228,7 @@
               {enabled
                 ? `${dataSourceBadgeClass(dataset.dataset_type)} shadow-sm`
                 : 'bg-gray-100 text-gray-600 ring-1 ring-gray-200'}"
-            on:click={() => toggleDataset(id)}
+            onclick={() => toggleDataset(id)}
             title="{enabled ? 'Click to disable' : 'Click to enable'}: {dataset.name || dataset.dataset_name}"
           >
             <span class="w-2 h-2 rounded-full {enabled ? 'bg-current' : 'bg-gray-300'}"></span>
@@ -218,8 +239,8 @@
           </button>
         {/each}
         {#if visibleDatasets.length > 1}
-          <button on:click={enableAll} class="text-[10px] text-blue-600 hover:text-blue-800 px-1">All</button>
-          <button on:click={disableAll} class="text-[10px] text-gray-500 hover:text-gray-700 px-1">None</button>
+          <button onclick={enableAll} class="text-[10px] text-blue-600 hover:text-blue-800 px-1">All</button>
+          <button onclick={disableAll} class="text-[10px] text-gray-500 hover:text-gray-700 px-1">None</button>
         {/if}
       </div>
 
@@ -236,7 +257,7 @@
           aria-invalid={rangeProblem ? 'true' : undefined}
           aria-describedby={rangeProblem ? 'filter-range-problem' : undefined}
           bind:value={dateStart}
-          on:change={emitChange}
+          onchange={emitChange}
           class="px-2 py-1 text-xs border border-gray-200 rounded-lg bg-gray-50 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:bg-white"
         />
         <span class="text-xs text-gray-300">—</span>
@@ -246,21 +267,21 @@
           aria-invalid={rangeProblem ? 'true' : undefined}
           aria-describedby={rangeProblem ? 'filter-range-problem' : undefined}
           bind:value={dateEnd}
-          on:change={emitChange}
+          onchange={emitChange}
           class="px-2 py-1 text-xs border border-gray-200 rounded-lg bg-gray-50 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:bg-white"
         />
         {#if !compact}
           <div class="flex gap-0.5 ml-1">
-            <button on:click={() => setQuickRange(7)} class="text-[10px] px-2 py-1 rounded-md border border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 text-gray-500 transition-colors">7d</button>
-            <button on:click={() => setQuickRange(30)} class="text-[10px] px-2 py-1 rounded-md border border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 text-gray-500 transition-colors">30d</button>
-            <button on:click={() => setQuickRange(90)} class="text-[10px] px-2 py-1 rounded-md border border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 text-gray-500 transition-colors">90d</button>
+            <button onclick={() => setQuickRange(7)} class="text-[10px] px-2 py-1 rounded-md border border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 text-gray-500 transition-colors">7d</button>
+            <button onclick={() => setQuickRange(30)} class="text-[10px] px-2 py-1 rounded-md border border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 text-gray-500 transition-colors">30d</button>
+            <button onclick={() => setQuickRange(90)} class="text-[10px] px-2 py-1 rounded-md border border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 text-gray-500 transition-colors">90d</button>
           </div>
         {/if}
         {#if rangeProblem}
           <span id="filter-range-problem" class="text-xs text-danger-700" role="alert">{rangeProblem.includes('on or before') ? 'The start date must be on or before the end date' : 'Enter a valid date'}</span>
         {/if}
         {#if dateStart || dateEnd}
-          <button on:click={clearDates} class="text-xs text-danger-700 hover:text-danger-900 ml-1">Reset</button>
+          <button onclick={clearDates} class="text-xs text-danger-700 hover:text-danger-900 ml-1">Reset</button>
         {/if}
       </div>
     </div>

@@ -9,7 +9,7 @@
   import { getTrendColor } from '#lib/utils/colorUtils.ts';
   import ErrorAlert from '#lib/components/ui/ErrorAlert.svelte';
   import { platformOptions } from '#lib/utils/platformOptions.ts';
-  import FilterBar from '#lib/components/ui/FilterBar.svelte';
+  import FilterBar, { type FilterChange } from '#lib/components/ui/FilterBar.svelte';
   import MethodNote from '#lib/components/ui/MethodNote.svelte';
   import { currentRangeQuery, rangeReloader } from '#lib/utils/filterRange.ts';
   import { trigramDrilldownFilters } from '#lib/utils/trigramDrilldown.ts';
@@ -185,7 +185,7 @@
 
   <!-- Dates: the same bar as the other analysis pages; with no dates set the last 7 days are analysed -->
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-    <FilterBar datesOnly compact on:change={() => { hasRange = Object.keys(currentRangeQuery()).length > 0; rangeSync.sync(); }} />
+    <FilterBar datesOnly compact onchange={() => { hasRange = Object.keys(currentRangeQuery()).length > 0; rangeSync.sync(); }} />
     {#if !hasRange}
       <p class="mt-2 text-xs text-ink-600">Showing the last 7 days. Pick dates above to analyse a different period.</p>
     {/if}

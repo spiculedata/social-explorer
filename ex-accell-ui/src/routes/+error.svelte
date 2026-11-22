@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import { page } from '$app/state';
   import BrandMark from '#lib/components/ui/BrandMark.svelte';
 
-  $: status = $page.status;
-  $: notFound = status === 404;
-  $: heading = notFound ? 'We could not find that page' : 'Something went wrong';
-  $: detail = notFound
+  const status = $derived(page.status);
+  const notFound = $derived(status === 404);
+  const heading = $derived(notFound ? 'We could not find that page' : 'Something went wrong');
+  const detail = $derived(notFound
     ? 'The link may be out of date, or the page may have moved.'
-    : 'We could not complete that request. Try again in a moment.';
+    : 'We could not complete that request. Try again in a moment.');
 </script>
 
 <svelte:head>

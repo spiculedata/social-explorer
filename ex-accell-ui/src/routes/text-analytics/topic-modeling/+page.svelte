@@ -3,7 +3,7 @@
   import { goto } from '$app/navigation';
   import PostDrilldown from '#lib/components/ui/PostDrilldown.svelte';
   import { filtersFromParams, type PostFilters } from '#lib/services/postsApi.ts';
-  import FilterBar from '#lib/components/ui/FilterBar.svelte';
+  import FilterBar, { type FilterChange } from '#lib/components/ui/FilterBar.svelte';
   import { page } from '#lib/stores/pageStore.svelte.ts';
   import { currentProject } from '#lib/stores/projectStore.ts';
   import { topicModelingDb } from '#lib/services/topicModelingDb.ts';
@@ -22,8 +22,7 @@
 
   let currentFilterParams: Record<string, string> = {};
 
-  function handleFilterChange(event: CustomEvent) {
-    const detail = event.detail || {};
+  function handleFilterChange(detail: FilterChange) {
     currentFilterParams = {};
     if (detail.workspaceId) currentFilterParams.workspace_id = detail.workspaceId;
     currentFilterParams.platforms = (detail.platforms || []).join(',');
@@ -544,7 +543,7 @@
 
     <!-- Data Source Filter -->
     <div class="mb-6">
-      <FilterBar workspaceId={workspaceId} datasetTypes={["social_media"]} on:change={handleFilterChange} />
+      <FilterBar workspaceId={workspaceId} datasetTypes={["social_media"]} onchange={handleFilterChange} />
     </div>
     {#if loading}
       <div class="flex items-center justify-center py-16">

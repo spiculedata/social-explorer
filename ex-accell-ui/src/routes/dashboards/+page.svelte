@@ -11,7 +11,7 @@
   import { formatTimestamp, formatNumber } from '#lib/utils/formatUtils.ts';
   import { waitForEcharts, initChart } from '#lib/utils/echarts.ts';
   import WorkspaceBanner from '#lib/components/ui/WorkspaceBanner.svelte';
-  import FilterBar from '#lib/components/ui/FilterBar.svelte';
+  import FilterBar, { type FilterChange } from '#lib/components/ui/FilterBar.svelte';
   import { setWorkspaceFromUrl } from '#lib/stores/workspaceStore.ts';
 
   let filterBar: FilterBar;
@@ -107,8 +107,7 @@
     loadDashboardData();
   }
 
-  function handleFilterChange(event: CustomEvent) {
-    const detail = event.detail || {};
+  function handleFilterChange(detail: FilterChange) {
     currentFilterParams = {};
     if (detail.workspaceId) currentFilterParams.workspace_id = detail.workspaceId;
     currentFilterParams.platforms = (detail.platforms || []).join(',');
@@ -556,7 +555,7 @@
         workspaceId={workspaceId}
         datasetTypes={['social_media']}
         onReady={handleFilterReady}
-        on:change={handleFilterChange}
+        onchange={handleFilterChange}
       />
     </div>
 

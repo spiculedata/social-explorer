@@ -3,7 +3,7 @@
   import { page } from '#lib/stores/pageStore.svelte.ts';
   import PostDrilldown from '#lib/components/ui/PostDrilldown.svelte';
   import { filtersFromParams, type PostFilters } from '#lib/services/postsApi.ts';
-  import FilterBar from '#lib/components/ui/FilterBar.svelte';
+  import FilterBar, { type FilterChange } from '#lib/components/ui/FilterBar.svelte';
   import PageHeader from '#lib/components/ui/PageHeader.svelte';
   import WorkspaceBanner from '#lib/components/ui/WorkspaceBanner.svelte';
   import { onMount } from 'svelte';
@@ -20,8 +20,7 @@
   // The hashtag whose posts are open in the side panel
   let drilldown: { title: string; filters: PostFilters } | null = null;
 
-  function handleFilterChange(event: CustomEvent) {
-    const detail = event.detail || {};
+  function handleFilterChange(detail: FilterChange) {
     currentFilterParams = {};
     if (detail.workspaceId) currentFilterParams.workspace_id = detail.workspaceId;
     currentFilterParams.platforms = (detail.platforms || []).join(',');
@@ -152,7 +151,7 @@
 
     <!-- Data Source Filter -->
     <div class="mb-6">
-      <FilterBar workspaceId={workspaceId} datasetTypes={["social_media"]} on:change={handleFilterChange} />
+      <FilterBar workspaceId={workspaceId} datasetTypes={["social_media"]} onchange={handleFilterChange} />
     </div>
 <div class="max-w-7xl xl:max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
   {#if errorMessage}<ErrorAlert message={errorMessage} />{/if}
