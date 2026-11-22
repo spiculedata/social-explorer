@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import { page } from '$app/state';
   import { currentProject, loadCurrentProject } from '#lib/stores/projectStore.ts';
   import { onMount } from 'svelte';
   import PageHeader from '#lib/components/ui/PageHeader.svelte';
@@ -40,36 +40,36 @@
   const WAVEPULSE_POLL_MS = 15000;
   const CRAWL_NOTICE_MS = 5000;
 
-  $: workspaceId = $page.url.searchParams.get('workspace');
+  const workspaceId = $derived(page.url.searchParams.get('workspace'));
 
-  let loading = true;
-  let errorMessage = '';
-  let dataSources: DataSource[] = [];
-  let availableDatasets: DatasetRow[] = [];
-  let allDatasets: DatasetRow[] = [];
-  let workflows: DataRow[] = [];
-  let dataStats = { ...EMPTY_DATA_STATS };
+  let loading = $state(true);
+  let errorMessage = $state('');
+  let dataSources: DataSource[] = $state([]);
+  let availableDatasets: DatasetRow[] = $state([]);
+  let allDatasets: DatasetRow[] = $state([]);
+  let workflows: DataRow[] = $state([]);
+  let dataStats = $state({ ...EMPTY_DATA_STATS });
 
-  let showAddSourceModal = false;
+  let showAddSourceModal = $state(false);
   // Linking a dataset: which one is in flight, a message for the modal, and a confirmation for the page
-  let linkingId: number | null = null;
-  let linkError = '';
-  let linkNotice = '';
-  let showPreviewModal = false;
-  let showRadioConfigModal = false;
-  let showCrawlerModal = false;
-  let previewDataset: DataRow | null = null;
+  let linkingId: number | null = $state(null);
+  let linkError = $state('');
+  let linkNotice = $state('');
+  let showPreviewModal = $state(false);
+  let showRadioConfigModal = $state(false);
+  let showCrawlerModal = $state(false);
+  let previewDataset: DataRow | null = $state(null);
 
   // Crawler state
-  let crawlerConfig = defaultCrawlerConfig();
-  let crawlerStatus = '';
+  let crawlerConfig = $state(defaultCrawlerConfig());
+  let crawlerStatus = $state('');
 
   // WavePulse radio state
-  let wavePulseStatus: WavePulseStatus = { status: 'offline' };
-  let radioConfig = defaultRadioConfig();
+  let wavePulseStatus: WavePulseStatus = $state({ status: 'offline' });
+  let radioConfig = $state(defaultRadioConfig());
 
   // Active tab state — supports deep linking: /data-management?tab=workflows
-  let activeTab = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('tab') || 'capture') : 'capture';
+  let activeTab = $state(typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('tab') || 'capture') : 'capture');
 
   onMount(async () => {
     await loadCurrentProject();
@@ -79,7 +79,7 @@
     }
     await loadData();
     // The workspace page's "Link dataset" button arrives with ?link=1 and goes straight to the dialog
-    if (workspaceId && $page.url.searchParams.get('link') === '1') openAddSourceModal();
+    if (workspaceId && page.url.searchParams.get('link') === '1') openAddSourceModal();
   });
 
   async function loadData() {
@@ -237,19 +237,19 @@
     title="Data Management"
     subtitle="Capture, process, and transform your social media data with unified workflows">
     <svelte:fragment slot="icon">
-      <div class="w-16 h-16 bg-gradient-to-br from-teal-400 to-cyan-600 rounded-2xl shadow-lg flex items-center justify-center mr-6 border border-white/20 backdrop-blur-sm">
-        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
-        </svg>
-      </div>
-    </svelte:fragment>
+        <div class="w-16 h-16 bg-gradient-to-br from-teal-400 to-cyan-600 rounded-2xl shadow-lg flex items-center justify-center mr-6 border border-white/20 backdrop-blur-sm">
+          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+          </svg>
+        </div>
+      </svelte:fragment>
     <svelte:fragment slot="actions">
-      <button
-        on:click={() => goto('/data-management/workflow-builder')}
-        class="px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white rounded-xl text-sm font-medium transition-colors shadow-lg">
-        Create Workflow
-      </button>
-    </svelte:fragment>
+        <button
+          onclick={() => goto('/data-management/workflow-builder')}
+          class="px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white rounded-xl text-sm font-medium transition-colors shadow-lg">
+          Create Workflow
+        </button>
+      </svelte:fragment>
   </PageHeader>
 
   {#if errorMessage}<ErrorAlert message={errorMessage} />{/if}
@@ -281,17 +281,17 @@
       <div class="border-b border-gray-200">
         <nav class="-mb-px flex space-x-8 px-6">
           <button
-            on:click={() => activeTab = 'capture'}
+            onclick={() => activeTab = 'capture'}
             class="py-4 px-1 border-b-2 font-medium text-sm {activeTab === 'capture' ? 'border-teal-500 text-teal-600' : 'border-transparent text-gray-500 hover:text-gray-700'}">
             Data Sources ({dataSources.length})
           </button>
           <button
-            on:click={() => activeTab = 'datasets'}
+            onclick={() => activeTab = 'datasets'}
             class="py-4 px-1 border-b-2 font-medium text-sm {activeTab === 'datasets' ? 'border-teal-500 text-teal-600' : 'border-transparent text-gray-500 hover:text-gray-700'}">
             Datasets ({availableDatasets.length})
           </button>
           <button
-            on:click={() => activeTab = 'workflows'}
+            onclick={() => activeTab = 'workflows'}
             class="py-4 px-1 border-b-2 font-medium text-sm {activeTab === 'workflows' ? 'border-teal-500 text-teal-600' : 'border-transparent text-gray-500 hover:text-gray-700'}">
             Processing Workflows ({workflows.length})
           </button>

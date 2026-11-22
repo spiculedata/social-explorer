@@ -3,7 +3,7 @@
   import { isPostNoted, noteFromPost, notesToMarkdown, parseAnnotations, type Annotation } from '#lib/utils/annotations.ts';
   import { createSingleFlight } from '#lib/utils/singleFlight.ts';
   import { beforeNavigate, goto } from '$app/navigation';
-  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import { page } from '$app/state';
   import { onMount } from 'svelte';
   import { investigationSelection, clearSelection, setTimeRange } from '#lib/stores/investigationStore.ts';
   import WorkbenchToolbar from '#lib/components/investigation/WorkbenchToolbar.svelte';
@@ -26,48 +26,47 @@
   import { saveInvestigation } from '#lib/utils/investigationSave.ts';
   import type { GdeltEvent, InvestigationRecord, RadioSegment, SourceTab, WorkbenchPost } from '#lib/utils/investigationTypes.ts';
 
-  export const ssr = false;
 
   const GDELT_LIMIT = 200;
   const RADIO_LIMIT = 100;
   const SOCIAL_LIMIT = 200;
   const SAVED_NOTICE_MS = 2000;
 
-  let investigation: InvestigationRecord | null = null;
-  let loading = true;
-  let timelineData: TimelineEntry[] = [];
-  let timelineLoading = true;
-  let gdeltEvents: GdeltEvent[] = [];
-  let radioSegments: RadioSegment[] = [];
-  let socialPosts: WorkbenchPost[] = [];
-  let keywordData: any[] = [];
-  let gdeltLoading = true;
-  let radioLoading = true;
-  let socialLoading = true;
+  let investigation: InvestigationRecord | null = $state(null);
+  let loading = $state(true);
+  let timelineData: TimelineEntry[] = $state([]);
+  let timelineLoading = $state(true);
+  let gdeltEvents: GdeltEvent[] = $state([]);
+  let radioSegments: RadioSegment[] = $state([]);
+  let socialPosts: WorkbenchPost[] = $state([]);
+  let keywordData: any[] = $state([]);
+  let gdeltLoading = $state(true);
+  let radioLoading = $state(true);
+  let socialLoading = $state(true);
 
   // Tabs
-  let activeTab: SourceTab = 'gdelt';
+  let activeTab: SourceTab = $state('gdelt');
 
   // Row expand states
-  let expandedTranscriptId: string | number | null = null;
-  let expandedGdeltId: string | number | null = null;
-  let expandedSocialId: string | number | null = null;
+  let expandedTranscriptId: string | number | null = $state(null);
+  let expandedGdeltId: string | number | null = $state(null);
+  let expandedSocialId: string | number | null = $state(null);
 
   // Investigation parameters
-  let keywords: string[] = [];
-  let dateStart = '';
-  let dateEnd = '';
+  let keywords: string[] = $state([]);
+  let dateStart = $state('');
+  let dateEnd = $state('');
 
-  $: investigationId = $page.params.id || '';
+  const investigationId = $derived(page.params.id || '');
 
   // Filter timeline data to the currently selected time range for visualizations
-  $: filteredTimelineData = filterTimelineToRange(timelineData, $investigationSelection.timeRange, dateStart, dateEnd);
+  const filteredTimelineData = $derived(filterTimelineToRange(timelineData, $investigationSelection.timeRange, dateStart, dateEnd));
 
   // Cross-filter: active filter from portal clicks, applied to the detail records
-  $: activeCrossFilter = $investigationSelection.crossFilter;
-  $: crossFilteredGdelt = filterGdeltByCrossFilter(gdeltEvents, activeCrossFilter);
-  $: crossFilteredRadio = filterRadioByCrossFilter(radioSegments, activeCrossFilter);
-  $: crossFilteredSocial = filterSocialByCrossFilter(socialPosts, activeCrossFilter);
+  const activeCrossFilter = $derived($investigationSelection.crossFilter);
+  const crossFilteredGdelt = $derived(filterGdeltByCrossFilter(gdeltEvents, activeCrossFilter));
+  const crossFilteredRadio = $derived(filterRadioByCrossFilter(radioSegments, activeCrossFilter));
+  const crossFilteredSocial = $derived(filterSocialByCrossFilter(socialPosts, activeCrossFilter));
 
   onMount(() => {
     loadInvestigation();
@@ -207,15 +206,15 @@
   }
 
   // Annotations
-  let annotations: Annotation[] = [];
-  let newAnnotation = '';
-  let showAnnotations = false;
-  let saveStatus: '' | 'saving' | 'saved' | 'error' = '';
+  let annotations: Annotation[] = $state([]);
+  let newAnnotation = $state('');
+  let showAnnotations = $state(false);
+  let saveStatus: '' | 'saving' | 'saved' | 'error' = $state('');
   // Why a save failed, when the reason is one the visitor can act on (someone else's investigation)
-  let saveErrorMessage = '';
-  let savedSnapshot = '[]';
+  let saveErrorMessage = $state('');
+  let savedSnapshot = $state('[]');
   // Notes that exist on screen but not yet in the database
-  $: unsaved = JSON.stringify(annotations) !== savedSnapshot;
+  const unsaved = $derived(JSON.stringify(annotations) !== savedSnapshot);
 
   // Adding or removing a note saves straight away. Saves are serialised so that two quick edits cannot
   // finish out of order: a save that arrives while another is running is folded into one follow-up that
@@ -306,12 +305,12 @@
   }
 
   // Tab counts — reflect cross-filter
-  $: tabCounts = {
+  const tabCounts = $derived({
     gdelt: crossFilteredGdelt.length,
     radio: crossFilteredRadio.length,
     social: crossFilteredSocial.length,
     visualizations: gdeltEvents.length + radioSegments.length + socialPosts.length
-  };
+  });
 </script>
 
 <svelte:head>
@@ -428,7 +427,7 @@
     <div class="text-center">
       <h2 class="text-sm font-semibold text-slate-300 mb-1">Investigation not found</h2>
       <p class="text-xs text-slate-500 mb-4">This investigation doesn't exist or has been deleted.</p>
-      <button on:click={() => goto('/investigations')} class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded transition-colors">Back to Investigations</button>
+      <button onclick={() => goto('/investigations')} class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded transition-colors">Back to Investigations</button>
     </div>
   </div>
 {/if}

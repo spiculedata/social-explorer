@@ -6,10 +6,10 @@
 <script lang="ts">
   import { workspaceTypeBadgeClass } from '#lib/utils/categoryColours.ts';
   import { CHART } from '#lib/utils/chartColors.ts';
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy, untrack } from 'svelte';
   import { typeLabel } from '#lib/utils/projectForm.ts';
   import { goto } from '$app/navigation';
-  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import { page } from '$app/state';
 
   // ---------- types ----------
   interface Anomaly {
@@ -62,27 +62,27 @@
   }
 
   // ---------- state ----------
-  $: projectId = $page.params.id;
-  let loading = true;
-  let error = '';
+  const projectId = $derived(page.params.id);
+  let loading = $state(true);
+  let error = $state('');
   // Shown inline when a workspace was created but some datasets could not be linked
-  let workspaceNotice = '';
+  let workspaceNotice = $state('');
   // Confirms what just happened, so creating a workspace is not silent
-  let workspaceCreated = '';
-  let project: ProjectData | null = null;
-  let workspaces: Workspace[] = [];
-  let activity: Activity[] = [];
-  let summary: Summary = { total_workspaces: 0, total_records: 0, total_data_sources: 0, total_investigations: 0, alerts: 0 };
+  let workspaceCreated = $state('');
+  let project: ProjectData | null = $state(null);
+  let workspaces: Workspace[] = $state([]);
+  let activity: Activity[] = $state([]);
+  let summary: Summary = $state({ total_workspaces: 0, total_records: 0, total_data_sources: 0, total_investigations: 0, alerts: 0 });
   let refreshTimer: ReturnType<typeof setInterval> | undefined;
 
   // create workspace form state
-  let showCreateWorkspace = false;
-  let newWorkspaceName = '';
-  let newWorkspaceDescription = '';
-  let newWorkspaceType = 'general';
-  let availableDatasets: any[] = [];
-  let selectedDatasets: number[] = [];
-  let loadingDatasets = false;
+  let showCreateWorkspace = $state(false);
+  let newWorkspaceName = $state('');
+  let newWorkspaceDescription = $state('');
+  let newWorkspaceType = $state('general');
+  let availableDatasets: any[] = $state([]);
+  let selectedDatasets: number[] = $state([]);
+  let loadingDatasets = $state(false);
 
   // ---------- helpers ----------
   function sparklinePath(values: number[], width: number, height: number): string {
@@ -234,19 +234,21 @@
     }
   }
 
-  $: if (showCreateWorkspace && availableDatasets.length === 0) {
-    loadDatasets();
-  }
+  $effect(() => {
+    if (showCreateWorkspace && availableDatasets.length === 0) {
+      untrack(() => loadDatasets());
+    }
+  });
 
   // ---------- team ----------
   interface TeamMember { email: string; role: string; addedAt: string | null }
-  let teamMembers: TeamMember[] = [];
-  let teamCreator: string | null = null;
-  let canManageTeam = false;
-  let teamError = '';
-  let teamNotice = '';
-  let newMemberEmail = '';
-  let savingMember = false;
+  let teamMembers: TeamMember[] = $state([]);
+  let teamCreator: string | null = $state(null);
+  let canManageTeam = $state(false);
+  let teamError = $state('');
+  let teamNotice = $state('');
+  let newMemberEmail = $state('');
+  let savingMember = $state(false);
 
   async function loadTeam() {
     try {

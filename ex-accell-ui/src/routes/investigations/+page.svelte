@@ -1,11 +1,11 @@
 <script lang="ts">
   import PageHeader from '#lib/components/ui/PageHeader.svelte';
   import { dataSourceBadgeClass } from '#lib/utils/categoryColours.ts';
-  import { onMount } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import { formatDay } from '#lib/utils/dayFormat.ts';
   import { commitKeywords } from '#lib/utils/keywords.ts';
   import { goto } from '$app/navigation';
-  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import { page } from '$app/state';
   import { currentProject } from '#lib/stores/projectStore.ts';
 
   interface Investigation {
@@ -20,29 +20,25 @@
     updated_at: string;
   }
 
-  let investigations: Investigation[] = [];
-  let loading = true;
-  let showNewModal = false;
+  let investigations: Investigation[] = $state([]);
+  let loading = $state(true);
+  let showNewModal = $state(false);
 
   // New investigation form state
-  let newName = '';
-  let newDescription = '';
-  let newKeywordsInput = '';
-  let newKeywords: string[] = [];
-  let newDateStart = '';
-  let newDateEnd = '';
-  let newSources = { gdelt: true, radio: true, social: true };
-  let createError = '';
-  let creating = false;
-  let createInWorkspace: number | null = null;
+  let newName = $state('');
+  let newDescription = $state('');
+  let newKeywordsInput = $state('');
+  let newKeywords: string[] = $state([]);
+  let newDateStart = $state('');
+  let newDateEnd = $state('');
+  let newSources = $state({ gdelt: true, radio: true, social: true });
+  let createError = $state('');
+  let creating = $state(false);
+  let createInWorkspace: number | null = $state(null);
 
-  // Opened from a workspace page (?workspace=<id>): create the investigation inside that workspace
-  // Reactive: the page is reused on same-route navigation, so a stale workspace must not stick
-  $: workspaceParam = Number.parseInt($page.url.searchParams.get('workspace') ?? '', 10);
-  $: workspaceId = Number.isInteger(workspaceParam) && workspaceParam > 0 ? workspaceParam : null;
 
   // Opened from a workspace: list only that workspace's investigations and name it, so it is clear whose they are
-  let workspaceName = '';
+  let workspaceName = $state('');
   async function loadWorkspaceName(id: number | null) {
     workspaceName = '';
     if (!id) return;
@@ -55,22 +51,12 @@
     }
   }
 
-  // ?project=<id> limits the list to that project's workspaces; without it the list spans every project, and says so
-  $: projectParam = Number.parseInt($page.url.searchParams.get('project') ?? '', 10);
-  $: projectId = !workspaceId && Number.isInteger(projectParam) && projectParam > 0 ? projectParam : null;
-  $: projectLabel = $currentProject && Number($currentProject.id) === projectId ? $currentProject.name : `#${projectId}`;
 
   // "Show all" drops ?workspace= or ?project=, which is a same-page navigation: reload the list and the name when it changes
-  let loadedWorkspace: number | null | undefined;
-  let loadedProject: number | null | undefined;
-  $: if (mounted && (workspaceId !== loadedWorkspace || projectId !== loadedProject)) {
-    loadedWorkspace = workspaceId;
-    loadedProject = projectId;
-    void loadWorkspaceName(workspaceId);
-    void loadInvestigations();
-  }
+  let loadedWorkspace: number | null | undefined = $state();
+  let loadedProject: number | null | undefined = $state();
 
-  let mounted = false;
+  let mounted = $state(false);
   onMount(async () => {
     mounted = true;
     loadedWorkspace = workspaceId;
@@ -138,8 +124,6 @@
     showNewModal = false;
   }
 
-  // A reversed range is caught here, before the request, so the message sits beside the dates
-  $: rangeError = newDateStart && newDateEnd && newDateStart > newDateEnd ? 'The start date is after the end date.' : '';
 
   async function createInvestigation() {
     // Create is disabled while the range is wrong; the message is beside the dates
@@ -205,6 +189,26 @@
       default: return source;
     }
   }
+  // Opened from a workspace page (?workspace=<id>): create the investigation inside that workspace
+  // Reactive: the page is reused on same-route navigation, so a stale workspace must not stick
+  const workspaceParam = $derived(Number.parseInt(page.url.searchParams.get('workspace') ?? '', 10));
+  const workspaceId = $derived(Number.isInteger(workspaceParam) && workspaceParam > 0 ? workspaceParam : null);
+  // ?project=<id> limits the list to that project's workspaces; without it the list spans every project, and says so
+  const projectParam = $derived(Number.parseInt(page.url.searchParams.get('project') ?? '', 10));
+  const projectId = $derived(!workspaceId && Number.isInteger(projectParam) && projectParam > 0 ? projectParam : null);
+  const projectLabel = $derived($currentProject && Number($currentProject.id) === projectId ? $currentProject.name : `#${projectId}`);
+  $effect(() => {
+    if (mounted && (workspaceId !== loadedWorkspace || projectId !== loadedProject)) {
+      loadedWorkspace = workspaceId;
+      loadedProject = projectId;
+      untrack(() => {
+        void loadWorkspaceName(workspaceId);
+        void loadInvestigations();
+      });
+    }
+  });
+  // A reversed range is caught here, before the request, so the message sits beside the dates
+  const rangeError = $derived(newDateStart && newDateEnd && newDateStart > newDateEnd ? 'The start date is after the end date.' : '');
 </script>
 
 <svelte:head>
@@ -214,19 +218,19 @@
 
 <PageHeader title="Investigations" showProject={false} iconPath="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z">
   <svelte:fragment slot="subtitle">
-    {#if workspaceId}In workspace: {workspaceName || `#${workspaceId}`} · <a href="/investigations" class="underline hover:text-white">Show all</a>
-    {:else if projectId}In project: {projectLabel} · <a href="/investigations" class="underline hover:text-white">Show all projects</a>
-    {:else}All projects{#if $currentProject} · <a href="/investigations?project={$currentProject.id}" class="underline hover:text-white">Only {$currentProject.name}</a>{/if}{/if}
+      {#if workspaceId}In workspace: {workspaceName || `#${workspaceId}`} · <a href="/investigations" class="underline hover:text-white">Show all</a>
+      {:else if projectId}In project: {projectLabel} · <a href="/investigations" class="underline hover:text-white">Show all projects</a>
+      {:else}All projects{#if $currentProject} · <a href="/investigations?project={$currentProject.id}" class="underline hover:text-white">Only {$currentProject.name}</a>{/if}{/if}
   </svelte:fragment>
   <svelte:fragment slot="actions">
-    <button
-      on:click={openModal}
-      class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white text-sm font-medium rounded-md transition-colors">
-      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-      </svg>
-      New Investigation
-    </button>
+      <button
+        onclick={openModal}
+        class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white text-sm font-medium rounded-md transition-colors">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        New Investigation
+      </button>
   </svelte:fragment>
 </PageHeader>
 
@@ -253,7 +257,7 @@
         Create one to start exploring cross-dataset correlations.
       </p>
       <button
-        on:click={openModal}
+        onclick={openModal}
         class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
       >
         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,7 +271,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {#each investigations as investigation}
         <button
-          on:click={() => goto(`/investigations/${investigation.id}`)}
+          onclick={() => goto(`/investigations/${investigation.id}`)}
           class="text-left bg-white rounded-xl border border-gray-200 hover:border-indigo-300 hover:shadow-lg transition-all p-6 group"
         >
           <div class="flex items-start justify-between mb-3">
@@ -325,7 +329,7 @@
       <!-- Backdrop -->
       <button
         class="fixed inset-0 bg-black/50 transition-opacity"
-        on:click={closeModal}
+        onclick={closeModal}
         aria-label="Close modal"
       ></button>
 
@@ -338,7 +342,7 @@
               <p class="mt-0.5 text-sm text-ink-600">Will be created in workspace: <span class="font-medium text-ink-900">{workspaceName || `#${createInWorkspace}`}</span></p>
             {/if}
           </div>
-          <button on:click={closeModal} class="text-gray-500 hover:text-gray-600 transition-colors" aria-label="Close modal">
+          <button onclick={closeModal} class="text-gray-500 hover:text-gray-600 transition-colors" aria-label="Close modal">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -378,12 +382,12 @@
                 id="inv-keywords"
                 type="text"
                 bind:value={newKeywordsInput}
-                on:keydown={handleKeywordsKeydown}
+                onkeydown={handleKeywordsKeydown}
                 placeholder="Type keyword and press Enter or comma"
                 class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
               />
               <button
-                on:click={addKeyword}
+                onclick={addKeyword}
                 class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-lg transition-colors"
               >
                 Add
@@ -395,7 +399,7 @@
                   <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
                     {keyword}
                     <button
-                      on:click={() => removeKeyword(keyword)}
+                      onclick={() => removeKeyword(keyword)}
                       class="ml-1.5 text-indigo-500 hover:text-indigo-700"
                       aria-label="Remove {keyword}"
                     >
@@ -465,13 +469,13 @@
         <!-- Actions -->
         <div class="flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
           <button
-            on:click={closeModal}
+            onclick={closeModal}
             class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
           >
             Cancel
           </button>
           <button
-            on:click={createInvestigation}
+            onclick={createInvestigation}
             disabled={!newName.trim() || creating || !!rangeError}
             class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-300 text-white text-sm font-medium rounded-lg transition-colors"
           >

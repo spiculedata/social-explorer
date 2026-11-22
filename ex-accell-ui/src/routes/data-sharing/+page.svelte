@@ -1,33 +1,33 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import { page } from '$app/state';
   import PageHeader from '#lib/components/ui/PageHeader.svelte';
   import { ErrorAlert, Modal } from '#lib/components/ui/index.ts';
   import { formatNumber, formatDate } from '#lib/utils/formatUtils.ts';
   import { packageIdFor } from '#lib/utils/packageId.ts';
 
-  let loading = true;
-  let errorMessage = '';
-  let successMessage = '';
-  let datasets: any[] = [];
-  let packages: any[] = [];
-  let generatingFor: string | null = null;
-  let showPreviewModal = false;
-  let previewPackage: any = null;
-  let previewData: any[] = [];
+  let loading = $state(true);
+  let errorMessage = $state('');
+  let successMessage = $state('');
+  let datasets: any[] = $state([]);
+  let packages: any[] = $state([]);
+  let generatingFor: string | null = $state(null);
+  let showPreviewModal = $state(false);
+  let previewPackage: any = $state(null);
+  let previewData: any[] = $state([]);
 
   // IPFS state. Sharing is opt-in (IPFS_ENABLED=true on the server); until the status is known nothing is offered.
-  let ipfsEnabled = false;
-  let publishingFor: string | null = null;
-  let confirmPublishFor: any = null;
-  let confirmWithdrawFor: any = null;
-  let withdrawingCid: string | null = null;
+  let ipfsEnabled = $state(false);
+  let publishingFor: string | null = $state(null);
+  let confirmPublishFor: any = $state(null);
+  let confirmWithdrawFor: any = $state(null);
+  let withdrawingCid: string | null = $state(null);
   let ipfsRegistry: Map<string, any> = new Map();
-  let importCid = '';
-  let importing = false;
+  let importCid = $state('');
+  let importing = $state(false);
 
   // Generating, publishing and importing are admin-only on the server; the page only offers what the person may do
-  $: isAdmin = ($page.data.user as { role?: string } | null | undefined)?.role === 'admin';
+  const isAdmin = $derived((page.data.user as { role?: string } | null | undefined)?.role === 'admin');
 
   onMount(async () => {
     await loadData();
@@ -316,12 +316,12 @@
                     <div class="text-xs text-indigo-600 font-mono truncate" title={ipfs.cid}>{ipfs.cid}</div>
                   </div>
                   <div class="flex items-center gap-1">
-                    <button on:click={() => copyCid(ipfs.cid)} class="p-1 text-indigo-500 hover:text-indigo-700 rounded" title="Copy CID">
+                    <button onclick={() => copyCid(ipfs.cid)} class="p-1 text-indigo-500 hover:text-indigo-700 rounded" title="Copy CID">
                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                       </svg>
                     </button>
-                    <button on:click={() => copyIpfsLink(ipfs)} class="p-1 text-indigo-500 hover:text-indigo-700 rounded" title="Copy gateway URL">
+                    <button onclick={() => copyIpfsLink(ipfs)} class="p-1 text-indigo-500 hover:text-indigo-700 rounded" title="Copy gateway URL">
                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                       </svg>
@@ -332,13 +332,13 @@
             {/if}
 
             <div class="flex items-center space-x-2">
-              <button on:click={() => viewPackage(pkg)} class="text-xs text-purple-600 hover:text-purple-800 font-medium">Preview</button>
+              <button onclick={() => viewPackage(pkg)} class="text-xs text-purple-600 hover:text-purple-800 font-medium">Preview</button>
               <span class="text-gray-300">|</span>
-              <button on:click={() => copyShareLink(pkg)} class="text-xs text-blue-600 hover:text-blue-800 font-medium">Copy Link</button>
+              <button onclick={() => copyShareLink(pkg)} class="text-xs text-blue-600 hover:text-blue-800 font-medium">Copy Link</button>
               {#if !ipfs && pkg.publishable && ipfsEnabled && isAdmin}
                 <span class="text-gray-300">|</span>
                 <button
-                  on:click={() => askToPublish(pkg)}
+                  onclick={() => askToPublish(pkg)}
                   disabled={publishingFor === pkg.id}
                   class="text-xs text-indigo-600 hover:text-indigo-800 font-medium disabled:opacity-50"
                 >
@@ -348,7 +348,7 @@
               {#if ipfs && ipfsEnabled && isAdmin}
                 <span class="text-gray-300">|</span>
                 <button
-                  on:click={() => askToWithdraw(pkg, ipfs)}
+                  onclick={() => askToWithdraw(pkg, ipfs)}
                   disabled={withdrawingCid === ipfs.cid}
                   class="text-xs text-danger-700 hover:text-danger-900 font-medium disabled:opacity-50"
                 >
@@ -378,7 +378,7 @@
           class="flex-1 px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono disabled:opacity-50"
         />
         <button
-          on:click={importFromIpfs}
+          onclick={importFromIpfs}
           disabled={importing || !importCid.trim()}
           class="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
@@ -436,7 +436,7 @@
                   <span class="text-xs text-ink-500">Admins only</span>
                 {:else}
                   <button
-                    on:click={() => generatePackage(dataset)}
+                    onclick={() => generatePackage(dataset)}
                     disabled={generatingFor === dataset.id}
                     class="px-3 py-1 text-xs font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-lg border border-purple-200 transition-colors disabled:opacity-50">
                     {generatingFor === dataset.id ? 'Generating...' : 'Generate Package'}
@@ -470,14 +470,14 @@
     <p>Check first that the data holds no personal information you may not share and that its licence allows publication.</p>
   </div>
   <svelte:fragment slot="footer">
-    <div class="flex justify-end gap-2">
-      <button type="button" on:click={() => (confirmPublishFor = null)} class="px-4 py-2 text-sm text-ink-700 bg-ink-100 hover:bg-ink-200 rounded-lg" data-autofocus>
-        Cancel
-      </button>
-      <button type="button" on:click={() => publishToIpfs(confirmPublishFor)} class="px-4 py-2 text-sm font-medium text-white bg-danger-600 hover:bg-danger-700 rounded-lg">
-        Publish publicly
-      </button>
-    </div>
+      <div class="flex justify-end gap-2">
+        <button type="button" onclick={() => (confirmPublishFor = null)} class="px-4 py-2 text-sm text-ink-700 bg-ink-100 hover:bg-ink-200 rounded-lg" data-autofocus>
+          Cancel
+        </button>
+        <button type="button" onclick={() => publishToIpfs(confirmPublishFor)} class="px-4 py-2 text-sm font-medium text-white bg-danger-600 hover:bg-danger-700 rounded-lg">
+          Publish publicly
+        </button>
+      </div>
   </svelte:fragment>
 </Modal>
 
@@ -498,20 +498,20 @@
     <p>The package stays here as a local package, so you can publish it again later.</p>
   </div>
   <svelte:fragment slot="footer">
-    <div class="flex justify-end gap-2">
-      <button type="button" on:click={() => (confirmWithdrawFor = null)} class="px-4 py-2 text-sm text-ink-700 bg-ink-100 hover:bg-ink-200 rounded-lg" data-autofocus>
-        Cancel
-      </button>
-      <button type="button" on:click={() => withdrawFromIpfs(confirmWithdrawFor)} class="px-4 py-2 text-sm font-medium text-white bg-danger-600 hover:bg-danger-700 rounded-lg">
-        Withdraw from this node
-      </button>
-    </div>
+      <div class="flex justify-end gap-2">
+        <button type="button" onclick={() => (confirmWithdrawFor = null)} class="px-4 py-2 text-sm text-ink-700 bg-ink-100 hover:bg-ink-200 rounded-lg" data-autofocus>
+          Cancel
+        </button>
+        <button type="button" onclick={() => withdrawFromIpfs(confirmWithdrawFor)} class="px-4 py-2 text-sm font-medium text-white bg-danger-600 hover:bg-danger-700 rounded-lg">
+          Withdraw from this node
+        </button>
+      </div>
   </svelte:fragment>
 </Modal>
 
 <!-- Preview Modal -->
 {#if showPreviewModal && previewPackage}
-  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" on:click|self={() => showPreviewModal = false}>
+  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onclick={(event) => { if (event.target === event.currentTarget) showPreviewModal = false; }}>
     <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[85vh] overflow-y-auto">
       <div class="p-6 border-b border-gray-200">
         <h3 class="text-lg font-semibold text-gray-900">{previewPackage.title}</h3>
@@ -564,10 +564,10 @@
       {/if}
 
       <div class="p-6 border-t border-gray-200 flex justify-between">
-        <button on:click={() => showPreviewModal = false} class="px-4 py-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg">
+        <button onclick={() => showPreviewModal = false} class="px-4 py-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg">
           Close
         </button>
-        <button on:click={() => {
+        <button onclick={() => {
           const blob = new Blob([JSON.stringify(previewPackage, null, 2)], { type: 'application/json' });
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');

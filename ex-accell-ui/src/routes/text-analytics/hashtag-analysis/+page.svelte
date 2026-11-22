@@ -136,7 +136,6 @@
   backHref="/text-analytics"
 >
   <svelte:fragment slot="actions">
-  
       <button
         type="button"
         onclick={exportHashtags}
@@ -144,7 +143,6 @@
         class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-medium transition-colors border border-white/20 disabled:opacity-60">
         {exportState.kind === 'working' ? 'Exporting…' : 'Export CSV'}
       </button>
-    
   </svelte:fragment>
 </PageHeader>
 

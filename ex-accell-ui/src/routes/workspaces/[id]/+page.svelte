@@ -10,7 +10,6 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
 
-  export const ssr = false;
 
   // ---------- types ----------
   interface DataSource {
