@@ -1,7 +1,7 @@
 // Base Database Service Class
 // Provides common functionality for all database services with type safety and error handling
 
-import { clearApiError, reportApiError } from '$lib/stores/apiErrors';
+import { clearApiError, reportApiError } from '#lib/stores/apiErrors.ts';
 
 /**
  * Generic query result type - can be extended by specific services

@@ -2,9 +2,9 @@
 // Handles executing workflows and managing executions
 
 import type { RequestHandler } from './$types';
-import { apiFail, apiOk, apiServerError, readJsonObject } from '$lib/server/apiResponse';
-import { toPublicExecution } from '$lib/server/workflowExecutionView';
-import { serverWorkflowService } from '$lib/services/serverWorkflowService';
+import { apiFail, apiOk, apiServerError, readJsonObject } from '#lib/server/apiResponse.ts';
+import { toPublicExecution } from '#lib/server/workflowExecutionView.ts';
+import { serverWorkflowService } from '#lib/services/serverWorkflowService.ts';
 
 const MAX_EXECUTE_BODY_BYTES = 1024 * 1024;
 const MAX_LIST_LIMIT = 500;

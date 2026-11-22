@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const { query, clientQuery } = vi.hoisted(() => ({ query: vi.fn(), clientQuery: vi.fn() }));
 const transaction = vi.hoisted(() => vi.fn());
-vi.mock('$lib/services/postgres', () => ({ query, postgresPool: { transaction } }));
+vi.mock('#lib/services/postgres.ts', () => ({ query, postgresPool: { transaction } }));
 
 import { bootstrapAdmin, findUserByEmail, createUser, getSessionVersion, bumpSessionVersion, ensureAuthSchema, listUsers, updateUserAccess, setUserPassword } from './userRepo';
 

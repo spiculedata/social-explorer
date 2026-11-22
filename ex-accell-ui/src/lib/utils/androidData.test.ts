@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { acyclicTransitions, behaviouralMetrics, hasAndroidData, temporalUsageFromSessions } from './androidData';
-import type { AttentionSpan } from '$lib/services/types/androidResearchTypes';
+import type { AttentionSpan } from '#lib/services/types/androidResearchTypes.ts';
 
 const atUtcHour = (hour: number) => Date.UTC(2026, 3, 14, hour);
 

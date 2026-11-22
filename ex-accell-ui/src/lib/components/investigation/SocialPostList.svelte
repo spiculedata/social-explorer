@@ -1,9 +1,9 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  import { setCrossFilter } from '$lib/stores/investigationStore';
-  import { isPostNoted, type Annotation } from '$lib/utils/annotations';
-  import { formatPostDate, sentimentDotColor } from '$lib/utils/investigationFormat';
-  import type { WorkbenchPost } from '$lib/utils/investigationTypes';
+  import { setCrossFilter } from '#lib/stores/investigationStore.ts';
+  import { isPostNoted, type Annotation } from '#lib/utils/annotations.ts';
+  import { formatPostDate, sentimentDotColor } from '#lib/utils/investigationFormat.ts';
+  import type { WorkbenchPost } from '#lib/utils/investigationTypes.ts';
 
   export let loading: boolean;
   /** Posts after the cross-filter */

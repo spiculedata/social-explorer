@@ -1,6 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  import type { Annotation } from '$lib/utils/annotations';
+  import type { Annotation } from '#lib/utils/annotations.ts';
 
   export let annotations: Annotation[];
   export let newAnnotation: string;

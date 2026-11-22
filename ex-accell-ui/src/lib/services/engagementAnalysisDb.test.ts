@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { engagementAnalysisDb } from './engagementAnalysisDb';
 
-import { CHART } from '$lib/utils/chartColors';
+import { CHART } from '#lib/utils/chartColors.ts';
 // Helper to create a mock fetch that routes by endpoint (the 'type' query param)
 function mockFetch(routes: Record<string, any>) {
   vi.stubGlobal(

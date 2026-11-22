@@ -2,10 +2,10 @@
 // Handles pause, resume, status, and purge operations for workflow executions
 
 import type { RequestHandler } from './$types';
-import { apiFail, apiOk, apiServerError, readJsonObject } from '$lib/server/apiResponse';
-import { hybridDaprWorkflowExecutor } from '$lib/services/hybridDaprWorkflowExecutor';
-import { toPublicDaprStatus, toPublicExecution } from '$lib/server/workflowExecutionView';
-import { serverWorkflowService } from '$lib/services/serverWorkflowService';
+import { apiFail, apiOk, apiServerError, readJsonObject } from '#lib/server/apiResponse.ts';
+import { hybridDaprWorkflowExecutor } from '#lib/services/hybridDaprWorkflowExecutor.ts';
+import { toPublicDaprStatus, toPublicExecution } from '#lib/server/workflowExecutionView.ts';
+import { serverWorkflowService } from '#lib/services/serverWorkflowService.ts';
 
 const MAX_MANAGE_BODY_BYTES = 16 * 1024;
 const ACTIONS = ['pause', 'resume', 'purge', 'status'] as const;

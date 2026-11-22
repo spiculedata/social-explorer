@@ -1,7 +1,7 @@
 <script lang="ts">
-import { getStatusColor } from '$lib/utils/colorUtils';
-  import type { buildAnalyticsData } from '$lib/utils/dataCapture/jobList';
-  import type { UiJob } from '$lib/utils/dataCapture/types';
+import { getStatusColor } from '#lib/utils/colorUtils.ts';
+  import type { buildAnalyticsData } from '#lib/utils/dataCapture/jobList.ts';
+  import type { UiJob } from '#lib/utils/dataCapture/types.ts';
 
   export let analyticsData: ReturnType<typeof buildAnalyticsData>;
   export let activeTab: string;

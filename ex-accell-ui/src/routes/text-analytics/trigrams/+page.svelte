@@ -1,18 +1,18 @@
 <script lang="ts">
-  import { page } from '$lib/stores/pageStore.svelte';
-  import PostDrilldown from '$lib/components/ui/PostDrilldown.svelte';
-  import type { PostFilters } from '$lib/services/postsApi';
-  import { currentProject } from '$lib/stores/projectStore';
+  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import PostDrilldown from '#lib/components/ui/PostDrilldown.svelte';
+  import type { PostFilters } from '#lib/services/postsApi.ts';
+  import { currentProject } from '#lib/stores/projectStore.ts';
   import { onMount } from 'svelte';
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
-  import { summarizeTrigrams, trigramsDb, type TrigramData, type TrigramFilters, type TrigramStats } from '$lib/services/trigramsDb';
-  import { getTrendColor } from '$lib/utils/colorUtils';
-  import ErrorAlert from '$lib/components/ui/ErrorAlert.svelte';
-  import { platformOptions } from '$lib/utils/platformOptions';
-  import FilterBar from '$lib/components/ui/FilterBar.svelte';
-  import MethodNote from '$lib/components/ui/MethodNote.svelte';
-  import { currentRangeQuery, rangeReloader } from '$lib/utils/filterRange';
-  import { trigramDrilldownFilters } from '$lib/utils/trigramDrilldown';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
+  import { summarizeTrigrams, trigramsDb, type TrigramData, type TrigramFilters, type TrigramStats } from '#lib/services/trigramsDb.ts';
+  import { getTrendColor } from '#lib/utils/colorUtils.ts';
+  import ErrorAlert from '#lib/components/ui/ErrorAlert.svelte';
+  import { platformOptions } from '#lib/utils/platformOptions.ts';
+  import FilterBar from '#lib/components/ui/FilterBar.svelte';
+  import MethodNote from '#lib/components/ui/MethodNote.svelte';
+  import { currentRangeQuery, rangeReloader } from '#lib/utils/filterRange.ts';
+  import { trigramDrilldownFilters } from '#lib/utils/trigramDrilldown.ts';
 
   // The phrase the visitor chose; its posts open in the side panel
   let drilldown: { title: string; filters: PostFilters } | null = null;

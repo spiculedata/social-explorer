@@ -1,17 +1,17 @@
 <script lang="ts">
-  import UserMenu from '$lib/components/UserMenu.svelte';
-  import BrandMark from '$lib/components/ui/BrandMark.svelte';
-  import NavDesktopMenu from '$lib/components/navigation/NavDesktopMenu.svelte';
-  import NavMobileMenu from '$lib/components/navigation/NavMobileMenu.svelte';
-  import ProjectSelector from '$lib/components/navigation/ProjectSelector.svelte';
-  import WorkspaceSelector from '$lib/components/navigation/WorkspaceSelector.svelte';
-  import { dataFlagsFromSummary, navigationItems, navigationUrl, type NavItem, type NavProject, type NavTarget, type NavUser, type NavWorkspace, type WorkspaceSummary } from '$lib/components/navigation/navItems';
+  import UserMenu from '#lib/components/UserMenu.svelte';
+  import BrandMark from '#lib/components/ui/BrandMark.svelte';
+  import NavDesktopMenu from '#lib/components/navigation/NavDesktopMenu.svelte';
+  import NavMobileMenu from '#lib/components/navigation/NavMobileMenu.svelte';
+  import ProjectSelector from '#lib/components/navigation/ProjectSelector.svelte';
+  import WorkspaceSelector from '#lib/components/navigation/WorkspaceSelector.svelte';
+  import { dataFlagsFromSummary, navigationItems, navigationUrl, type NavItem, type NavProject, type NavTarget, type NavUser, type NavWorkspace, type WorkspaceSummary } from '#lib/components/navigation/navItems.ts';
   import { goto } from '$app/navigation';
-  import { page } from '$lib/stores/pageStore.svelte';
+  import { page } from '#lib/stores/pageStore.svelte.ts';
   import { onMount } from 'svelte';
   import { browser } from '$app/env';
-  import { workspaceIdFromRoute } from '$lib/utils/workspaceRoute';
-  import { currentProject, loadCurrentProject } from '$lib/stores/projectStore';
+  import { workspaceIdFromRoute } from '#lib/utils/workspaceRoute.ts';
+  import { currentProject, loadCurrentProject } from '#lib/stores/projectStore.ts';
 
 
   let mobileMenuOpen = false;

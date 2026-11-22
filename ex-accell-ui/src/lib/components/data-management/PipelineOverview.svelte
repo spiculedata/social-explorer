@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { formatNumber } from '$lib/utils/formatUtils';
+  import { formatNumber } from '#lib/utils/formatUtils.ts';
 
   export let sourceCount: number;
   export let activeWorkflowCount: number;

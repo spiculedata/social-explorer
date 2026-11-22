@@ -1,12 +1,12 @@
 // Image Processing API — object detection, face detection, OCR, classification, moderation
-import { fetchPublic, readCapped, TooLargeError, UnsafeUrlError } from '$lib/server/safeFetch';
-import { imageUrlProblem } from '$lib/server/imageUrl';
+import { fetchPublic, readCapped, TooLargeError, UnsafeUrlError } from '#lib/server/safeFetch.ts';
+import { imageUrlProblem } from '#lib/server/imageUrl.ts';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { postgresPool } from '$lib/services/postgres';
-import { readJsonObject } from '$lib/server/apiResponse';
-import { queryErrorResponse } from '$lib/server/queryErrors';
-import { emptyImageData } from '$lib/server/imageProcessingEmpty';
+import { postgresPool } from '#lib/services/postgres.ts';
+import { readJsonObject } from '#lib/server/apiResponse.ts';
+import { queryErrorResponse } from '#lib/server/queryErrors.ts';
+import { emptyImageData } from '#lib/server/imageProcessingEmpty.ts';
 
 /**
  * GET /api/image-processing — query image analysis results and stats

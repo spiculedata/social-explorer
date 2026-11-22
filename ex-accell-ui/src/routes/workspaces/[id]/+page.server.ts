@@ -1,5 +1,5 @@
 import { error } from '@sveltejs/kit';
-import { projectsDb } from '$lib/services/projectsDb';
+import { projectsDb } from '#lib/services/projectsDb.ts';
 import type { PageServerLoad } from './$types';
 
 // An id that names no workspace is a real 404 (with links onward), not a page that loads and shows a Retry button.

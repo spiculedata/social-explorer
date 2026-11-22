@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { IpfsDisabledError, PackageTooLargeError, UnsafePackageError } from '$lib/services/ipfsErrors';
-import { NetworkConfigError } from '$lib/services/ipfsNetworkConfig';
+import { IpfsDisabledError, PackageTooLargeError, UnsafePackageError } from '#lib/services/ipfsErrors.ts';
+import { NetworkConfigError } from '#lib/services/ipfsNetworkConfig.ts';
 
 // The route reads PACKAGES_DIR and MAX_EXPORT_ROWS when it loads, so both are set before the import below
 const PACKAGES_DIR = vi.hoisted(() => {
@@ -20,7 +20,7 @@ const db = vi.hoisted(() => {
   );
   return { query, transaction };
 });
-vi.mock('$lib/services/postgres', () => ({ postgresPool: db }));
+vi.mock('#lib/services/postgres.ts', () => ({ postgresPool: db }));
 
 const ipfs = vi.hoisted(() => ({
   isEnabled: vi.fn(),
@@ -30,9 +30,9 @@ const ipfs = vi.hoisted(() => ({
   fetchDirectory: vi.fn(),
   getGatewayUrl: vi.fn((cid: string) => `https://ipfs.io/ipfs/${cid}`)
 }));
-vi.mock('$lib/services/ipfsService', () => ({ ipfsService: ipfs }));
+vi.mock('#lib/services/ipfsService.ts', () => ({ ipfsService: ipfs }));
 
-vi.mock('$lib/utils/logger', () => ({
+vi.mock('#lib/utils/logger.ts', () => ({
   createLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() })
 }));
 

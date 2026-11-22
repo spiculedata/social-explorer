@@ -1,22 +1,22 @@
 <script lang="ts">
-  import { CHART } from '$lib/utils/chartColors';
+  import { CHART } from '#lib/utils/chartColors.ts';
   import { goto } from '$app/navigation';
-  import FilterBar from '$lib/components/ui/FilterBar.svelte';
-  import { page } from '$lib/stores/pageStore.svelte';
-  import { currentProject } from '$lib/stores/projectStore';
-  import { engagementAnalysisDb } from '$lib/services/engagementAnalysisDb';
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
-  import WorkspaceBanner from '$lib/components/ui/WorkspaceBanner.svelte';
+  import FilterBar from '#lib/components/ui/FilterBar.svelte';
+  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import { currentProject } from '#lib/stores/projectStore.ts';
+  import { engagementAnalysisDb } from '#lib/services/engagementAnalysisDb.ts';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
+  import WorkspaceBanner from '#lib/components/ui/WorkspaceBanner.svelte';
   import { onMount } from 'svelte';
-  import { waitForEcharts, initChart } from '$lib/utils/echarts';
-  import { ErrorAlert } from '$lib/components/ui';
-  import { runExport, downloadCsv, IDLE_EXPORT, type ExportState } from '$lib/utils/exportAction';
-  import { toCsv } from '$lib/utils/evidenceExport';
-  import ExportStatus from '$lib/components/ui/ExportStatus.svelte';
-  import { rangeReloader } from '$lib/utils/filterRange';
-  import { getSentimentColor } from '$lib/utils/colorUtils';
-  import PostDrilldown from '$lib/components/ui/PostDrilldown.svelte';
-  import { filtersFromParams, type PostFilters } from '$lib/services/postsApi';
+  import { waitForEcharts, initChart } from '#lib/utils/echarts.ts';
+  import { ErrorAlert } from '#lib/components/ui/index.ts';
+  import { runExport, downloadCsv, IDLE_EXPORT, type ExportState } from '#lib/utils/exportAction.ts';
+  import { toCsv } from '#lib/utils/evidenceExport.ts';
+  import ExportStatus from '#lib/components/ui/ExportStatus.svelte';
+  import { rangeReloader } from '#lib/utils/filterRange.ts';
+  import { getSentimentColor } from '#lib/utils/colorUtils.ts';
+  import PostDrilldown from '#lib/components/ui/PostDrilldown.svelte';
+  import { filtersFromParams, type PostFilters } from '#lib/services/postsApi.ts';
 
   $: workspaceId = $page.url.searchParams.get('workspace');
 

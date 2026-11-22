@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { CrawlerConfig, ScheduleConfig } from '$lib/utils/dataCapture/types';
+import type { CrawlerConfig, ScheduleConfig } from '#lib/utils/dataCapture/types.ts';
 
   export let crawlerConfig: CrawlerConfig;
   export let scheduleConfig: ScheduleConfig;

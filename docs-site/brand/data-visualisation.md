@@ -26,10 +26,10 @@ approval).
 | Negative | `--se-sentiment-negative` | `#e69f00` | `sentiment-negative` |
 | Very negative | `--se-sentiment-very-negative` | `#d55e00` | `sentiment-very-negative` |
 
-In code, always get sentiment colours from `getSentimentColor()` in `$lib/utils/colorUtils`. It is the
+In code, always get sentiment colours from `getSentimentColor()` in `#lib/utils/colorUtils.ts`. It is the
 single source for charts and badges; do not write sentiment hex values into a page. Any other colour a chart, canvas or
 SVG needs (axis ink, series, status, a network's own colour) comes from `CHART`, `CATEGORICAL` and `DIVERGING` in
-`$lib/utils/chartColors`, which hold the brand tokens as hex. A test fails if a page writes a hex colour, or colours
+`#lib/utils/chartColors.ts`, which hold the brand tokens as hex. A test fails if a page writes a hex colour, or colours
 sentiment with green and red classes.
 
 **Rules**
@@ -84,6 +84,6 @@ Okabe-Ito set, in this order:
 
 ## In code
 
-Charts use ECharts through `initChart()` in `$lib/utils/echarts`, which applies the `social-explorer`
+Charts use ECharts through `initChart()` in `#lib/utils/echarts.ts`, which applies the `social-explorer`
 theme: Atkinson Hyperlegible Next for all text, ink for axes and grid, and the categorical order above.
 Set per-series colours only for sentiment (use `getSentimentColor`) or when a series has a meaning of its own.

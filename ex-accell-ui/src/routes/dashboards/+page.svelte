@@ -1,18 +1,18 @@
 <script lang="ts">
-  import { CHART } from '$lib/utils/chartColors';
+  import { CHART } from '#lib/utils/chartColors.ts';
   import { goto } from '$app/navigation';
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
-  import { currentProject } from '$lib/stores/projectStore';
-  import { page } from '$lib/stores/pageStore.svelte';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
+  import { currentProject } from '#lib/stores/projectStore.ts';
+  import { page } from '#lib/stores/pageStore.svelte.ts';
   import { onMount } from 'svelte';
-  import { dashboardDb } from '$lib/services/dashboardDb';
-  import { ErrorAlert } from '$lib/components/ui';
-  import { getSentimentColor, getStatusColor, getStatusIcon, getTrendIcon, getHealthColor } from '$lib/utils/colorUtils';
-  import { formatTimestamp, formatNumber } from '$lib/utils/formatUtils';
-  import { waitForEcharts, initChart } from '$lib/utils/echarts';
-  import WorkspaceBanner from '$lib/components/ui/WorkspaceBanner.svelte';
-  import FilterBar from '$lib/components/ui/FilterBar.svelte';
-  import { setWorkspaceFromUrl } from '$lib/stores/workspaceStore';
+  import { dashboardDb } from '#lib/services/dashboardDb.ts';
+  import { ErrorAlert } from '#lib/components/ui/index.ts';
+  import { getSentimentColor, getStatusColor, getStatusIcon, getTrendIcon, getHealthColor } from '#lib/utils/colorUtils.ts';
+  import { formatTimestamp, formatNumber } from '#lib/utils/formatUtils.ts';
+  import { waitForEcharts, initChart } from '#lib/utils/echarts.ts';
+  import WorkspaceBanner from '#lib/components/ui/WorkspaceBanner.svelte';
+  import FilterBar from '#lib/components/ui/FilterBar.svelte';
+  import { setWorkspaceFromUrl } from '#lib/stores/workspaceStore.ts';
 
   let filterBar: FilterBar;
 
@@ -36,7 +36,7 @@
 
           // If no current project, load the workspace's project
           if (!$currentProject && workspace.project_id) {
-            const { setCurrentProject } = await import('$lib/stores/projectStore');
+            const { setCurrentProject } = await import('#lib/stores/projectStore.ts');
             await setCurrentProject(workspace.project_id.toString());
           }
         }

@@ -1,12 +1,12 @@
 // Workspaces API Endpoint
 // CRUD operations for workspaces within projects
 
-import { canManageProject, parseResourceId } from '$lib/server/auth/access';
-import { refuseIfNoAccess } from '$lib/server/auth/accessGuard';
-import { loadProjectAccessInfo } from '$lib/server/auth/accessRepo';
-import { apiFail, apiOk, apiServerError, readJsonObject } from '$lib/server/apiResponse';
+import { canManageProject, parseResourceId } from '#lib/server/auth/access.ts';
+import { refuseIfNoAccess } from '#lib/server/auth/accessGuard.ts';
+import { loadProjectAccessInfo } from '#lib/server/auth/accessRepo.ts';
+import { apiFail, apiOk, apiServerError, readJsonObject } from '#lib/server/apiResponse.ts';
 import type { RequestHandler } from './$types';
-import { projectsDb } from '$lib/services/projectsDb';
+import { projectsDb } from '#lib/services/projectsDb.ts';
 
 const MAX_BODY_BYTES = 256 * 1024;
 

@@ -1,30 +1,30 @@
 <script lang="ts">
-  import { resolveInvestigationRange } from '$lib/utils/investigationRange';
-  import { isPostNoted, noteFromPost, notesToMarkdown, parseAnnotations, type Annotation } from '$lib/utils/annotations';
-  import { createSingleFlight } from '$lib/utils/singleFlight';
+  import { resolveInvestigationRange } from '#lib/utils/investigationRange.ts';
+  import { isPostNoted, noteFromPost, notesToMarkdown, parseAnnotations, type Annotation } from '#lib/utils/annotations.ts';
+  import { createSingleFlight } from '#lib/utils/singleFlight.ts';
   import { beforeNavigate, goto } from '$app/navigation';
-  import { page } from '$lib/stores/pageStore.svelte';
+  import { page } from '#lib/stores/pageStore.svelte.ts';
   import { onMount } from 'svelte';
-  import { investigationSelection, clearSelection, setTimeRange } from '$lib/stores/investigationStore';
-  import WorkbenchToolbar from '$lib/components/investigation/WorkbenchToolbar.svelte';
-  import NotesBar from '$lib/components/investigation/NotesBar.svelte';
-  import WorkbenchTimeline from '$lib/components/investigation/WorkbenchTimeline.svelte';
-  import SourceTabs from '$lib/components/investigation/SourceTabs.svelte';
-  import GdeltEventTable from '$lib/components/investigation/GdeltEventTable.svelte';
-  import RadioSegmentList from '$lib/components/investigation/RadioSegmentList.svelte';
-  import SocialPostList from '$lib/components/investigation/SocialPostList.svelte';
-  import PortalsPanel from '$lib/components/investigation/PortalsPanel.svelte';
-  import type { TimelineEntry } from '$lib/components/investigation/SwimLaneTimeline.svelte';
-  import { buildInvestigationReport, buildPostsCsv, downloadFile, exportFileName } from '$lib/utils/investigationExport';
+  import { investigationSelection, clearSelection, setTimeRange } from '#lib/stores/investigationStore.ts';
+  import WorkbenchToolbar from '#lib/components/investigation/WorkbenchToolbar.svelte';
+  import NotesBar from '#lib/components/investigation/NotesBar.svelte';
+  import WorkbenchTimeline from '#lib/components/investigation/WorkbenchTimeline.svelte';
+  import SourceTabs from '#lib/components/investigation/SourceTabs.svelte';
+  import GdeltEventTable from '#lib/components/investigation/GdeltEventTable.svelte';
+  import RadioSegmentList from '#lib/components/investigation/RadioSegmentList.svelte';
+  import SocialPostList from '#lib/components/investigation/SocialPostList.svelte';
+  import PortalsPanel from '#lib/components/investigation/PortalsPanel.svelte';
+  import type { TimelineEntry } from '#lib/components/investigation/SwimLaneTimeline.svelte';
+  import { buildInvestigationReport, buildPostsCsv, downloadFile, exportFileName } from '#lib/utils/investigationExport.ts';
   import {
     filterGdeltByCrossFilter,
     filterRadioByCrossFilter,
     filterSocialByCrossFilter,
     filterTimelineToRange
-  } from '$lib/utils/investigationFilters';
-  import { buildInvestigationQuery, normalizeTimeline } from '$lib/utils/investigationQuery';
-  import { saveInvestigation } from '$lib/utils/investigationSave';
-  import type { GdeltEvent, InvestigationRecord, RadioSegment, SourceTab, WorkbenchPost } from '$lib/utils/investigationTypes';
+  } from '#lib/utils/investigationFilters.ts';
+  import { buildInvestigationQuery, normalizeTimeline } from '#lib/utils/investigationQuery.ts';
+  import { saveInvestigation } from '#lib/utils/investigationSave.ts';
+  import type { GdeltEvent, InvestigationRecord, RadioSegment, SourceTab, WorkbenchPost } from '#lib/utils/investigationTypes.ts';
 
   export const ssr = false;
 

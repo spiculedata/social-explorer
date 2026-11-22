@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { currentProject, setCurrentProject, clearCurrentProject } from '$lib/stores/projectStore';
+  import { currentProject, setCurrentProject, clearCurrentProject } from '#lib/stores/projectStore.ts';
   import type { NavProject } from './navItems';
 
   export let projects: NavProject[];

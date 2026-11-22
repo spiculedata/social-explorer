@@ -4,12 +4,12 @@
 </svelte:head>
 
 <script lang="ts">
-  import { workspaceTypeBadgeClass } from '$lib/utils/categoryColours';
-  import { CHART } from '$lib/utils/chartColors';
+  import { workspaceTypeBadgeClass } from '#lib/utils/categoryColours.ts';
+  import { CHART } from '#lib/utils/chartColors.ts';
   import { onMount, onDestroy } from 'svelte';
-  import { typeLabel } from '$lib/utils/projectForm';
+  import { typeLabel } from '#lib/utils/projectForm.ts';
   import { goto } from '$app/navigation';
-  import { page } from '$lib/stores/pageStore.svelte';
+  import { page } from '#lib/stores/pageStore.svelte.ts';
 
   // ---------- types ----------
   interface Anomaly {

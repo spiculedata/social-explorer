@@ -6,7 +6,7 @@
    * Provides dynamic form inputs based on step type with real-time updates.
    */
 
-  import { workflowBuilder, type WorkflowStep, type Dataset } from '$lib/stores/workflowBuilderStore';
+  import { workflowBuilder, type WorkflowStep, type Dataset } from '#lib/stores/workflowBuilderStore.ts';
 
   // Props
   let {

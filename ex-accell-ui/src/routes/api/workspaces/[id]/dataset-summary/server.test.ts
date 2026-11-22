@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const db = vi.hoisted(() => ({ getWorkspaceDatasets: vi.fn() }));
-vi.mock('$lib/services/datasetsDb', () => ({ datasetsDb: db }));
+vi.mock('#lib/services/datasetsDb.ts', () => ({ datasetsDb: db }));
 
 import { GET } from './+server';
 

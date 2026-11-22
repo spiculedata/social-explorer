@@ -5,11 +5,11 @@
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { validateDateParams } from '$lib/server/dateBounds';
-import { queryErrorResponse } from '$lib/server/queryErrors';
-import { resolveWorkspaceScope } from '$lib/services/workspaceContextResolver';
-import { findAnalyticsHandler } from '$lib/server/analytics/registry';
-import { unsupportedTypeResponse } from '$lib/server/analytics/unsupported';
+import { validateDateParams } from '#lib/server/dateBounds.ts';
+import { queryErrorResponse } from '#lib/server/queryErrors.ts';
+import { resolveWorkspaceScope } from '#lib/services/workspaceContextResolver.ts';
+import { findAnalyticsHandler } from '#lib/server/analytics/registry.ts';
+import { unsupportedTypeResponse } from '#lib/server/analytics/unsupported.ts';
 
 /** Social-media types that answer an empty list when the platform filter is explicitly emptied. */
 const SOCIAL_ENDPOINTS = ['cross-platform-sentiment', 'sentiment-trends', 'sample-posts',

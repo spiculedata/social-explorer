@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { page } from '$lib/stores/pageStore.svelte';
-  import ChangePasswordForm from '$lib/components/ChangePasswordForm.svelte';
-  import { signOut, signOutEverywhere } from '$lib/utils/signOut';
+  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import ChangePasswordForm from '#lib/components/ChangePasswordForm.svelte';
+  import { signOut, signOutEverywhere } from '#lib/utils/signOut.ts';
 
   let isSigningOut = false;
 

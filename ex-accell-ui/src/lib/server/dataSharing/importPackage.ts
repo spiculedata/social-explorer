@@ -4,8 +4,8 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { postgresPool } from '$lib/services/postgres';
-import { ipfsService } from '$lib/services/ipfsService';
+import { postgresPool } from '#lib/services/postgres.ts';
+import { ipfsService } from '#lib/services/ipfsService.ts';
 import { parseCsv } from './csv';
 import { conflict, unprocessable } from './errors';
 import { isSafePackageFileName, isSafeSqlIdentifier, quoteIdentifier } from './identifiers';

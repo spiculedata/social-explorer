@@ -4,7 +4,7 @@
 import { DaprClient, CommunicationProtocolEnum, WorkflowRuntimeStatus } from '@dapr/dapr';
 import { spawn } from 'child_process';
 import { join } from 'path';
-import { assertSafeIdentifier } from '$lib/utils/pathSafety';
+import { assertSafeIdentifier } from '#lib/utils/pathSafety.ts';
 import type { PublishedWorkflow, WorkflowExecution } from './serverWorkflowService';
 import { pythonDaprWorkflowGenerator, type PythonDaprWorkflow } from './pythonDaprWorkflowGenerator';
 

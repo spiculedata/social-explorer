@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { page } from '$lib/stores/pageStore.svelte';
-  import BrandMark from '$lib/components/ui/BrandMark.svelte';
+  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import BrandMark from '#lib/components/ui/BrandMark.svelte';
 
   $: status = $page.status;
   $: notFound = status === 404;

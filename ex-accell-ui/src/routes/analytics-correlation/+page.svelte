@@ -1,15 +1,15 @@
 <script lang="ts">
-  import { CATEGORICAL, CHART } from '$lib/utils/chartColors';
-  import { page } from '$lib/stores/pageStore.svelte';
+  import { CATEGORICAL, CHART } from '#lib/utils/chartColors.ts';
+  import { page } from '#lib/stores/pageStore.svelte.ts';
   import { onMount } from 'svelte';
   import { browser } from '$app/env';
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
-  import { getSentimentColor } from '$lib/utils/colorUtils';
-  import { correlationMatrix } from '$lib/utils/correlation';
-  import WorkspaceBanner from '$lib/components/ui/WorkspaceBanner.svelte';
-  import { ErrorAlert } from '$lib/components/ui';
-  import { waitForEcharts, initChart } from '$lib/utils/echarts';
-  import { formatNumber } from '$lib/utils/formatUtils';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
+  import { getSentimentColor } from '#lib/utils/colorUtils.ts';
+  import { correlationMatrix } from '#lib/utils/correlation.ts';
+  import WorkspaceBanner from '#lib/components/ui/WorkspaceBanner.svelte';
+  import { ErrorAlert } from '#lib/components/ui/index.ts';
+  import { waitForEcharts, initChart } from '#lib/utils/echarts.ts';
+  import { formatNumber } from '#lib/utils/formatUtils.ts';
 
   $: workspaceId = $page.url.searchParams.get('workspace');
 

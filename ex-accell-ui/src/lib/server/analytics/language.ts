@@ -1,8 +1,8 @@
 import { json } from '@sveltejs/kit';
 import { executeQuery } from './executeQuery';
-import { PLATFORM_CONDITION, hasNoSocialData, languageQueries, languageScope } from '$lib/server/languageQueries';
-import { queryErrorResponse } from '$lib/server/queryErrors';
-import { parseDateWindow, windowConditions } from '$lib/server/dateWindow';
+import { PLATFORM_CONDITION, hasNoSocialData, languageQueries, languageScope } from '#lib/server/languageQueries.ts';
+import { queryErrorResponse } from '#lib/server/queryErrors.ts';
+import { parseDateWindow, windowConditions } from '#lib/server/dateWindow.ts';
 import type { AnalyticsContext, AnalyticsHandler } from './types';
 
 async function languageStats({ url, scope }: AnalyticsContext): Promise<Response> {

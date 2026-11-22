@@ -3,7 +3,7 @@ import { BaseDatabaseService } from './baseDatabaseService';
 import type { DatabaseServiceConfig, QueryOptions } from './baseDatabaseService';
 import { createFetchMock, createFetchError, createNetworkError } from '../../test/mocks/fetchMock';
 import { get } from 'svelte/store';
-import { apiErrors, dismissApiErrors } from '$lib/stores/apiErrors';
+import { apiErrors, dismissApiErrors } from '#lib/stores/apiErrors.ts';
 
 // Concrete subclass for testing the abstract base class
 class TestService extends BaseDatabaseService {

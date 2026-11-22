@@ -26,7 +26,7 @@ does not depend on an installed font.
 | [mark-mono.svg](/brand/mark-mono.svg), [logo-mono.svg](/brand/logo-mono.svg) | One-colour black, for print and fax-like contexts |
 | [mark-mono-white.svg](/brand/mark-mono-white.svg), [logo-mono-white.svg](/brand/logo-mono-white.svg) | One-colour white, over photography or colour |
 
-In the app, use the `BrandMark` component (`$lib/components/ui/BrandMark.svelte`) so the ring follows
+In the app, use the `BrandMark` component (`#lib/components/ui/BrandMark.svelte`) so the ring follows
 the surrounding text colour. The favicon adapts to light and dark system themes.
 
 ## Colour

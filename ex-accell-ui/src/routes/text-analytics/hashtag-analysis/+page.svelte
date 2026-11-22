@@ -1,18 +1,18 @@
 <script lang="ts">
-  import { CHART } from '$lib/utils/chartColors';
-  import { page } from '$lib/stores/pageStore.svelte';
-  import PostDrilldown from '$lib/components/ui/PostDrilldown.svelte';
-  import { filtersFromParams, type PostFilters } from '$lib/services/postsApi';
-  import FilterBar from '$lib/components/ui/FilterBar.svelte';
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
-  import WorkspaceBanner from '$lib/components/ui/WorkspaceBanner.svelte';
+  import { CHART } from '#lib/utils/chartColors.ts';
+  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import PostDrilldown from '#lib/components/ui/PostDrilldown.svelte';
+  import { filtersFromParams, type PostFilters } from '#lib/services/postsApi.ts';
+  import FilterBar from '#lib/components/ui/FilterBar.svelte';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
+  import WorkspaceBanner from '#lib/components/ui/WorkspaceBanner.svelte';
   import { onMount } from 'svelte';
-  import { waitForEcharts, initChart } from '$lib/utils/echarts';
-  import { ErrorAlert } from '$lib/components/ui';
-  import { formatNumber } from '$lib/utils/formatUtils';
-  import { runExport, downloadCsv, IDLE_EXPORT, type ExportState } from '$lib/utils/exportAction';
-  import { toCsv } from '$lib/utils/evidenceExport';
-  import ExportStatus from '$lib/components/ui/ExportStatus.svelte';
+  import { waitForEcharts, initChart } from '#lib/utils/echarts.ts';
+  import { ErrorAlert } from '#lib/components/ui/index.ts';
+  import { formatNumber } from '#lib/utils/formatUtils.ts';
+  import { runExport, downloadCsv, IDLE_EXPORT, type ExportState } from '#lib/utils/exportAction.ts';
+  import { toCsv } from '#lib/utils/evidenceExport.ts';
+  import ExportStatus from '#lib/components/ui/ExportStatus.svelte';
 
   $: workspaceId = $page.url.searchParams.get('workspace');
 

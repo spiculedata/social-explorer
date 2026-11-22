@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { CrossFilter } from '$lib/stores/investigationStore';
+  import type { CrossFilter } from '#lib/stores/investigationStore.ts';
 
   export let crossFilter: CrossFilter | null = null;
   export let nativeDimensions: string[] = [];

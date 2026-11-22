@@ -17,10 +17,10 @@ const hoisted = vi.hoisted(() => ({
 vi.mock('$app/navigation', () => ({ goto: hoisted.goto }));
 vi.mock('$app/env', () => ({ browser: true }));
 vi.mock('$app/state', () => import('../../test/mocks/pageState.svelte'));
-vi.mock('$lib/utils/signOut', () => ({ signOut: hoisted.signOut, signOutEverywhere: hoisted.signOutEverywhere }));
+vi.mock('#lib/utils/signOut.ts', () => ({ signOut: hoisted.signOut, signOutEverywhere: hoisted.signOutEverywhere }));
 
 import { resetMockPage, setMockPage } from '../../test/mocks/pageState.svelte';
-import { currentProject } from '$lib/stores/projectStore';
+import { currentProject } from '#lib/stores/projectStore.ts';
 import Navigation from './Navigation.svelte';
 
 

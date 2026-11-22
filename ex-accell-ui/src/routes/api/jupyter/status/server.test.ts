@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const jupyterStatus = vi.hoisted(() => vi.fn());
-vi.mock('$lib/server/jupyterRuntime', () => ({ jupyterStatus }));
+vi.mock('#lib/server/jupyterRuntime.ts', () => ({ jupyterStatus }));
 
 import { GET } from './+server';
 

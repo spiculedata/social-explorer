@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { Modal } from '$lib/components/ui';
-  import { formatNumber } from '$lib/utils/formatUtils';
-  import type { DataRow } from '$lib/utils/dataManagement';
+  import { Modal } from '#lib/components/ui/index.ts';
+  import { formatNumber } from '#lib/utils/formatUtils.ts';
+  import type { DataRow } from '#lib/utils/dataManagement.ts';
 
   export let open: boolean;
   /** The dataset or source row to describe */

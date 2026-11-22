@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { dataSourceBadgeClass } from '$lib/utils/categoryColours';
+  import { dataSourceBadgeClass } from '#lib/utils/categoryColours.ts';
   import { onMount } from 'svelte';
   import { browser } from '$app/env';
-  import { page } from '$lib/stores/pageStore.svelte';
+  import { page } from '#lib/stores/pageStore.svelte.ts';
   import { createEventDispatcher } from 'svelte';
   import { replaceState } from '$app/navigation';
-  import { validateDayRange } from '$lib/utils/calendarDay';
-  import { noSourcesMessage } from '$lib/utils/sourceLabels';
-  import { applyRangeToParams, readRange, rememberRange } from '$lib/utils/filterRange';
+  import { validateDayRange } from '#lib/utils/calendarDay.ts';
+  import { noSourcesMessage } from '#lib/utils/sourceLabels.ts';
+  import { applyRangeToParams, readRange, rememberRange } from '#lib/utils/filterRange.ts';
 
   export let workspaceId: string | null = null;
   export let compact = false;

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { page } from '$lib/stores/pageStore.svelte';
+  import { page } from '#lib/stores/pageStore.svelte.ts';
   import { onMount } from 'svelte';
 
   $: workspaceId = $page.url.searchParams.get('workspace');

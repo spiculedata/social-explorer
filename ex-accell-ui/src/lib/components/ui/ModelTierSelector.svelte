@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { tierDescription, type TierTool } from '$lib/utils/tierDescriptions';
+  import { tierDescription, type TierTool } from '#lib/utils/tierDescriptions.ts';
   export let selectedTier = 'fast';
   export let compact = false;
   export let disabled = false;

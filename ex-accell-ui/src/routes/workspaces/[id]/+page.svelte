@@ -4,11 +4,11 @@
 </svelte:head>
 
 <script lang="ts">
-  import { platformBadgeClass, platformDotClass, workspaceTypeBadgeClass } from '$lib/utils/categoryColours';
-  import { sourceStatusBadgeClass } from '$lib/utils/sourceStatus';
+  import { platformBadgeClass, platformDotClass, workspaceTypeBadgeClass } from '#lib/utils/categoryColours.ts';
+  import { sourceStatusBadgeClass } from '#lib/utils/sourceStatus.ts';
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { page } from '$lib/stores/pageStore.svelte';
+  import { page } from '#lib/stores/pageStore.svelte.ts';
 
   export const ssr = false;
 

@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { jupyterStatus } from '$lib/server/jupyterRuntime';
+import { jupyterStatus } from '#lib/server/jupyterRuntime.ts';
 
 /** Reports whether Jupyter is up (and its link when it is). Never starts anything, so it is safe to poll. */
 export const GET: RequestHandler = async () => {

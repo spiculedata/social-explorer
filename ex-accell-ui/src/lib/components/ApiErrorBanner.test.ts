@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/svelte';
 import ApiErrorBanner from './ApiErrorBanner.svelte';
-import { dismissApiErrors, reportApiError } from '$lib/stores/apiErrors';
+import { dismissApiErrors, reportApiError } from '#lib/stores/apiErrors.ts';
 
 beforeEach(() => dismissApiErrors());
 

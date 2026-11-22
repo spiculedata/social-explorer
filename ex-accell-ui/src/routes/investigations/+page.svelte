@@ -1,12 +1,12 @@
 <script lang="ts">
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
-  import { dataSourceBadgeClass } from '$lib/utils/categoryColours';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
+  import { dataSourceBadgeClass } from '#lib/utils/categoryColours.ts';
   import { onMount } from 'svelte';
-  import { formatDay } from '$lib/utils/dayFormat';
-  import { commitKeywords } from '$lib/utils/keywords';
+  import { formatDay } from '#lib/utils/dayFormat.ts';
+  import { commitKeywords } from '#lib/utils/keywords.ts';
   import { goto } from '$app/navigation';
-  import { page } from '$lib/stores/pageStore.svelte';
-  import { currentProject } from '$lib/stores/projectStore';
+  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import { currentProject } from '#lib/stores/projectStore.ts';
 
   interface Investigation {
     id: string;

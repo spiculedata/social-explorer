@@ -1,9 +1,9 @@
 // Workflow Management API
 // Handles publishing, executing, and managing workflows
 
-import { apiFail, apiOk, apiServerError, readJsonObject } from '$lib/server/apiResponse';
+import { apiFail, apiOk, apiServerError, readJsonObject } from '#lib/server/apiResponse.ts';
 import type { RequestHandler } from './$types';
-import { serverWorkflowService } from '$lib/services/serverWorkflowService';
+import { serverWorkflowService } from '#lib/services/serverWorkflowService.ts';
 
 const MAX_WORKFLOW_BODY_BYTES = 1024 * 1024; // far more than any real workflow definition
 

@@ -1,9 +1,9 @@
 import { json } from '@sveltejs/kit';
 import { executeQuery } from './executeQuery';
-import { ENGAGEMENT_TRENDS_DAYS, engagementQueries } from '$lib/server/engagementQueries';
-import { hasNoSocialData } from '$lib/server/languageQueries';
-import { queryErrorResponse } from '$lib/server/queryErrors';
-import { parseDateWindow, windowConditions } from '$lib/server/dateWindow';
+import { ENGAGEMENT_TRENDS_DAYS, engagementQueries } from '#lib/server/engagementQueries.ts';
+import { hasNoSocialData } from '#lib/server/languageQueries.ts';
+import { queryErrorResponse } from '#lib/server/queryErrors.ts';
+import { parseDateWindow, windowConditions } from '#lib/server/dateWindow.ts';
 import type { AnalyticsContext, AnalyticsHandler } from './types';
 
 const ENGAGEMENT_TYPES = ['engagement-stats', 'engagement-platforms', 'engagement-content-types', 'engagement-trends', 'engagement-top-posts', 'engagement-timing'];

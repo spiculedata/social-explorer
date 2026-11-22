@@ -1,10 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { page } from '$lib/stores/pageStore.svelte';
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
-  import { ErrorAlert, Modal } from '$lib/components/ui';
-  import { formatNumber, formatDate } from '$lib/utils/formatUtils';
-  import { packageIdFor } from '$lib/utils/packageId';
+  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
+  import { ErrorAlert, Modal } from '#lib/components/ui/index.ts';
+  import { formatNumber, formatDate } from '#lib/utils/formatUtils.ts';
+  import { packageIdFor } from '#lib/utils/packageId.ts';
 
   let loading = true;
   let errorMessage = '';

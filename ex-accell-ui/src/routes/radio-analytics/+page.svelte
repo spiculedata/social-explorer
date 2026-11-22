@@ -1,15 +1,15 @@
 <script lang="ts">
-  import { NEUTRAL_BADGE, categoryBadgeClass } from '$lib/utils/categoryColours';
-  import { CHART } from '$lib/utils/chartColors';
-  import { page } from '$lib/stores/pageStore.svelte';
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
-  import { getSentimentColor } from '$lib/utils/colorUtils';
+  import { NEUTRAL_BADGE, categoryBadgeClass } from '#lib/utils/categoryColours.ts';
+  import { CHART } from '#lib/utils/chartColors.ts';
+  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
+  import { getSentimentColor } from '#lib/utils/colorUtils.ts';
   import { onMount } from 'svelte';
-  import { radioAnalyticsDb } from '$lib/services/radioAnalyticsDb';
-  import FilterBar from '$lib/components/ui/FilterBar.svelte';
-  import WorkspaceBanner from '$lib/components/ui/WorkspaceBanner.svelte';
-  import { waitForEcharts, initChart } from '$lib/utils/echarts';
-  import { formatNumber } from '$lib/utils/formatUtils';
+  import { radioAnalyticsDb } from '#lib/services/radioAnalyticsDb.ts';
+  import FilterBar from '#lib/components/ui/FilterBar.svelte';
+  import WorkspaceBanner from '#lib/components/ui/WorkspaceBanner.svelte';
+  import { waitForEcharts, initChart } from '#lib/utils/echarts.ts';
+  import { formatNumber } from '#lib/utils/formatUtils.ts';
 
   $: workspaceId = $page.url.searchParams.get('workspace');
 

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { getCountryNameWithFallback } from '$lib/countryMapping';
-  import type { GdeltEvent } from '$lib/utils/gdeltFilters';
+  import { getCountryNameWithFallback } from '#lib/countryMapping.ts';
+  import type { GdeltEvent } from '#lib/utils/gdeltFilters.ts';
 
   export let events: GdeltEvent[];
   /** The events that pass every filter except the country one, which is what the counts show */

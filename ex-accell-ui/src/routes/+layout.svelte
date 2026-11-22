@@ -1,13 +1,13 @@
 <script>
   import '../app.css';
-  import { page } from '$lib/stores/pageStore.svelte';
+  import { page } from '#lib/stores/pageStore.svelte.ts';
   import { beforeNavigate } from '$app/navigation';
-  import { dismissApiErrors } from '$lib/stores/apiErrors';
-  import Navigation from '$lib/components/Navigation.svelte';
-  import ApiErrorBanner from '$lib/components/ApiErrorBanner.svelte';
+  import { dismissApiErrors } from '#lib/stores/apiErrors.ts';
+  import Navigation from '#lib/components/Navigation.svelte';
+  import ApiErrorBanner from '#lib/components/ApiErrorBanner.svelte';
   import { onMount } from 'svelte';
-  import { projectNotice } from '$lib/stores/projectStore';
-  import { sessionExpired, watchForExpiredSession } from '$lib/utils/sessionExpiry';
+  import { projectNotice } from '#lib/stores/projectStore.ts';
+  import { sessionExpired, watchForExpiredSession } from '#lib/utils/sessionExpiry.ts';
 
   // Failures belong to the page that requested the data; don't carry them to the next one
   // A notice about the project has been seen by the time the visitor moves on

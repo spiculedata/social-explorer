@@ -2,7 +2,7 @@
 // Uses PostgreSQL with pg_duckdb extension via unified analytics API
 
 import { BaseDatabaseService } from './baseDatabaseService';
-import { CHART } from '$lib/utils/chartColors';
+import { CHART } from '#lib/utils/chartColors.ts';
 import type {
   Topic,
   TopicKeyword,

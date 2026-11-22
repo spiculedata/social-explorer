@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { setCrossFilter } from '$lib/stores/investigationStore';
-  import { highlightKeywords } from '$lib/utils/highlight';
-  import { sentimentDotColor } from '$lib/utils/investigationFormat';
-  import type { RadioSegment } from '$lib/utils/investigationTypes';
+  import { setCrossFilter } from '#lib/stores/investigationStore.ts';
+  import { highlightKeywords } from '#lib/utils/highlight.ts';
+  import { sentimentDotColor } from '#lib/utils/investigationFormat.ts';
+  import type { RadioSegment } from '#lib/utils/investigationTypes.ts';
 
   export let loading: boolean;
   /** Segments after the cross-filter */

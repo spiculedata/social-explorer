@@ -1,34 +1,34 @@
 <script lang="ts">
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
   import { onMount, onDestroy } from 'svelte';
-  import { jobSchedulerService } from '$lib/services/jobSchedulerService';
-  import ErrorAlert from '$lib/components/ui/ErrorAlert.svelte';
-  import { describeJobStateFailure, type JobStateProblem } from '$lib/utils/jobStateProblem';
-  import JobProblemAlert from '$lib/components/data-capture/JobProblemAlert.svelte';
-  import CrawlerTab from '$lib/components/data-capture/CrawlerTab.svelte';
-  import UploadTab from '$lib/components/data-capture/UploadTab.svelte';
-  import PrincetonSmartTab from '$lib/components/data-capture/PrincetonSmartTab.svelte';
-  import ScheduleTab from '$lib/components/data-capture/ScheduleTab.svelte';
-  import WavePulseTab from '$lib/components/data-capture/WavePulseTab.svelte';
-  import AnalyticsTab from '$lib/components/data-capture/AnalyticsTab.svelte';
-  import LogViewerModal from '$lib/components/data-capture/LogViewerModal.svelte';
-  import DeleteJobModal from '$lib/components/data-capture/DeleteJobModal.svelte';
-  import JobErrorModal from '$lib/components/data-capture/JobErrorModal.svelte';
-  import DataCaptureTabs from '$lib/components/data-capture/DataCaptureTabs.svelte';
-  import type { JobState } from '$lib/services/jobStateStore';
+  import { jobSchedulerService } from '#lib/services/jobSchedulerService.ts';
+  import ErrorAlert from '#lib/components/ui/ErrorAlert.svelte';
+  import { describeJobStateFailure, type JobStateProblem } from '#lib/utils/jobStateProblem.ts';
+  import JobProblemAlert from '#lib/components/data-capture/JobProblemAlert.svelte';
+  import CrawlerTab from '#lib/components/data-capture/CrawlerTab.svelte';
+  import UploadTab from '#lib/components/data-capture/UploadTab.svelte';
+  import PrincetonSmartTab from '#lib/components/data-capture/PrincetonSmartTab.svelte';
+  import ScheduleTab from '#lib/components/data-capture/ScheduleTab.svelte';
+  import WavePulseTab from '#lib/components/data-capture/WavePulseTab.svelte';
+  import AnalyticsTab from '#lib/components/data-capture/AnalyticsTab.svelte';
+  import LogViewerModal from '#lib/components/data-capture/LogViewerModal.svelte';
+  import DeleteJobModal from '#lib/components/data-capture/DeleteJobModal.svelte';
+  import JobErrorModal from '#lib/components/data-capture/JobErrorModal.svelte';
+  import DataCaptureTabs from '#lib/components/data-capture/DataCaptureTabs.svelte';
+  import type { JobState } from '#lib/services/jobStateStore.ts';
   import {
     createDefaultCrawlerConfig,
     createDefaultPrincetonSmartConfig,
     createDefaultScheduleConfig,
     createDefaultWavePulseConfig,
     crawlerConfigFromJobData
-  } from '$lib/utils/dataCapture/configDefaults';
+  } from '#lib/utils/dataCapture/configDefaults.ts';
   import {
     getUrlValidationErrors,
     isJobNameUnique,
     validateCurrentStep,
     validateForm
-  } from '$lib/utils/dataCapture/crawlerValidation';
+  } from '#lib/utils/dataCapture/crawlerValidation.ts';
   import {
     applyJobStateUpdate,
     buildAnalyticsData,
@@ -38,7 +38,7 @@
     selectJobsToPoll,
     sortJobs,
     wavePulseStreamsToJobs
-  } from '$lib/utils/dataCapture/jobList';
+  } from '#lib/utils/dataCapture/jobList.ts';
   import {
     buildCrawlerJobName,
     buildCrawlerJobRequest,
@@ -46,7 +46,7 @@
     computeDueTime,
     parseNewUrls,
     readRunError
-  } from '$lib/utils/dataCapture/jobRequests';
+  } from '#lib/utils/dataCapture/jobRequests.ts';
   import {
     addRadioStream as addStream,
     addTimeSlot as addSlot,
@@ -54,8 +54,8 @@
     getWavePulseStartError,
     removeRadioStream as removeStream,
     removeTimeSlot as removeSlot
-  } from '$lib/utils/dataCapture/wavePulseActions';
-  import type { UiJob } from '$lib/utils/dataCapture/types';
+  } from '#lib/utils/dataCapture/wavePulseActions.ts';
+  import type { UiJob } from '#lib/utils/dataCapture/types.ts';
 
   let activeTab = 'schedule';
   let errorMessage = '';

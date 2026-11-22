@@ -4,8 +4,8 @@
 import type { RequestHandler } from './$types';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
-import { apiFail, apiOk, apiServerError, readJsonObject } from '$lib/server/apiResponse';
-import { isSafeIdentifier, resolveWithin } from '$lib/utils/pathSafety';
+import { apiFail, apiOk, apiServerError, readJsonObject } from '#lib/server/apiResponse.ts';
+import { isSafeIdentifier, resolveWithin } from '#lib/utils/pathSafety.ts';
 
 const DEPLOY_DIR_NAME = 'deployed-workflows';
 const MAX_DEPLOY_BODY_BYTES = 2 * 1024 * 1024;

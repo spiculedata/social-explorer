@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const query = vi.hoisted(() => vi.fn());
 
-vi.mock('$lib/services/postgres', () => ({ postgresPool: { query } }));
-vi.mock('$lib/utils/logger', () => ({ createLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }) }));
+vi.mock('#lib/services/postgres.ts', () => ({ postgresPool: { query } }));
+vi.mock('#lib/utils/logger.ts', () => ({ createLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }) }));
 
 import { GET, POST } from './+server';
 

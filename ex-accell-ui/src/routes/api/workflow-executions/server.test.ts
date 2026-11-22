@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const service = vi.hoisted(() => ({ getWorkflowExecutions: vi.fn() }));
-vi.mock('$lib/services/serverWorkflowService', () => ({ serverWorkflowService: service }));
+vi.mock('#lib/services/serverWorkflowService.ts', () => ({ serverWorkflowService: service }));
 
 import { GET } from './+server';
 

@@ -1,21 +1,21 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import FilterBar from '$lib/components/ui/FilterBar.svelte';
-  import { page } from '$lib/stores/pageStore.svelte';
-  import { currentProject } from '$lib/stores/projectStore';
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
-  import WorkspaceBanner from '$lib/components/ui/WorkspaceBanner.svelte';
-  import { languageDetectionDb } from '$lib/services/languageDetectionDb';
+  import FilterBar from '#lib/components/ui/FilterBar.svelte';
+  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import { currentProject } from '#lib/stores/projectStore.ts';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
+  import WorkspaceBanner from '#lib/components/ui/WorkspaceBanner.svelte';
+  import { languageDetectionDb } from '#lib/services/languageDetectionDb.ts';
   import { onMount } from 'svelte';
-  import { runExport, downloadCsv, IDLE_EXPORT, type ExportState } from '$lib/utils/exportAction';
-  import { toCsv } from '$lib/utils/evidenceExport';
-  import ExportStatus from '$lib/components/ui/ExportStatus.svelte';
-  import { getConfidenceColor } from '$lib/utils/colorUtils';
-  import { ErrorAlert } from '$lib/components/ui';
-  import { platformOptions } from '$lib/utils/platformOptions';
-  import { rangeReloader } from '$lib/utils/filterRange';
-  import PostDrilldown from '$lib/components/ui/PostDrilldown.svelte';
-  import { filtersFromParams, type PostFilters } from '$lib/services/postsApi';
+  import { runExport, downloadCsv, IDLE_EXPORT, type ExportState } from '#lib/utils/exportAction.ts';
+  import { toCsv } from '#lib/utils/evidenceExport.ts';
+  import ExportStatus from '#lib/components/ui/ExportStatus.svelte';
+  import { getConfidenceColor } from '#lib/utils/colorUtils.ts';
+  import { ErrorAlert } from '#lib/components/ui/index.ts';
+  import { platformOptions } from '#lib/utils/platformOptions.ts';
+  import { rangeReloader } from '#lib/utils/filterRange.ts';
+  import PostDrilldown from '#lib/components/ui/PostDrilldown.svelte';
+  import { filtersFromParams, type PostFilters } from '#lib/services/postsApi.ts';
 
   $: workspaceId = $page.url.searchParams.get('workspace');
 

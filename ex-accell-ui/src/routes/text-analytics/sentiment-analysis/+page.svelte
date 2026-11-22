@@ -1,22 +1,22 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import PostDrilldown from '$lib/components/ui/PostDrilldown.svelte';
-  import { filtersFromParams, type PostFilters } from '$lib/services/postsApi';
-  import MethodNote from '$lib/components/ui/MethodNote.svelte';
-  import { apiErrors } from '$lib/stores/apiErrors';
-  import { runExport, downloadCsv, IDLE_EXPORT, type ExportState } from '$lib/utils/exportAction';
-  import { toCsv } from '$lib/utils/evidenceExport';
-  import ExportStatus from '$lib/components/ui/ExportStatus.svelte';
-  import FilterBar from '$lib/components/ui/FilterBar.svelte';
-  import { page } from '$lib/stores/pageStore.svelte';
-  import { currentProject } from '$lib/stores/projectStore';
-  import { sentimentAnalysisDb } from '$lib/services/sentimentAnalysisDb';
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
-  import WorkspaceBanner from '$lib/components/ui/WorkspaceBanner.svelte';
+  import PostDrilldown from '#lib/components/ui/PostDrilldown.svelte';
+  import { filtersFromParams, type PostFilters } from '#lib/services/postsApi.ts';
+  import MethodNote from '#lib/components/ui/MethodNote.svelte';
+  import { apiErrors } from '#lib/stores/apiErrors.ts';
+  import { runExport, downloadCsv, IDLE_EXPORT, type ExportState } from '#lib/utils/exportAction.ts';
+  import { toCsv } from '#lib/utils/evidenceExport.ts';
+  import ExportStatus from '#lib/components/ui/ExportStatus.svelte';
+  import FilterBar from '#lib/components/ui/FilterBar.svelte';
+  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import { currentProject } from '#lib/stores/projectStore.ts';
+  import { sentimentAnalysisDb } from '#lib/services/sentimentAnalysisDb.ts';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
+  import WorkspaceBanner from '#lib/components/ui/WorkspaceBanner.svelte';
   import { onMount } from 'svelte';
-  import { getSentimentColor, getSentimentIcon } from '$lib/utils/colorUtils';
-  import { formatTimestamp } from '$lib/utils/formatUtils';
-  import { waitForEcharts, initChart } from '$lib/utils/echarts';
+  import { getSentimentColor, getSentimentIcon } from '#lib/utils/colorUtils.ts';
+  import { formatTimestamp } from '#lib/utils/formatUtils.ts';
+  import { waitForEcharts, initChart } from '#lib/utils/echarts.ts';
 
   $: workspaceId = $page.url.searchParams.get('workspace');
 

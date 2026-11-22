@@ -1,18 +1,18 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { page } from '$lib/stores/pageStore.svelte';
-  import { currentProject, loadCurrentProject } from '$lib/stores/projectStore';
+  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import { currentProject, loadCurrentProject } from '#lib/stores/projectStore.ts';
   import { onMount } from 'svelte';
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
-  import { ErrorAlert } from '$lib/components/ui';
-  import CrawlerModal from '$lib/components/data-management/CrawlerModal.svelte';
-  import DataSourcesTab from '$lib/components/data-management/DataSourcesTab.svelte';
-  import DatasetPreviewModal from '$lib/components/data-management/DatasetPreviewModal.svelte';
-  import DatasetsTab from '$lib/components/data-management/DatasetsTab.svelte';
-  import LinkDatasetModal from '$lib/components/data-management/LinkDatasetModal.svelte';
-  import PipelineOverview from '$lib/components/data-management/PipelineOverview.svelte';
-  import RadioConfigModal from '$lib/components/data-management/RadioConfigModal.svelte';
-  import WorkflowsTab from '$lib/components/data-management/WorkflowsTab.svelte';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
+  import { ErrorAlert } from '#lib/components/ui/index.ts';
+  import CrawlerModal from '#lib/components/data-management/CrawlerModal.svelte';
+  import DataSourcesTab from '#lib/components/data-management/DataSourcesTab.svelte';
+  import DatasetPreviewModal from '#lib/components/data-management/DatasetPreviewModal.svelte';
+  import DatasetsTab from '#lib/components/data-management/DatasetsTab.svelte';
+  import LinkDatasetModal from '#lib/components/data-management/LinkDatasetModal.svelte';
+  import PipelineOverview from '#lib/components/data-management/PipelineOverview.svelte';
+  import RadioConfigModal from '#lib/components/data-management/RadioConfigModal.svelte';
+  import WorkflowsTab from '#lib/components/data-management/WorkflowsTab.svelte';
   import {
     fetchAvailableDatasets,
     fetchWavePulseStatus,
@@ -22,7 +22,7 @@
     scheduleCrawl,
     startWavePulse,
     stopWavePulse
-  } from '$lib/services/dataManagementApi';
+  } from '#lib/services/dataManagementApi.ts';
   import {
     EMPTY_DATA_STATS,
     buildCrawlRequest,
@@ -34,8 +34,8 @@
     type DataRow,
     type DataSource,
     type WavePulseStatus
-  } from '$lib/utils/dataManagement';
-  import { unlinkedDatasets, type DatasetRow } from '$lib/utils/datasetRows';
+  } from '#lib/utils/dataManagement.ts';
+  import { unlinkedDatasets, type DatasetRow } from '#lib/utils/datasetRows.ts';
 
   const WAVEPULSE_POLL_MS = 15000;
   const CRAWL_NOTICE_MS = 5000;
