@@ -1,12 +1,12 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import FilterBar, { type FilterChange } from '#lib/components/ui/FilterBar.svelte';
-  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import { page } from '$app/state';
   import { currentProject } from '#lib/stores/projectStore.ts';
   import PageHeader from '#lib/components/ui/PageHeader.svelte';
   import WorkspaceBanner from '#lib/components/ui/WorkspaceBanner.svelte';
   import { languageDetectionDb } from '#lib/services/languageDetectionDb.ts';
-  import { onMount } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import { runExport, downloadCsv, IDLE_EXPORT, type ExportState } from '#lib/utils/exportAction.ts';
   import { toCsv } from '#lib/utils/evidenceExport.ts';
   import ExportStatus from '#lib/components/ui/ExportStatus.svelte';
@@ -17,12 +17,11 @@
   import PostDrilldown from '#lib/components/ui/PostDrilldown.svelte';
   import { filtersFromParams, type PostFilters } from '#lib/services/postsApi.ts';
 
-  $: workspaceId = $page.url.searchParams.get('workspace');
 
   let currentFilterParams: Record<string, string> = {};
 
   // The language whose posts were chosen; they open in the side panel
-  let drilldown: { title: string; filters: PostFilters } | null = null;
+  let drilldown: { title: string; filters: PostFilters } | null = $state(null);
   function openLanguagePosts(code: string, name: string) {
     drilldown = {
       title: `${name} posts`,
@@ -42,8 +41,8 @@
   const rangeSync = rangeReloader(loadLanguageDetectionData, () => loading);
   
   // Loading state
-  let loading = true;
-  let errorMessage = '';
+  let loading = $state(true);
+  let errorMessage = $state('');
 
   onMount(async () => {
     // Load language detection data from database
@@ -53,11 +52,11 @@
   });
 
   // Language detection data - loaded from database
-  let languageStats: any[] = [];
+  let languageStats: any[] = $state([]);
   let languageAnalysis: any[] = [];
-  let detectionStats: any = {};
-  let samplePosts: any[] = [];
-  let mixingData: any[] = [];
+  let detectionStats: any = $state({});
+  let samplePosts: any[] = $state([]);
+  let mixingData: any[] = $state([]);
   let geographicData: any[] = [];
   
   // Load language detection data from database service
@@ -107,10 +106,10 @@
     }
   }
   
-  let selectedLanguage = 'all';
-  let selectedPlatform = 'all';
+  let selectedLanguage = $state('all');
+  let selectedPlatform = $state('all');
   // Only the platforms the project's datasets actually come from are offered
-  let platformChoices: { value: string; label: string }[] = [];
+  let platformChoices: { value: string; label: string }[] = $state([]);
   async function loadPlatformChoices() {
     try {
       const result = await (await fetch('/api/datasets?status=available')).json();
@@ -120,16 +119,10 @@
     }
   }
   onMount(loadPlatformChoices);
-  let confidenceThreshold = 0.5;
+  let confidenceThreshold = $state(0.5);
   let timeRange = '7d';
 
-  // Reactive statements for filter changes
-  $: if ((selectedLanguage !== 'all' || selectedPlatform !== 'all' || confidenceThreshold !== 0.5) && !loading) {
-    loadFilteredPosts();
-  }
 
-  // Filtered posts and stats (for display purposes, actual filtering happens in database)
-  $: filteredPosts = samplePosts;
 
   // Detection quality figures, computed from the loaded data
   const CONFIDENCE_BANDS = [
@@ -140,15 +133,6 @@
   ] as const;
   const percentOf = (part: number, whole: number) => (whole > 0 ? Math.round((part / whole) * 1000) / 10 : 0);
 
-  $: distribution = detectionStats.confidenceDistribution ?? { veryHigh: 0, high: 0, medium: 0, low: 0 };
-  $: distributionTotal = distribution.veryHigh + distribution.high + distribution.medium + distribution.low;
-  $: confidenceRows = CONFIDENCE_BANDS.map((band) => ({
-    ...band,
-    percent: percentOf(distribution[band.key], distributionTotal)
-  }));
-  $: mixedPercent = percentOf(mixingData[0]?.mixed_posts ?? 0, totalPosts);
-  $: highQualityPercent = percentOf(distribution.veryHigh + distribution.high, distributionTotal);
-  $: totalPosts = detectionStats.totalPosts || languageStats.reduce((sum, lang) => sum + lang.count, 0);
 
   function getLanguageName(code: string) {
     const lang = languageStats.find(l => l.code === code);
@@ -160,7 +144,7 @@
     return new Date(timestamp).toLocaleString();
   }
 
-  let exportState: ExportState = IDLE_EXPORT;
+  let exportState: ExportState = $state(IDLE_EXPORT);
 
   // Exports the languages as listed for the current filters
   function exportLanguageData() {
@@ -171,10 +155,28 @@
     }, (state) => (exportState = state));
   }
 
+  const workspaceId = $derived(page.url.searchParams.get('workspace'));
+  // Reactive statements for filter changes
+  $effect(() => {
+    if ((selectedLanguage !== 'all' || selectedPlatform !== 'all' || confidenceThreshold !== 0.5) && !loading) {
+      untrack(loadFilteredPosts);
+    }
+  });
+  // Filtered posts and stats (for display purposes, actual filtering happens in database)
+  const filteredPosts = $derived(samplePosts);
+  const distribution = $derived(detectionStats.confidenceDistribution ?? { veryHigh: 0, high: 0, medium: 0, low: 0 });
+  const distributionTotal = $derived(distribution.veryHigh + distribution.high + distribution.medium + distribution.low);
+  const confidenceRows = $derived(CONFIDENCE_BANDS.map((band) => ({
+    ...band,
+    percent: percentOf(distribution[band.key], distributionTotal)
+  })));
+  const totalPosts = $derived(detectionStats.totalPosts || languageStats.reduce((sum, lang) => sum + lang.count, 0));
+  const mixedPercent = $derived(percentOf(mixingData[0]?.mixed_posts ?? 0, totalPosts));
+  const highQualityPercent = $derived(percentOf(distribution.veryHigh + distribution.high, distributionTotal));
   // Filtered stats for display
-  $: filteredStats = selectedLanguage === 'all' 
+  const filteredStats = $derived(selectedLanguage === 'all' 
     ? languageStats 
-    : languageStats.filter(lang => lang.code === selectedLanguage);
+    : languageStats.filter(lang => lang.code === selectedLanguage));
 </script>
 
 <svelte:head>
@@ -188,19 +190,19 @@
     subtitle="Analyze language distribution and detection confidence in your social media data"
     backHref="/text-analytics">
     <svelte:fragment slot="icon">
-      <div class="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl shadow-lg flex items-center justify-center mr-6 border border-white/20 backdrop-blur-sm">
-        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
-        </svg>
-      </div>
-    </svelte:fragment>
+        <div class="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl shadow-lg flex items-center justify-center mr-6 border border-white/20 backdrop-blur-sm">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
+          </svg>
+        </div>
+      </svelte:fragment>
     <svelte:fragment slot="actions">
-      <button
-        on:click={exportLanguageData}
-        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
-        Export Report
-      </button>
-    </svelte:fragment>
+        <button
+          onclick={exportLanguageData}
+          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+          Export Report
+        </button>
+      </svelte:fragment>
   </PageHeader>
 
   <!-- Content -->
@@ -297,7 +299,7 @@
                 </div>
                 <div>
                   <div class="font-medium text-gray-900">
-                    <button type="button" class="hover:text-primary-700 hover:underline" on:click={() => openLanguagePosts(lang.code, lang.name)}>{lang.name}</button>
+                    <button type="button" class="hover:text-primary-700 hover:underline" onclick={() => openLanguagePosts(lang.code, lang.name)}>{lang.name}</button>
                   </div>
                   <div class="text-sm text-gray-500">{lang.count.toLocaleString()} posts</div>
                 </div>

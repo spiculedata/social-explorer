@@ -1,12 +1,12 @@
 <script lang="ts">
   import { CHART } from '#lib/utils/chartColors.ts';
-  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import { page } from '$app/state';
   import PostDrilldown from '#lib/components/ui/PostDrilldown.svelte';
   import { filtersFromParams, type PostFilters } from '#lib/services/postsApi.ts';
   import FilterBar, { type FilterChange } from '#lib/components/ui/FilterBar.svelte';
   import PageHeader from '#lib/components/ui/PageHeader.svelte';
   import WorkspaceBanner from '#lib/components/ui/WorkspaceBanner.svelte';
-  import { onMount } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import { waitForEcharts, initChart } from '#lib/utils/echarts.ts';
   import { ErrorAlert } from '#lib/components/ui/index.ts';
   import { formatNumber } from '#lib/utils/formatUtils.ts';
@@ -14,11 +14,11 @@
   import { toCsv } from '#lib/utils/evidenceExport.ts';
   import ExportStatus from '#lib/components/ui/ExportStatus.svelte';
 
-  $: workspaceId = $page.url.searchParams.get('workspace');
+  const workspaceId = $derived(page.url.searchParams.get('workspace'));
 
-  let currentFilterParams: Record<string, string> = {};
+  let currentFilterParams: Record<string, string> = $state({});
   // The hashtag whose posts are open in the side panel
-  let drilldown: { title: string; filters: PostFilters } | null = null;
+  let drilldown: { title: string; filters: PostFilters } | null = $state(null);
 
   function handleFilterChange(detail: FilterChange) {
     currentFilterParams = {};
@@ -28,17 +28,17 @@
     if (detail.dateEnd) currentFilterParams.date_end = detail.dateEnd;
   }
 
-  let loading = true;
-  let errorMessage = '';
+  let loading = $state(true);
+  let errorMessage = $state('');
 
-  let hashtags: any[] = [];
-  let cooccurrence: any[] = [];
-  let totalHashtags = 0;
-  let totalPosts = 0;
-  let searchQuery = '';
+  let hashtags: any[] = $state([]);
+  let cooccurrence: any[] = $state([]);
+  let totalHashtags = $state(0);
+  let totalPosts = $state(0);
+  let searchQuery = $state('');
   let hashtagChart: any = null;
 
-  let exportState: ExportState = IDLE_EXPORT;
+  let exportState: ExportState = $state(IDLE_EXPORT);
   // Exports the hashtags as listed, including the search box filter
   function exportHashtags() {
     return runExport(async () => {
@@ -48,10 +48,10 @@
     }, (state) => (exportState = state));
   }
 
-  $: filteredHashtags = hashtags.filter(h => {
+  const filteredHashtags = $derived(hashtags.filter(h => {
     if (!searchQuery) return true;
     return h.hashtag.toLowerCase().includes(searchQuery.toLowerCase());
-  });
+  }));
 
   async function loadData() {
     loading = true;
@@ -112,15 +112,17 @@
 
   // Load once on mount, then again only when the selected workspace changes. (Gating on `loading`
   // instead re-triggers the load every time it finishes, which loops forever.)
-  let loadedWorkspace: string | null | undefined;
-  let mounted = false;
+  let loadedWorkspace: string | null | undefined = $state();
+  let mounted = $state(false);
   onMount(() => {
     mounted = true;
   });
-  $: if (mounted && workspaceId !== loadedWorkspace) {
-    loadedWorkspace = workspaceId;
-    loadData();
-  }
+  $effect(() => {
+    if (mounted && workspaceId !== loadedWorkspace) {
+      loadedWorkspace = workspaceId;
+      untrack(loadData);
+    }
+  });
 </script>
 
 <svelte:head>
@@ -134,13 +136,15 @@
   backHref="/text-analytics"
 >
   <svelte:fragment slot="actions">
-    <button
-      type="button"
-      on:click={exportHashtags}
-      disabled={exportState.kind === 'working' || loading}
-      class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-medium transition-colors border border-white/20 disabled:opacity-60">
-      {exportState.kind === 'working' ? 'Exporting…' : 'Export CSV'}
-    </button>
+  
+      <button
+        type="button"
+        onclick={exportHashtags}
+        disabled={exportState.kind === 'working' || loading}
+        class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-medium transition-colors border border-white/20 disabled:opacity-60">
+        {exportState.kind === 'working' ? 'Exporting…' : 'Export CSV'}
+      </button>
+    
   </svelte:fragment>
 </PageHeader>
 
@@ -264,7 +268,7 @@
               {#each filteredHashtags as h}
                 {@const maxCount = Math.max(...filteredHashtags.slice(0, 1).map(x => parseInt(x.count)), 1)}
                 <tr class="hover:bg-purple-50/50">
-                  <td class="px-4 py-2.5 font-semibold"><button type="button" class="text-primary-700 hover:underline" on:click={() => (drilldown = { title: `#${h.hashtag}`, filters: { hashtag: h.hashtag, ...filtersFromParams({ ...(workspaceId ? { workspace_id: workspaceId } : {}), ...currentFilterParams }) } })}>#{h.hashtag}</button></td>
+                  <td class="px-4 py-2.5 font-semibold"><button type="button" class="text-primary-700 hover:underline" onclick={() => (drilldown = { title: `#${h.hashtag}`, filters: { hashtag: h.hashtag, ...filtersFromParams({ ...(workspaceId ? { workspace_id: workspaceId } : {}), ...currentFilterParams }) } })}>#{h.hashtag}</button></td>
                   <td class="px-4 py-2.5 text-right text-gray-900">{formatNumber(parseInt(h.count))}</td>
                   <td class="px-4 py-2.5 text-right text-gray-600">{formatNumber(parseInt(h.post_count))}</td>
                   <td class="px-4 py-2.5">
