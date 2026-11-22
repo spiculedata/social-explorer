@@ -8,7 +8,7 @@ This page gets the web app running locally for development or evaluation.
 :::
 
 ::: tip What you need
-- **Node 22**
+- **Node 26**
 - **Docker** (for PostgreSQL with the `pg_duckdb` extension)
 - `git`
 :::

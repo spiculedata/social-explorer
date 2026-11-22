@@ -15,7 +15,7 @@ By participating you agree to follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Development setup (web app)
 
-You need **Node 22**, **Docker**, and (for browser tests) Playwright's Chromium.
+You need **Node 26**, **Docker**, and (for browser tests) Playwright's Chromium.
 
 ```bash
 cd ex-accell-ui

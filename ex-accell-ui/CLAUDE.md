@@ -9,7 +9,7 @@ Social Explorer monorepo. See the root `README.md` and `CONTRIBUTING.md` for the
 - Tailwind CSS 4 (via `@tailwindcss/vite`/`postcss`; there is no `tailwind.config.*`)
 - PostgreSQL with the `pg_duckdb` extension for all data; Redis and Dapr for state, pub/sub and jobs
 - Tests: Vitest (unit, `src/**/*.test.ts`) and Playwright (e2e, `tests/pages/`)
-- Node 22, npm
+- Node 26, npm
 
 ## Commands
 

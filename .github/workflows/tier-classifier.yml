@@ -43,7 +43,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22
+          node-version: 26
 
       # The pull_request payload carries no file list and `gh pr diff` truncates
       # a large one. The API paginates, so ask the API.

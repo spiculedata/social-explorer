@@ -7,7 +7,7 @@ to explore, screenshot and share.
 
 ## The fastest way
 
-You need Node 22 and Docker, and nothing else:
+You need Node 26 and Docker, and nothing else:
 
 ```bash
 git clone https://github.com/spiculedata/social-explorer.git

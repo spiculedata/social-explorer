@@ -229,7 +229,7 @@ async function copyCommands() {
             fictional coastal city, and opens the app on your machine with a generated sign-in.
           </p>
           <ul class="checks">
-            <li>Needs Node 22 and Docker, nothing else</li>
+            <li>Needs Node 26 and Docker, nothing else</li>
             <li>Runs on localhost only</li>
             <li>Remove it any time with <code>npm run demo -- --reset</code></li>
           </ul>

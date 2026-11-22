@@ -56,7 +56,7 @@ flowchart LR
 
 ## Try it in one command
 
-Needs Node 22 and Docker. This starts a throwaway database, loads synthetic demo data about a
+Needs Node 26 and Docker. This starts a throwaway database, loads synthetic demo data about a
 fictional city and runs the app on <http://localhost:5173>, reachable only from your machine:
 
 ```bash

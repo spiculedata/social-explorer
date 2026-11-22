@@ -32,7 +32,7 @@ point at nothing here. Do not try to edit it.
 
 ## Commands
 
-Run from the directory named. Node 22 is what CI uses.
+Run from the directory named. Node 26 is what CI uses.
 
 ```bash
 # Web app (ex-accell-ui/)

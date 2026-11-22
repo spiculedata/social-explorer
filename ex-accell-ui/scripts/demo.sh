@@ -68,10 +68,10 @@ HELP
     ;;
 esac
 
-need node "install Node 22 from https://nodejs.org"
-need npm "install Node 22 from https://nodejs.org"
+need node "install Node 26 from https://nodejs.org"
+need npm "install Node 26 from https://nodejs.org"
 node_major="$(node -p 'process.versions.node.split(".")[0]')"
-[ "$node_major" -ge 22 ] || { echo "Node 22 or newer is required (found $(node -v)). Install it from https://nodejs.org" >&2; exit 1; }
+[ "$node_major" -ge 26 ] || { echo "Node 26 or newer is required (found $(node -v)). Install it from https://nodejs.org" >&2; exit 1; }
 need docker "install Docker from https://docs.docker.com/get-docker/ and start it"
 docker info >/dev/null 2>&1 || { echo "Docker is installed but not running. Start it and try again." >&2; exit 1; }
 
