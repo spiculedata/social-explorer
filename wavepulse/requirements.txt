@@ -37,4 +37,4 @@ psycopg2-binary>=2.9.13
 
 # Web API
 flask>=3.0.0
-flask-cors>=4.0.0
+flask-cors>=6.0.5
