@@ -3,8 +3,8 @@
   import { goto } from '$app/navigation';
   import PageHeader from '#lib/components/ui/PageHeader.svelte';
   import { currentProject } from '#lib/stores/projectStore.ts';
-  import { page } from '#lib/stores/pageStore.svelte.ts';
-  import { onMount } from 'svelte';
+  import { page } from '$app/state';
+  import { onMount, untrack } from 'svelte';
   import { dashboardDb } from '#lib/services/dashboardDb.ts';
   import { ErrorAlert } from '#lib/components/ui/index.ts';
   import { getSentimentColor, getStatusColor, getStatusIcon, getTrendIcon, getHealthColor } from '#lib/utils/colorUtils.ts';
@@ -14,14 +14,14 @@
   import FilterBar, { type FilterChange } from '#lib/components/ui/FilterBar.svelte';
   import { setWorkspaceFromUrl } from '#lib/stores/workspaceStore.ts';
 
-  let filterBar: FilterBar;
+  let filterBar: FilterBar | undefined = $state();
 
   // Get workspace ID from URL query parameter
-  $: workspaceId = $page.url.searchParams.get('workspace');
+  const workspaceId = $derived(page.url.searchParams.get('workspace'));
 
   let loading = true;
-  let errorMessage = '';
-  let workspace: any = null;
+  let errorMessage = $state('');
+  let workspace: any = $state(null);
 
   // Load workspace data and set project context if needed
   onMount(async () => {
@@ -47,7 +47,7 @@
     }
 
     // Set workspace store from URL
-    await setWorkspaceFromUrl($page.url);
+    await setWorkspaceFromUrl(page.url);
 
     // Data loading is triggered by FilterBar's onReady callback (no need for setTimeout)
 
@@ -63,19 +63,19 @@
   });
 
   // Dashboard overview data
-  let dashboardStats = {
+  let dashboardStats = $state({
     totalPosts: 0,
     totalSources: 0,
     lastUpdated: '',
     processingRate: 0,
     dataQuality: 0
-  };
+  });
 
   // Data source breakdown
-  let dataSources: any[] = [];
+  let dataSources: any[] = $state([]);
 
   // Text analytics summary
-  let textAnalytics: any = {
+  let textAnalytics: any = $state({
     sentimentBreakdown: {
       positive: { count: 0, percentage: 0 },
       negative: { count: 0, percentage: 0 },
@@ -83,21 +83,21 @@
     },
     topLanguages: [],
     topTopics: []
-  };
+  });
 
   // Crawling activity data
   let crawlingActivity: any[] = [];
 
   // Recent activity feed
-  let recentActivity: any[] = [];
+  let recentActivity: any[] = $state([]);
 
   // Platform filter — users can toggle which data sources are visible
   let availablePlatforms: string[] = [];
   let activePlatforms: Set<string> = new Set();
-  let languagesLimit = 5;
-  let topicsLimit = 5;
+  let languagesLimit = $state(5);
+  let topicsLimit = $state(5);
 
-  $: filteredSources = dataSources;
+  const filteredSources = $derived(dataSources);
 
   // Current filter state from FilterBar
   let currentFilterParams: Record<string, string> = {};
@@ -178,15 +178,15 @@
 
 
   // Time range filter
-  let timeRange = '24h';
-  let autoRefresh = true;
+  let timeRange = $state('24h');
+  let autoRefresh = $state(true);
   let refreshInterval = 30; // seconds
 
   // Chart variables
-  let sentimentChart: any = null;
-  let sourceChart: any = null;
-  let activityChart: any = null;
-  let topicsChart: any = null;
+  let sentimentChart: any = $state(null);
+  let sourceChart: any = $state(null);
+  let activityChart: any = $state(null);
+  let topicsChart: any = $state(null);
 
   function initializeCharts() {
     initSentimentChart();
@@ -503,12 +503,16 @@
   }
 
   // Update charts when data changes
-  $: if (sentimentChart && sourceChart && activityChart && topicsChart) {
-    updateSentimentChart();
-    updateSourceChart();
-    updateActivityChart();
-    updateTopicsChart();
-  }
+  $effect(() => {
+    if (sentimentChart && sourceChart && activityChart && topicsChart) {
+      untrack(() => {
+        updateSentimentChart();
+        updateSourceChart();
+        updateActivityChart();
+        updateTopicsChart();
+      });
+    }
+  });
 </script>
 
 <svelte:head>
@@ -522,20 +526,22 @@
     subtitle={workspaceId ? 'Workspace-scoped analytics and insights' : 'Comprehensive analytics and insights across all your social media data sources'}
     backHref="/">
     <svelte:fragment slot="actions">
-      <div class="flex items-center space-x-3 bg-white/10 rounded-xl px-4 py-3 border border-white/20 backdrop-blur-sm">
-        <span class="text-sm text-slate-300 font-medium">Auto-refresh:</span>
-        <label class="relative inline-flex items-center cursor-pointer">
-          <input type="checkbox" bind:checked={autoRefresh} class="sr-only peer" aria-label="Auto-refresh">
-          <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-violet-300/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow-md peer-checked:bg-gradient-to-r peer-checked:from-violet-500 peer-checked:to-blue-600"></div>
-        </label>
-      </div>
-      <select bind:value={timeRange} aria-label="Time range" class="px-4 py-3 bg-white/10 border border-white/20 backdrop-blur-sm rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-violet-400/50 focus:border-violet-400/50">
-        <option value="1h" class="bg-slate-800 text-white">Last Hour</option>
-        <option value="24h" class="bg-slate-800 text-white">Last 24 Hours</option>
-        <option value="7d" class="bg-slate-800 text-white">Last 7 Days</option>
-        <option value="30d" class="bg-slate-800 text-white">Last 30 Days</option>
-      </select>
-    </svelte:fragment>
+      
+        <div class="flex items-center space-x-3 bg-white/10 rounded-xl px-4 py-3 border border-white/20 backdrop-blur-sm">
+          <span class="text-sm text-slate-300 font-medium">Auto-refresh:</span>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" bind:checked={autoRefresh} class="sr-only peer" aria-label="Auto-refresh">
+            <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-violet-300/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow-md peer-checked:bg-gradient-to-r peer-checked:from-violet-500 peer-checked:to-blue-600"></div>
+          </label>
+        </div>
+        <select bind:value={timeRange} aria-label="Time range" class="px-4 py-3 bg-white/10 border border-white/20 backdrop-blur-sm rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-violet-400/50 focus:border-violet-400/50">
+          <option value="1h" class="bg-slate-800 text-white">Last Hour</option>
+          <option value="24h" class="bg-slate-800 text-white">Last 24 Hours</option>
+          <option value="7d" class="bg-slate-800 text-white">Last 7 Days</option>
+          <option value="30d" class="bg-slate-800 text-white">Last 30 Days</option>
+        </select>
+      
+      </svelte:fragment>
   </PageHeader>
 
   <!-- Content -->
@@ -709,7 +715,7 @@
               <option value={10}>Top 10</option>
               <option value={20}>Top 20</option>
             </select>
-            <button on:click={() => goto('/text-analytics/topic-modeling')} class="text-sm text-blue-600 hover:text-blue-800">View Analysis</button>
+            <button onclick={() => goto('/text-analytics/topic-modeling')} class="text-sm text-blue-600 hover:text-blue-800">View Analysis</button>
           </div>
         </div>
         {#if textAnalytics.topTopics.length === 0}
@@ -717,7 +723,7 @@
             <span class="text-3xl mb-2 block">💬</span>
             <p class="text-sm">No social post topics yet.</p>
             <p class="text-xs mt-1">Topics will appear after running topic analysis on social posts.</p>
-            <button on:click={() => goto('/text-analytics/topic-modeling')} class="text-xs text-blue-600 hover:text-blue-800 mt-2">Go to Topic Modeling</button>
+            <button onclick={() => goto('/text-analytics/topic-modeling')} class="text-xs text-blue-600 hover:text-blue-800 mt-2">Go to Topic Modeling</button>
           </div>
         {:else}
         <div class="space-y-4">

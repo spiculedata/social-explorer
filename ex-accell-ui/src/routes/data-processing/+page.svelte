@@ -1,9 +1,9 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import { page } from '$app/state';
   import { onMount } from 'svelte';
 
-  $: workspaceId = $page.url.searchParams.get('workspace');
+  const workspaceId = $derived(page.url.searchParams.get('workspace'));
 
   onMount(() => {
     const wsParam = workspaceId ? `?workspace=${workspaceId}&tab=workflows` : '?tab=workflows';

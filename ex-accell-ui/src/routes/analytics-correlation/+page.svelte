@@ -1,7 +1,7 @@
 <script lang="ts">
   import { CATEGORICAL, CHART } from '#lib/utils/chartColors.ts';
-  import { page } from '#lib/stores/pageStore.svelte.ts';
-  import { onMount } from 'svelte';
+  import { page } from '$app/state';
+  import { onMount, untrack } from 'svelte';
   import { browser } from '$app/env';
   import PageHeader from '#lib/components/ui/PageHeader.svelte';
   import { getSentimentColor } from '#lib/utils/colorUtils.ts';
@@ -11,18 +11,18 @@
   import { waitForEcharts, initChart } from '#lib/utils/echarts.ts';
   import { formatNumber } from '#lib/utils/formatUtils.ts';
 
-  $: workspaceId = $page.url.searchParams.get('workspace');
+  const workspaceId = $derived(page.url.searchParams.get('workspace'));
 
-  let loading = true;
-  let errorMessage = '';
+  let loading = $state(true);
+  let errorMessage = $state('');
 
   // Real data from APIs
-  let sentimentData: any[] = [];
-  let topicsData: any[] = [];
-  let languageData: any[] = [];
-  let platformData: any[] = [];
+  let sentimentData: any[] = $state([]);
+  let topicsData: any[] = $state([]);
+  let languageData: any[] = $state([]);
+  let platformData: any[] = $state([]);
   let hourlyData: any[] = [];
-  let trendData: any[] = [];
+  let trendData: any[] = $state([]);
 
   // Charts
   let sentimentChart: any = null;
@@ -209,13 +209,13 @@
   }
 
   // Daily post counts by sentiment over the last 30 days; the matrix says which of them move together
-  $: dailyCounts = {
+  const dailyCounts = $derived({
     Positive: trendData.map((d: any) => Number(d.positive) || 0),
     Neutral: trendData.map((d: any) => Number(d.neutral) || 0),
     Negative: trendData.map((d: any) => Number(d.negative) || 0)
-  };
-  $: matrix = correlationMatrix(dailyCounts);
-  $: hasMatrix = matrix.values.some((row, i) => row.some((value, j) => i !== j && value !== null));
+  });
+  const matrix = $derived(correlationMatrix(dailyCounts));
+  const hasMatrix = $derived(matrix.values.some((row, i) => row.some((value, j) => i !== j && value !== null)));
 
   function updateCorrelationMatrix() {
     if (!correlationChart || !hasMatrix) return;
@@ -235,15 +235,17 @@
 
   // Load once on mount, then again only when the selected workspace changes. (Gating on `loading`
   // instead re-triggers the load every time it finishes, which loops forever.)
-  let loadedWorkspace: string | null | undefined;
-  let mounted = false;
+  let loadedWorkspace: string | null | undefined = $state();
+  let mounted = $state(false);
   onMount(() => {
     mounted = true;
   });
-  $: if (mounted && browser && workspaceId !== loadedWorkspace) {
-    loadedWorkspace = workspaceId;
-    loadData().then(() => initCharts());
-  }
+  $effect(() => {
+    if (mounted && browser && workspaceId !== loadedWorkspace) {
+      loadedWorkspace = workspaceId;
+      untrack(() => loadData().then(() => initCharts()));
+    }
+  });
 </script>
 
 <svelte:head>

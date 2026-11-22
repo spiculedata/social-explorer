@@ -8,7 +8,7 @@
   import { sourceStatusBadgeClass } from '#lib/utils/sourceStatus.ts';
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { page } from '#lib/stores/pageStore.svelte.ts';
+  import { page } from '$app/state';
 
   export const ssr = false;
 
@@ -51,13 +51,13 @@
   }
 
   // ---------- state ----------
-  $: workspaceId = $page.params.id;
-  let loading = true;
-  let error = '';
-  let workspace: WorkspaceData | null = null;
-  let dataSources: DataSource[] = [];
-  let investigations: Investigation[] = [];
-  let summary: SummaryData = { total_records: 0, total_data_sources: 0, total_investigations: 0 };
+  const workspaceId = $derived(page.params.id);
+  let loading = $state(true);
+  let error = $state('');
+  let workspace: WorkspaceData | null = $state(null);
+  let dataSources: DataSource[] = $state([]);
+  let investigations: Investigation[] = $state([]);
+  let summary: SummaryData = $state({ total_records: 0, total_data_sources: 0, total_investigations: 0 });
 
   // ---------- helpers ----------
   function formatCount(n: number): string {
