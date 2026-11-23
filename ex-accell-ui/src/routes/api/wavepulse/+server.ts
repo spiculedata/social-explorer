@@ -2,8 +2,8 @@
 // Forwards requests to the WavePulse Docker service
 
 import type { RequestHandler } from './$types';
-import { apiFail, apiOk, readJsonObject } from '$lib/server/apiResponse';
-import { createLogger } from '$lib/utils/logger';
+import { apiFail, apiOk, readJsonObject } from '#lib/server/apiResponse.ts';
+import { createLogger } from '#lib/utils/logger.ts';
 
 const log = createLogger('wavepulse-api');
 

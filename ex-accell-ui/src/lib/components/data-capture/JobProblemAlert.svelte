@@ -1,6 +1,6 @@
 <script lang="ts">
-  import CopyCommand from '$lib/components/ui/CopyCommand.svelte';
-  import type { JobStateProblem } from '$lib/utils/jobStateProblem';
+  import CopyCommand from '#lib/components/ui/CopyCommand.svelte';
+  import type { JobStateProblem } from '#lib/utils/jobStateProblem.ts';
 
   export let jobProblem: JobStateProblem;
   export let retry: () => void;

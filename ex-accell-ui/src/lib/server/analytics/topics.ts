@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { executeQuery } from './executeQuery';
-import { queryErrorResponse } from '$lib/server/queryErrors';
-import { hasDataType } from '$lib/services/workspaceContextResolver';
+import { queryErrorResponse } from '#lib/server/queryErrors.ts';
+import { hasDataType } from '#lib/services/workspaceContextResolver.ts';
 import type { AnalyticsContext, AnalyticsHandler } from './types';
 
 async function topicsOverview({ scope }: AnalyticsContext): Promise<Response> {

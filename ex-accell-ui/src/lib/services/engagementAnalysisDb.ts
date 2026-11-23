@@ -1,8 +1,8 @@
 // Database connection and query service for Engagement Analysis data
 // Uses PostgreSQL with pg_duckdb extension via unified analytics API
 
-import { platformColour } from '$lib/utils/categoryColours';
-import { currentRangeQuery } from '$lib/utils/filterRange';
+import { platformColour } from '#lib/utils/categoryColours.ts';
+import { currentRangeQuery } from '#lib/utils/filterRange.ts';
 import { BaseDatabaseService } from './baseDatabaseService';
 import type {
   EngagementMetrics,

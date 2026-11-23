@@ -1,5 +1,5 @@
-import type { GdeltEvent } from '$lib/utils/gdeltFilters';
-import type { GdeltMention } from '$lib/utils/gdeltMentions';
+import type { GdeltEvent } from '#lib/utils/gdeltFilters.ts';
+import type { GdeltMention } from '#lib/utils/gdeltMentions.ts';
 
 export interface GdeltEventsResponse {
   events?: GdeltEvent[];

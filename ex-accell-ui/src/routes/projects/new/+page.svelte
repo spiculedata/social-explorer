@@ -1,8 +1,8 @@
 <script lang="ts">
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
   import { goto } from '$app/navigation';
-  import { setCurrentProject } from '$lib/stores/projectStore';
-  import { createFailureMessage, isEmail, nameProblem } from '$lib/utils/projectForm';
+  import { setCurrentProject } from '#lib/stores/projectStore.ts';
+  import { createFailureMessage, isEmail, nameProblem } from '#lib/utils/projectForm.ts';
   
   let projectName = '';
   let projectDescription = '';

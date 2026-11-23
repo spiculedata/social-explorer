@@ -1,4 +1,4 @@
-import type { CrossFilter } from '$lib/stores/investigationStore';
+import type { CrossFilter } from '#lib/stores/investigationStore.ts';
 
 /**
  * Cross-filter helper functions for computing highlight sets across portal dimensions.

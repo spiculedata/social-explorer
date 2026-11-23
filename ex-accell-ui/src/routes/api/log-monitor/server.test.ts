@@ -5,7 +5,7 @@ const store = vi.hoisted(() => ({
   updateJobStatus: vi.fn(),
   addJobLog: vi.fn()
 }));
-vi.mock('$lib/services/jobStateStore.js', () => ({ jobStateStore: store }));
+vi.mock('#lib/services/jobStateStore.ts', () => ({ jobStateStore: store }));
 
 import { GET, POST } from './+server';
 

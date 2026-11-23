@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { gdeltMentionTypeBadgeClass } from '$lib/utils/categoryColours';
-  import { gdeltDateToInputDate } from '$lib/utils/gdeltDates';
-  import { getMentionTypeLabel, type GdeltMention, type SortDirection } from '$lib/utils/gdeltMentions';
+  import { gdeltMentionTypeBadgeClass } from '#lib/utils/categoryColours.ts';
+  import { gdeltDateToInputDate } from '#lib/utils/gdeltDates.ts';
+  import { getMentionTypeLabel, type GdeltMention, type SortDirection } from '#lib/utils/gdeltMentions.ts';
 
   /** The mentions on the current page */
   export let mentions: GdeltMention[];

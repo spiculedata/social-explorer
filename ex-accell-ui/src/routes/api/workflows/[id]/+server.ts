@@ -1,11 +1,11 @@
 // Individual Workflow API
 // Handles operations on specific workflows
 
-import { apiFail, apiOk, apiServerError } from '$lib/server/apiResponse';
+import { apiFail, apiOk, apiServerError } from '#lib/server/apiResponse.ts';
 import type { RequestHandler } from './$types';
-import { canModifyOwned } from '$lib/server/ownership';
-import { BodyTooLargeError, readJsonLimited } from '$lib/server/requestBody';
-import { serverWorkflowService } from '$lib/services/serverWorkflowService';
+import { canModifyOwned } from '#lib/server/ownership.ts';
+import { BodyTooLargeError, readJsonLimited } from '#lib/server/requestBody.ts';
+import { serverWorkflowService } from '#lib/services/serverWorkflowService.ts';
 
 const MAX_UPDATE_BODY_BYTES = 1024 * 1024;
 const STATUSES = new Set(['draft', 'published', 'archived']);

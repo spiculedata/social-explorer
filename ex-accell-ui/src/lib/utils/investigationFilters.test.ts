@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { CrossFilter } from '$lib/stores/investigationStore';
+import type { CrossFilter } from '#lib/stores/investigationStore.ts';
 import {
   filterGdeltByCrossFilter,
   filterRadioByCrossFilter,

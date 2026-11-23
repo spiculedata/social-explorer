@@ -1,7 +1,7 @@
 // Ending sessions early. A session is a signed token that carries the user's session version; raising the version on the
 // server makes every older token invalid. Versions are remembered for a short time (see sessionVersionCache), so a
 // revocation made on another instance takes at most this long to apply; on this instance it applies at once.
-import { createLogger } from '$lib/utils/logger';
+import { createLogger } from '#lib/utils/logger.ts';
 import { createSessionVersionCache } from './sessionVersionCache';
 import { bumpSessionVersion, ensureAuthSchema, getSessionVersion, setUserPassword, updateUserAccess, type AccessChange, type AccessChangeResult, type CurrentAccount } from './userRepo';
 

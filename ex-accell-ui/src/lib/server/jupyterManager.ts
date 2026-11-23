@@ -1,6 +1,6 @@
 import type { ChildProcess, SpawnOptions } from 'child_process';
 import { resolve } from 'node:path';
-import { createLogger } from '$lib/utils/logger';
+import { createLogger } from '#lib/utils/logger.ts';
 import { buildJupyterLaunch, resolveExternalJupyter } from './jupyter';
 
 const log = createLogger('jupyter');

@@ -2,7 +2,7 @@
 // Schedules crawl jobs via Dapr Jobs API on the crawler service
 
 import type { RequestHandler } from './$types';
-import { apiFail, apiOk, apiServerError, readJsonObject } from '$lib/server/apiResponse';
+import { apiFail, apiOk, apiServerError, readJsonObject } from '#lib/server/apiResponse.ts';
 
 const DAPR_HTTP_PORT = process.env.DAPR_HTTP_PORT || '3500';
 const DAPR_URL = `http://localhost:${DAPR_HTTP_PORT}`;

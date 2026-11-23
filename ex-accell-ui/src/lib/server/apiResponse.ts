@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
-import { createLogger } from '$lib/utils/logger';
-import { BodyTooLargeError, readJsonLimited } from '$lib/server/requestBody';
+import { createLogger } from '#lib/utils/logger.ts';
+import { BodyTooLargeError, readJsonLimited } from '#lib/server/requestBody.ts';
 
 const log = createLogger('api');
 

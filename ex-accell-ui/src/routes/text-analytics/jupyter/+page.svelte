@@ -1,7 +1,7 @@
 <script lang="ts">
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
   import { goto } from '$app/navigation';
-  import { currentProject } from '$lib/stores/projectStore';
+  import { currentProject } from '#lib/stores/projectStore.ts';
   import { onMount } from 'svelte';
   import {
     connectJupyter,
@@ -11,8 +11,8 @@
     nextJupyterPoll,
     type JupyterConnection,
     type JupyterPoll
-  } from '$lib/utils/jupyterClient';
-  import CopyCommand from '$lib/components/ui/CopyCommand.svelte';
+  } from '#lib/utils/jupyterClient.ts';
+  import CopyCommand from '#lib/components/ui/CopyCommand.svelte';
   
   // Redirect to projects if no current project
   onMount(() => {

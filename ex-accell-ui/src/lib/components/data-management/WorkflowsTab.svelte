@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { getStatusColor } from '$lib/utils/colorUtils';
-  import { formatTimestamp, getStatusIcon, type DataRow } from '$lib/utils/dataManagement';
+  import { getStatusColor } from '#lib/utils/colorUtils.ts';
+  import { formatTimestamp, getStatusIcon, type DataRow } from '#lib/utils/dataManagement.ts';
 
   export let workflows: DataRow[];
   export let onNewWorkflow: () => void;

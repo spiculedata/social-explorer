@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { investigationSelection, toggleSelectedId, setHoveredId } from '$lib/stores/investigationStore';
-  import type { InvestigationSelection } from '$lib/stores/investigationStore';
+  import { investigationSelection, toggleSelectedId, setHoveredId } from '#lib/stores/investigationStore.ts';
+  import type { InvestigationSelection } from '#lib/stores/investigationStore.ts';
 
   export let events: {
     globaleventid: string | number;

@@ -1,6 +1,6 @@
 // GDELT Mentions API — queries PostgreSQL via pg_duckdb
-import { apiFail, apiOk, apiServerError, readJsonObject } from '$lib/server/apiResponse';
-import { postgresPool } from '$lib/services/postgres';
+import { apiFail, apiOk, apiServerError, readJsonObject } from '#lib/server/apiResponse.ts';
+import { postgresPool } from '#lib/services/postgres.ts';
 
 const MAX_BODY_BYTES = 256 * 1024;
 

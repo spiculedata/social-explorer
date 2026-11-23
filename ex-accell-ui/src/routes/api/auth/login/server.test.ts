@@ -15,16 +15,16 @@ const mocks = vi.hoisted(() => ({
   ipForgive: vi.fn()
 }));
 
-vi.mock('$lib/server/auth/userRepo', () => ({
+vi.mock('#lib/server/auth/userRepo.ts', () => ({
   findUserByEmail: mocks.findUserByEmail,
   recordLogin: mocks.recordLogin
 }));
-vi.mock('$lib/server/auth/password', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('$lib/server/auth/password')>()),
+vi.mock('#lib/server/auth/password.ts', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('#lib/server/auth/password.ts')>()),
   verifyPassword: mocks.verifyPassword,
   hashPassword: mocks.hashPassword
 }));
-vi.mock('$lib/server/auth/runtime', () => ({
+vi.mock('#lib/server/auth/runtime.ts', () => ({
   SESSION_COOKIE: 'ex_session',
   getAuthConfig: () => ({ sessionSecret: 's'.repeat(32), sessionTtlSeconds: 3600, secureCookies: false }),
   prepareAuth: mocks.prepare,
@@ -42,7 +42,7 @@ vi.mock('$lib/server/auth/runtime', () => ({
 }));
 
 import { POST } from './+server';
-import { verifySessionToken } from '$lib/server/auth/session';
+import { verifySessionToken } from '#lib/server/auth/session.ts';
 
 const member = { id: '1', email: 'a@b.co', name: 'A', role: 'user', passwordHash: 'h' };
 

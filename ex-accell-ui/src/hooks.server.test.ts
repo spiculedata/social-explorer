@@ -2,14 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const config = vi.hoisted(() => ({ secureCookies: false }));
 
-vi.mock('$lib/server/auth/runtime', () => ({
+vi.mock('#lib/server/auth/runtime.ts', () => ({
   SESSION_COOKIE: 'ex_session',
   getAuthConfig: () => ({ sessionSecret: 's'.repeat(32), sessionTtlSeconds: 3600, secureCookies: config.secureCookies })
 }));
 
 const { isSessionCurrent, checkAccess } = vi.hoisted(() => ({ isSessionCurrent: vi.fn(), checkAccess: vi.fn() }));
-vi.mock('$lib/server/auth/revocation', () => ({ isSessionCurrent }));
-vi.mock('$lib/server/auth/accessCheck', () => ({ checkAccess }));
+vi.mock('#lib/server/auth/revocation.ts', () => ({ isSessionCurrent }));
+vi.mock('#lib/server/auth/accessCheck.ts', () => ({ checkAccess }));
 
 beforeEach(() => {
   isSessionCurrent.mockReset();
@@ -19,7 +19,7 @@ beforeEach(() => {
 });
 
 import { handle } from './hooks.server';
-import { createSessionToken, type SessionUser } from '$lib/server/auth/session';
+import { createSessionToken, type SessionUser } from '#lib/server/auth/session.ts';
 
 const SECRET = 's'.repeat(32);
 const admin: SessionUser = { id: '1', email: 'a@b.co', name: 'A', role: 'admin' };

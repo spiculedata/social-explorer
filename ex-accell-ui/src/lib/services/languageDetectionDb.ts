@@ -1,7 +1,7 @@
 // Database connection and query service for Language Detection data
 // Uses PostgreSQL with pg_duckdb extension via unified analytics API
 
-import { currentRangeQuery } from '$lib/utils/filterRange';
+import { currentRangeQuery } from '#lib/utils/filterRange.ts';
 import { BaseDatabaseService } from './baseDatabaseService';
 import type {
   LanguageStats,

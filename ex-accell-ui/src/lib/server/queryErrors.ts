@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { createLogger } from '$lib/utils/logger';
+import { createLogger } from '#lib/utils/logger.ts';
 
 const log = createLogger('analytics-api');
 

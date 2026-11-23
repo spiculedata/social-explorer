@@ -1,4 +1,4 @@
-import type { JobScheduleRequest } from '$lib/services/jobSchedulerService';
+import type { JobScheduleRequest } from '#lib/services/jobSchedulerService.ts';
 import type { CrawlerConfig, ScheduleConfig, UiJob } from './types';
 
 const IMMEDIATE_DUE_TIME = '10s';

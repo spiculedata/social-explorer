@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getSentimentColor } from '$lib/utils/colorUtils';
+  import { getSentimentColor } from '#lib/utils/colorUtils.ts';
 
   /** A swatch-and-word legend for a portal that colours marks by tone or agreement, so colour is never the only cue. */
   export let items: { label: string; color: string; title?: string }[] = [

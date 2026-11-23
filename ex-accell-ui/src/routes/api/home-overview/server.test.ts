@@ -3,8 +3,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const query = vi.hoisted(() => vi.fn());
 const visibleProjectIds = vi.hoisted(() => vi.fn());
 
-vi.mock('$lib/services/postgres', () => ({ postgresPool: { query } }));
-vi.mock('$lib/server/auth/accessGuard', () => ({ visibleProjectIds }));
+vi.mock('#lib/services/postgres.ts', () => ({ postgresPool: { query } }));
+vi.mock('#lib/server/auth/accessGuard.ts', () => ({ visibleProjectIds }));
 
 import { GET } from './+server';
 

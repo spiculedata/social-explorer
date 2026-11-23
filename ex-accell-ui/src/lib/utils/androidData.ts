@@ -7,7 +7,7 @@ import type {
   BehaviouralMetrics,
   TemporalAppUsage,
   TemporalUsagePattern
-} from '$lib/services/types/androidResearchTypes';
+} from '#lib/services/types/androidResearchTypes.ts';
 
 const HOURS_IN_DAY = 24;
 const SECONDS_PER_MINUTE = 60;

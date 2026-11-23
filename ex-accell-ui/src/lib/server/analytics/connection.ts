@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { postgresPool } from '$lib/services/postgres';
+import { postgresPool } from '#lib/services/postgres.ts';
 import { executeQuery } from './executeQuery';
 import type { AnalyticsContext, AnalyticsHandler } from './types';
 

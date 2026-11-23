@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { executeQuery } from './executeQuery';
-import { queryErrorResponse } from '$lib/server/queryErrors';
+import { queryErrorResponse } from '#lib/server/queryErrors.ts';
 import type { AnalyticsContext, AnalyticsHandler } from './types';
 
 async function radioOverview(_ctx: AnalyticsContext): Promise<Response> {

@@ -3,7 +3,7 @@
 
 import { writeFile, mkdir, access, readFile } from 'fs/promises';
 import { join } from 'path';
-import { assertSafeIdentifier } from '$lib/utils/pathSafety';
+import { assertSafeIdentifier } from '#lib/utils/pathSafety.ts';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 

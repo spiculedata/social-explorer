@@ -1,44 +1,44 @@
 <script lang="ts">
-  import { NEUTRAL_BADGE, categoryBadgeClass } from '$lib/utils/categoryColours';
-  import { CHART } from '$lib/utils/chartColors';
-  import { page } from '$lib/stores/pageStore.svelte';
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
-  import { getSentimentColor } from '$lib/utils/colorUtils';
+  import { NEUTRAL_BADGE, categoryBadgeClass } from '#lib/utils/categoryColours.ts';
+  import { CHART } from '#lib/utils/chartColors.ts';
+  import { page } from '$app/state';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
+  import { getSentimentColor } from '#lib/utils/colorUtils.ts';
   import { onMount } from 'svelte';
-  import { radioAnalyticsDb } from '$lib/services/radioAnalyticsDb';
-  import FilterBar from '$lib/components/ui/FilterBar.svelte';
-  import WorkspaceBanner from '$lib/components/ui/WorkspaceBanner.svelte';
-  import { waitForEcharts, initChart } from '$lib/utils/echarts';
-  import { formatNumber } from '$lib/utils/formatUtils';
+  import { radioAnalyticsDb } from '#lib/services/radioAnalyticsDb.ts';
+  import FilterBar, { type FilterChange } from '#lib/components/ui/FilterBar.svelte';
+  import WorkspaceBanner from '#lib/components/ui/WorkspaceBanner.svelte';
+  import { waitForEcharts, initChart } from '#lib/utils/echarts.ts';
+  import { formatNumber } from '#lib/utils/formatUtils.ts';
 
-  $: workspaceId = $page.url.searchParams.get('workspace');
+  const workspaceId = $derived(page.url.searchParams.get('workspace'));
 
   // Loading state
-  let loading = true;
-  let error = '';
+  let loading = $state(true);
+  let error = $state('');
   let currentFilterParams: Record<string, string> = {};
 
   // Overview stats
-  let overviewStats = {
+  let overviewStats = $state({
     totalTranscripts: 0,
     totalHours: 0,
     stationCount: 0,
     avgDuration: 0,
     politicalPercent: 0,
     adPercent: 0
-  };
+  });
 
   // Chart data
   let sentimentBreakdown: any[] = [];
-  let stationBreakdown: any[] = [];
+  let stationBreakdown: any[] = $state([]);
   let sentimentTrends: any[] = [];
   let topTopics: any[] = [];
   let politicalBreakdown: any[] = [];
-  let transcripts: any[] = [];
+  let transcripts: any[] = $state([]);
 
   // Filters
-  let searchQuery = '';
-  let transcriptFilter = 'all';
+  let searchQuery = $state('');
+  let transcriptFilter = $state('all');
   let timeRange = '7d';
 
   // Chart instances
@@ -52,8 +52,7 @@
     loadData();
   }
 
-  function handleFilterChange(event: CustomEvent) {
-    const detail = event.detail || {};
+  function handleFilterChange(detail: FilterChange) {
     currentFilterParams = {};
     if (detail.workspaceId) currentFilterParams.workspace_id = detail.workspaceId;
     currentFilterParams.platforms = (detail.platforms || []).join(',');
@@ -107,7 +106,7 @@
   }
 
   // Filtered transcripts
-  $: filteredTranscripts = transcripts.filter(t => {
+  const filteredTranscripts = $derived(transcripts.filter(t => {
     const matchesSearch = !searchQuery ||
       (t.transcript && t.transcript.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (t.radioName && t.radioName.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -118,7 +117,7 @@
       (transcriptFilter === 'non-political' && !t.isPolitical && !t.isAd);
 
     return matchesSearch && matchesFilter;
-  });
+  }));
 
   function getSentimentBadgeClasses(sentiment: string): string {
     return getSentimentColor(sentiment, 'tailwind');
@@ -333,7 +332,7 @@
 
     <!-- Filter Bar -->
     <div class="mb-6">
-      <FilterBar workspaceId={workspaceId} datasetTypes={["radio"]} onReady={handleFilterReady} on:change={handleFilterChange} />
+      <FilterBar workspaceId={workspaceId} datasetTypes={["radio"]} onReady={handleFilterReady} onchange={handleFilterChange} />
     </div>
 
     {#if loading}
@@ -469,19 +468,19 @@
           </div>
           <div class="flex items-center gap-2">
             <button
-              on:click={() => transcriptFilter = 'all'}
+              onclick={() => transcriptFilter = 'all'}
               class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors {transcriptFilter === 'all' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
             >All</button>
             <button
-              on:click={() => transcriptFilter = 'political'}
+              onclick={() => transcriptFilter = 'political'}
               class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors {transcriptFilter === 'political' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
             >Political</button>
             <button
-              on:click={() => transcriptFilter = 'ads'}
+              onclick={() => transcriptFilter = 'ads'}
               class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors {transcriptFilter === 'ads' ? 'bg-orange-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
             >Ads</button>
             <button
-              on:click={() => transcriptFilter = 'non-political'}
+              onclick={() => transcriptFilter = 'non-political'}
               class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors {transcriptFilter === 'non-political' ? 'bg-slate-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
             >Non-Political</button>
           </div>

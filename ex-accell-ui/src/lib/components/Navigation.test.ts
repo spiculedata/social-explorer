@@ -17,10 +17,10 @@ const hoisted = vi.hoisted(() => ({
 vi.mock('$app/navigation', () => ({ goto: hoisted.goto }));
 vi.mock('$app/env', () => ({ browser: true }));
 vi.mock('$app/state', () => import('../../test/mocks/pageState.svelte'));
-vi.mock('$lib/utils/signOut', () => ({ signOut: hoisted.signOut, signOutEverywhere: hoisted.signOutEverywhere }));
+vi.mock('#lib/utils/signOut.ts', () => ({ signOut: hoisted.signOut, signOutEverywhere: hoisted.signOutEverywhere }));
 
 import { resetMockPage, setMockPage } from '../../test/mocks/pageState.svelte';
-import { currentProject } from '$lib/stores/projectStore';
+import { currentProject } from '#lib/stores/projectStore.ts';
 import Navigation from './Navigation.svelte';
 
 
@@ -409,5 +409,19 @@ describe('Navigation project and workspace selectors', () => {
     setMockPage({ data: { user: admin } });
 
     expect((await screen.findAllByText('Ada Admin')).length).toBeGreaterThan(0);
+  });
+});
+
+describe('Navigation active item', () => {
+  const homeLinks = () => screen.getAllByRole('link', { name: 'Home' });
+
+  it('marks the link for the current page and follows client-side navigation', async () => {
+    setPage('/', null);
+    render(Navigation);
+    expect(homeLinks().some((link) => link.getAttribute('aria-current') === 'page')).toBe(true);
+
+    setMockPage({ url: new URL('http://localhost/dashboards') });
+
+    await waitFor(() => expect(homeLinks().every((link) => link.getAttribute('aria-current') === null)).toBe(true));
   });
 });

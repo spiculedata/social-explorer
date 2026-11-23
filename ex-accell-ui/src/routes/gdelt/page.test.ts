@@ -60,7 +60,7 @@ vi.mock('leaflet', () => {
 });
 
 import Page from './+page.svelte';
-import { getCountryNameWithFallback } from '$lib/countryMapping';
+import { getCountryNameWithFallback } from '#lib/countryMapping.ts';
 
 const event = (id: number, over: Record<string, unknown> = {}) => ({
   id,

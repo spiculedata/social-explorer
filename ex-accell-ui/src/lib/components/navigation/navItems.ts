@@ -1,6 +1,6 @@
 // Menu data and the pure rules for the main navigation bar.
 
-import { dataSourceBadgeClass } from '$lib/utils/categoryColours';
+import { dataSourceBadgeClass } from '#lib/utils/categoryColours.ts';
 
 export interface DropdownItem {
   name: string;

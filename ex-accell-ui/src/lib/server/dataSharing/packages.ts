@@ -3,9 +3,9 @@
 
 import fs from 'fs';
 import path from 'path';
-import { postgresPool } from '$lib/services/postgres';
-import { isSafeIdentifier, resolveWithin } from '$lib/utils/pathSafety';
-import { packageIdFor } from '$lib/utils/packageId';
+import { postgresPool } from '#lib/services/postgres.ts';
+import { isSafeIdentifier, resolveWithin } from '#lib/utils/pathSafety.ts';
+import { packageIdFor } from '#lib/utils/packageId.ts';
 import { parseCsv, toCsvLine } from './csv';
 import { badRequest, forbidden, notFound, unprocessable } from './errors';
 import { clampPreviewRows, isProtectedTable, isSafePackageFileName, isSafeSourceSchema, isSafeSqlIdentifier, qualifiedTable } from './identifiers';

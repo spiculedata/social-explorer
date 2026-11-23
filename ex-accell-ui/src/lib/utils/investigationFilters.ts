@@ -1,6 +1,6 @@
 // Narrowing the loaded records to the active cross-filter and time range.
 
-import type { CrossFilter } from '$lib/stores/investigationStore';
+import type { CrossFilter } from '#lib/stores/investigationStore.ts';
 import type { GdeltEvent, RadioSegment, WorkbenchPost } from './investigationTypes';
 
 const NEUTRAL_TONE_LIMIT = 1;

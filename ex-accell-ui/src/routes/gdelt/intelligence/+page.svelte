@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { CHART } from '$lib/utils/chartColors';
+  import { CHART } from '#lib/utils/chartColors.ts';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
-  import { ErrorAlert } from '$lib/components/ui';
-  import { formatNumber } from '$lib/utils/formatUtils';
-  import { waitForEcharts, initChart } from '$lib/utils/echarts';
-  import { getCountryNameWithFallback } from '$lib/countryMapping';
-  import DataUnavailable from '$lib/components/ui/DataUnavailable.svelte';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
+  import { ErrorAlert } from '#lib/components/ui/index.ts';
+  import { formatNumber } from '#lib/utils/formatUtils.ts';
+  import { waitForEcharts, initChart } from '#lib/utils/echarts.ts';
+  import { getCountryNameWithFallback } from '#lib/countryMapping.ts';
+  import DataUnavailable from '#lib/components/ui/DataUnavailable.svelte';
 
   // Helper: resolve country code to full name
   function countryName(code: string): string {

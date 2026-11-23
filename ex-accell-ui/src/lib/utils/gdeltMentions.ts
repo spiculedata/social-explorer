@@ -1,4 +1,4 @@
-import { gdeltDateToInputDate } from '$lib/utils/gdeltDates';
+import { gdeltDateToInputDate } from '#lib/utils/gdeltDates.ts';
 
 export type GdeltMention = Record<string, any>;
 
