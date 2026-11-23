@@ -15,7 +15,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/lib/**', 'src/routes/api/**'],
-      exclude: ['src/lib/services/types/**', 'src/lib/components/**/*.svelte'],
+      // Vitest 5 counts snapshot files (*.snap) as uncovered source, so leave them out
+      exclude: ['src/lib/services/types/**', 'src/lib/components/**/*.svelte', '**/__snapshots__/**'],
       // Floor measured on 2026-11-12 (stmts 59.89, branches 58.24, funcs 70.96, lines 57.66).
       // `npm run test:unit:coverage` fails if any metric drops below it. Raise it when you add tests.
       thresholds: { statements: 59, branches: 58, functions: 70, lines: 57 }
