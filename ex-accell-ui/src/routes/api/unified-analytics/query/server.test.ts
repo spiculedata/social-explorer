@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const { duckdbQuery } = vi.hoisted(() => ({ duckdbQuery: vi.fn() }));
-vi.mock('$lib/services/postgres', () => ({ postgresPool: { duckdbQuery } }));
-vi.mock('$lib/utils/logger', () => ({
+vi.mock('#lib/services/postgres.ts', () => ({ postgresPool: { duckdbQuery } }));
+vi.mock('#lib/utils/logger.ts', () => ({
   createLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() })
 }));
 

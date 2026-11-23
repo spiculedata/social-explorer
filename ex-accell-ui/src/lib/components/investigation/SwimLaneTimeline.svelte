@@ -16,9 +16,9 @@
 </script>
 
 <script lang="ts">
-  import { CHART } from '$lib/utils/chartColors';
+  import { CHART } from '#lib/utils/chartColors.ts';
 	import { onMount, createEventDispatcher } from 'svelte';
-	import { getSentimentColor } from '$lib/utils/colorUtils';
+	import { getSentimentColor } from '#lib/utils/colorUtils.ts';
 	import * as d3 from 'd3';
 
 	export let data: TimelineEntry[] = [];

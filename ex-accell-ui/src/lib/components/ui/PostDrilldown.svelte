@@ -1,8 +1,8 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import { fetchPosts, type Post, type PostFilters } from '$lib/services/postsApi';
-  import { getSentimentColor } from '$lib/utils/colorUtils';
-  import { splitHighlight } from '$lib/utils/highlight';
+  import { fetchPosts, type Post, type PostFilters } from '#lib/services/postsApi.ts';
+  import { getSentimentColor } from '#lib/utils/colorUtils.ts';
+  import { splitHighlight } from '#lib/utils/highlight.ts';
 
   /**
    * The posts behind a number. Opens beside the page when a topic, hashtag, phrase or sentiment segment

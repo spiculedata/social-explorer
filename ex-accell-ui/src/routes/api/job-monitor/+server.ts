@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
-import { apiOk, apiServerError } from '$lib/server/apiResponse';
-import { jobStateStore } from '$lib/services/jobStateStore.js';
+import { apiOk, apiServerError } from '#lib/server/apiResponse.ts';
+import { jobStateStore } from '#lib/services/jobStateStore.ts';
 
 const UPCOMING_LIMIT = 5;
 const MS_PER_MINUTE = 60 * 1000;

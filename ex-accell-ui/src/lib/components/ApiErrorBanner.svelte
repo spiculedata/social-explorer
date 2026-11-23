@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { apiErrors, dismissApiErrors } from '$lib/stores/apiErrors';
+  import { apiErrors, dismissApiErrors } from '#lib/stores/apiErrors.ts';
 </script>
 
 {#if $apiErrors.length > 0}

@@ -1,7 +1,7 @@
 // Health check endpoint with real dependency checks
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { postgresPool } from '$lib/services/postgres';
+import { postgresPool } from '#lib/services/postgres.ts';
 
 export const GET: RequestHandler = async () => {
   const checks: Record<string, { status: string; detail?: string }> = {};

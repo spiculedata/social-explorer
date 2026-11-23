@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { ExportState } from '$lib/utils/exportAction';
+  import type { ExportState } from '#lib/utils/exportAction.ts';
 
   /** Tells the visitor what an export did. The live region is always present so a result added later is announced. */
   export let state: ExportState;

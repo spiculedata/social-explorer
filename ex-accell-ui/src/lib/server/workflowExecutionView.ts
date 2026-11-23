@@ -1,4 +1,4 @@
-import type { WorkflowExecution } from '$lib/services/serverWorkflowService';
+import type { WorkflowExecution } from '#lib/services/serverWorkflowService.ts';
 
 /** What a person is told when a workflow step or the Dapr runtime failed. The cause is in the server log. */
 export const GENERIC_EXECUTION_ERROR = 'The workflow run failed. Ask an administrator to check the server log.';

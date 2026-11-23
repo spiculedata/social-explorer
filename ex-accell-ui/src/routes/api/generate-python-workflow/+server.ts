@@ -2,8 +2,8 @@
 // Handles Python workflow code generation on the server
 
 import type { RequestHandler } from './$types';
-import { apiFail, apiOk, apiServerError, readJsonObject } from '$lib/server/apiResponse';
-import { pythonDaprWorkflowGenerator } from '$lib/services/pythonDaprWorkflowGenerator';
+import { apiFail, apiOk, apiServerError, readJsonObject } from '#lib/server/apiResponse.ts';
+import { pythonDaprWorkflowGenerator } from '#lib/services/pythonDaprWorkflowGenerator.ts';
 
 const MAX_WORKFLOW_BODY_BYTES = 1024 * 1024;
 

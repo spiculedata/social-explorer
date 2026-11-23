@@ -1,4 +1,4 @@
-import type { JobState } from '$lib/services/jobStateStore';
+import type { JobState } from '#lib/services/jobStateStore.ts';
 import type { RadioStream, UiJob, WavePulseConfig } from './types';
 
 /** Progress shown for a job given its status; running jobs are capped at 99%. */

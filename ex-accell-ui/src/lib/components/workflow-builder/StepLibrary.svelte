@@ -7,8 +7,8 @@
    */
 
   import { get } from 'svelte/store';
-  import { workflowBuilder, workflowSteps } from '$lib/stores/workflowBuilderStore';
-  import { nextFreePosition } from '$lib/utils/workflowSteps';
+  import { workflowBuilder, workflowSteps } from '#lib/stores/workflowBuilderStore.ts';
+  import { nextFreePosition } from '#lib/utils/workflowSteps.ts';
   import { stepLibrary, getStepColorClasses, searchSteps, type StepTemplate } from './stepLibraryData';
 
   // Search state

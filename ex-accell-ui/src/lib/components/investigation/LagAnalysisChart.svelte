@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { CHART } from '$lib/utils/chartColors';
+  import { CHART } from '#lib/utils/chartColors.ts';
 	import { onMount, createEventDispatcher } from 'svelte';
 	import * as d3 from 'd3';
 
-	import type { CrossFilter } from '$lib/stores/investigationStore';
+	import type { CrossFilter } from '#lib/stores/investigationStore.ts';
 
 	export let data: any[] = [];
 	export let sourceA: string = 'gdelt';

@@ -1,17 +1,17 @@
 <script lang="ts">
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { androidAnalyticsDb } from '$lib/services/androidAnalyticsDb';
+  import { androidAnalyticsDb } from '#lib/services/androidAnalyticsDb.ts';
   import type {
     AndroidAccessibilityEvent,
     AndroidAnalyticsSummary,
     AndroidAppSegment,
     AndroidScreenshot
-  } from '$lib/services/types/databaseTypes';
-  import { hasAndroidData } from '$lib/utils/androidData';
-  import DataUnavailable from '$lib/components/ui/DataUnavailable.svelte';
-  import ErrorAlert from '$lib/components/ui/ErrorAlert.svelte';
+  } from '#lib/services/types/databaseTypes.ts';
+  import { hasAndroidData } from '#lib/utils/androidData.ts';
+  import DataUnavailable from '#lib/components/ui/DataUnavailable.svelte';
+  import ErrorAlert from '#lib/components/ui/ErrorAlert.svelte';
 
   const LOAD_ERROR = 'Could not load Android analytics data. Check the connection and try again.';
   const MS_PER_MINUTE = 60000;

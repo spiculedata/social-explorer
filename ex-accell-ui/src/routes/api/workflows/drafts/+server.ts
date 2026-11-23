@@ -1,8 +1,8 @@
 // Saves a workflow built in the workflow builder as a draft (no code generation, no publishing)
 
-import { apiFail, apiOk, apiServerError, readJsonObject } from '$lib/server/apiResponse';
+import { apiFail, apiOk, apiServerError, readJsonObject } from '#lib/server/apiResponse.ts';
 import type { RequestHandler } from './$types';
-import { serverWorkflowService } from '$lib/services/serverWorkflowService';
+import { serverWorkflowService } from '#lib/services/serverWorkflowService.ts';
 
 // A workflow definition is a list of steps and their settings; a megabyte is far more than any real one
 const MAX_WORKFLOW_BODY_BYTES = 1024 * 1024;

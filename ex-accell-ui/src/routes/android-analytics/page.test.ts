@@ -7,7 +7,7 @@ const service = vi.hoisted(() => ({
   getAppSegments: vi.fn(),
   getScreenshots: vi.fn()
 }));
-vi.mock('$lib/services/androidAnalyticsDb', () => ({ androidAnalyticsDb: service }));
+vi.mock('#lib/services/androidAnalyticsDb.ts', () => ({ androidAnalyticsDb: service }));
 vi.mock('$app/navigation', () => ({ goto: vi.fn() }));
 
 import Page from './+page.svelte';

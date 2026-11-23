@@ -8,7 +8,7 @@ const store = vi.hoisted(() => ({
   getAllJobStates: vi.fn(),
   deleteJobState: vi.fn()
 }));
-vi.mock('$lib/services/jobStateStore.js', () => ({ jobStateStore: store }));
+vi.mock('#lib/services/jobStateStore.ts', () => ({ jobStateStore: store }));
 
 import { DELETE, GET, POST, PUT } from './+server';
 

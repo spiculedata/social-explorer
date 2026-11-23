@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const saveDraft = vi.hoisted(() => vi.fn());
 
-vi.mock('$lib/services/serverWorkflowService', () => ({ serverWorkflowService: { saveDraft } }));
+vi.mock('#lib/services/serverWorkflowService.ts', () => ({ serverWorkflowService: { saveDraft } }));
 
 import { POST } from './+server';
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { crawlTargetLabels, type CrawlerConfig } from '$lib/utils/dataManagement';
+  import { crawlTargetLabels, type CrawlerConfig } from '#lib/utils/dataManagement.ts';
 
   /** The form fields, so bind it */
   export let crawlerConfig: CrawlerConfig;

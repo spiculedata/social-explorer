@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { formatDay } from '$lib/utils/dayFormat';
-  import SwimLaneTimeline from '$lib/components/investigation/SwimLaneTimeline.svelte';
-  import type { TimelineEntry } from '$lib/components/investigation/SwimLaneTimeline.svelte';
+  import { formatDay } from '#lib/utils/dayFormat.ts';
+  import SwimLaneTimeline from '#lib/components/investigation/SwimLaneTimeline.svelte';
+  import type { TimelineEntry } from '#lib/components/investigation/SwimLaneTimeline.svelte';
 
   export let timelineData: TimelineEntry[];
   export let timelineLoading: boolean;

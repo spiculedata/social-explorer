@@ -1,5 +1,5 @@
-import { postgresPool } from '$lib/services/postgres';
-import { createLogger } from '$lib/utils/logger';
+import { postgresPool } from '#lib/services/postgres.ts';
+import { createLogger } from '#lib/utils/logger.ts';
 import { bundledMigrations } from './files';
 import { runMigrations } from './runner';
 

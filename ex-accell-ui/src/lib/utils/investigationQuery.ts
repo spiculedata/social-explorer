@@ -1,6 +1,6 @@
 // Building the requests the investigation workbench makes, and reading their answers.
 
-import type { TimelineEntry } from '$lib/components/investigation/SwimLaneTimeline.svelte';
+import type { TimelineEntry } from '#lib/components/investigation/SwimLaneTimeline.svelte';
 
 /** The analytics URL for one investigation query type; keywords and dates are left out when empty. */
 export function buildInvestigationQuery(type: string, keywords: string[], dateStart: string, dateEnd: string, limit?: number): string {

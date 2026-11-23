@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { getStatusColor } from '$lib/utils/colorUtils';
-  import { formatTimestamp, type DataRow } from '$lib/utils/dataManagement';
-  import { formatNumber } from '$lib/utils/formatUtils';
+  import { getStatusColor } from '#lib/utils/colorUtils.ts';
+  import { formatTimestamp, type DataRow } from '#lib/utils/dataManagement.ts';
+  import { formatNumber } from '#lib/utils/formatUtils.ts';
 
   export let datasets: DataRow[];
   export let onStartCrawl: () => void;

@@ -1,4 +1,4 @@
-import type { WorkspaceDataScope } from '$lib/services/workspaceContextResolver';
+import type { WorkspaceDataScope } from '#lib/services/workspaceContextResolver.ts';
 import { windowConditions, type DateWindow } from './dateWindow';
 
 /** SQL for the Language Detection dashboard, over language_detection, languages, posts, data_sources and language_mixing. */

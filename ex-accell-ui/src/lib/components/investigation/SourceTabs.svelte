@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { clearCrossFilter, type CrossFilter } from '$lib/stores/investigationStore';
-  import type { SourceTab } from '$lib/utils/investigationTypes';
+  import { clearCrossFilter, type CrossFilter } from '#lib/stores/investigationStore.ts';
+  import type { SourceTab } from '#lib/utils/investigationTypes.ts';
 
   export let activeTab: SourceTab;
   export let activeCrossFilter: CrossFilter | null;

@@ -8,9 +8,9 @@
 
 import fs from 'fs';
 import path from 'path';
-import { createLogger } from '$lib/utils/logger';
-import { isSafePackageFileName } from '$lib/server/dataSharing/identifiers';
-import { resolveWithin } from '$lib/utils/pathSafety';
+import { createLogger } from '#lib/utils/logger.ts';
+import { isSafePackageFileName } from '#lib/server/dataSharing/identifiers.ts';
+import { resolveWithin } from '#lib/utils/pathSafety.ts';
 import { isValidCid } from './ipfsCid';
 import { buildLibp2pOverrides, readNetworkConfig } from './ipfsNetworkConfig';
 import { InvalidCidError, IpfsDisabledError, PackageTooLargeError, UnsafePackageError } from './ipfsErrors';

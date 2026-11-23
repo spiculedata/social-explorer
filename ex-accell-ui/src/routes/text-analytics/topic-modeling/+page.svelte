@@ -1,29 +1,27 @@
 <script lang="ts">
-  import { CHART } from '$lib/utils/chartColors';
+  import { CHART } from '#lib/utils/chartColors.ts';
   import { goto } from '$app/navigation';
-  import PostDrilldown from '$lib/components/ui/PostDrilldown.svelte';
-  import { filtersFromParams, type PostFilters } from '$lib/services/postsApi';
-  import FilterBar from '$lib/components/ui/FilterBar.svelte';
-  import { page } from '$lib/stores/pageStore.svelte';
-  import { currentProject } from '$lib/stores/projectStore';
-  import { topicModelingDb } from '$lib/services/topicModelingDb';
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
-  import WorkspaceBanner from '$lib/components/ui/WorkspaceBanner.svelte';
-  import { onMount, tick } from 'svelte';
-  import { runExport, downloadCsv, IDLE_EXPORT, type ExportState } from '$lib/utils/exportAction';
-  import { toCsv } from '$lib/utils/evidenceExport';
-  import ExportStatus from '$lib/components/ui/ExportStatus.svelte';
+  import PostDrilldown from '#lib/components/ui/PostDrilldown.svelte';
+  import { filtersFromParams, type PostFilters } from '#lib/services/postsApi.ts';
+  import FilterBar, { type FilterChange } from '#lib/components/ui/FilterBar.svelte';
+  import { page } from '$app/state';
+  import { currentProject } from '#lib/stores/projectStore.ts';
+  import { topicModelingDb } from '#lib/services/topicModelingDb.ts';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
+  import WorkspaceBanner from '#lib/components/ui/WorkspaceBanner.svelte';
+  import { onMount, tick, untrack } from 'svelte';
+  import { runExport, downloadCsv, IDLE_EXPORT, type ExportState } from '#lib/utils/exportAction.ts';
+  import { toCsv } from '#lib/utils/evidenceExport.ts';
+  import ExportStatus from '#lib/components/ui/ExportStatus.svelte';
   import { browser } from '$app/env';
-  import { getCategoryColor } from '$lib/utils/colorUtils';
-  import { waitForEcharts, initChart } from '$lib/utils/echarts';
-  import { ErrorAlert } from '$lib/components/ui';
+  import { getCategoryColor } from '#lib/utils/colorUtils.ts';
+  import { waitForEcharts, initChart } from '#lib/utils/echarts.ts';
+  import { ErrorAlert } from '#lib/components/ui/index.ts';
 
-  $: workspaceId = $page.url.searchParams.get('workspace');
 
   let currentFilterParams: Record<string, string> = {};
 
-  function handleFilterChange(event: CustomEvent) {
-    const detail = event.detail || {};
+  function handleFilterChange(detail: FilterChange) {
     currentFilterParams = {};
     if (detail.workspaceId) currentFilterParams.workspace_id = detail.workspaceId;
     currentFilterParams.platforms = (detail.platforms || []).join(',');
@@ -47,8 +45,8 @@
   }
   
   // Loading state
-  let loading = true;
-  let errorMessage = '';
+  let loading = $state(true);
+  let errorMessage = $state('');
 
   onMount(async () => {
     // Load topic modeling data from database
@@ -56,10 +54,10 @@
   });
 
   // Topic modeling data - loaded from database
-  let topicsData: Topic[] = [];
-  let topicCategories: any[] = [];
-  let topicRelationships: any[] = [];
-  let topicStats: any = {};
+  let topicsData: Topic[] = $state([]);
+  let topicCategories: any[] = $state([]);
+  let topicRelationships: any[] = $state([]);
+  let topicStats: any = $state({});
   
   // Load topic modeling data from database service
   async function loadTopicModelingData() {
@@ -96,24 +94,18 @@
   }
   
 
-  let selectedCategory = 'all';
+  let selectedCategory = $state('all');
   let selectedTopic: Topic | null = null;
-  let searchQuery = '';
-  let minTopicSize = 1;
-  let sliderValue = 0; // 0-100 linear slider mapped to log scale
+  let searchQuery = $state('');
+  let sliderValue = $state(0); // 0-100 linear slider mapped to log scale
   // The treemap reads at a glance; the network is for exploring how topics relate
-  let showNetworkDiagram = false;
-  let networkChart: any = null;
-  let treemapChart: any = null;
+  let showNetworkDiagram = $state(false);
+  let networkChart: any = $state(null);
+  let treemapChart: any = $state(null);
 
   // Debounce timer for API-driven filters
   let filterDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-  // Reactive: re-fetch from API only when category or search change (debounced)
-  $: if ((selectedCategory !== 'all' || searchQuery !== '') && !loading && topicsData.length > 0) {
-    if (filterDebounceTimer) clearTimeout(filterDebounceTimer);
-    filterDebounceTimer = setTimeout(() => loadFilteredTopics(), 300);
-  }
 
   // Load filtered topics from database (only for category/search — minSize is client-side)
   async function loadFilteredTopics() {
@@ -129,21 +121,9 @@
     }
   }
 
-  // Log-scale mapping: slider 0-100 → minTopicSize 1 to maxSize
-  $: maxTopicSize = Math.max(100, topicsData.reduce((max, t) => Math.max(max, t.size), 100));
-  $: minTopicSize = sliderValue === 0 ? 1 : Math.round(Math.pow(10, (sliderValue / 100) * Math.log10(maxTopicSize)));
 
-  // Client-side filtering for minTopicSize (no API call needed)
-  $: filteredTopics = topicsData.filter(t => t.size >= minTopicSize);
 
-  // Update charts when filteredTopics change
-  $: if (browser && filteredTopics && !loading) {
-    if (networkChart) updateNetworkChart();
-    if (treemapChart) setTimeout(async () => await updateTreemapChart(), 50);
-  }
 
-  // Get categories from database data
-  $: categories = ['all', ...topicCategories.map(cat => cat.category)];
 
   function initializeCharts() {
     initNetworkChart();
@@ -183,10 +163,6 @@
   // Okabe-Ito order, colour-blind safe; categories beyond the eighth reuse colours and are told apart by the legend and tooltip
   const NETWORK_COLOURS = [CHART.catBlue, CHART.catOrange, CHART.catGreen, CHART.catPink, CHART.catSky, CHART.catVermilion, CHART.catYellow, CHART.ink900];
   const LABEL_LIMIT = 14;
-  // A category has the same colour in the network, the treemap and the legend
-  // The order is the sorted names of every category, not just those left after a filter, so a category keeps its
-  // colour when the filters change and cannot differ between the two charts
-  $: categoryOrder = [...new Set([...topicCategories.map(cat => cat.category), ...topicsData.map(topic => topic.category)].filter(Boolean))].sort();
   const colourOfCategory = (name: string) => NETWORK_COLOURS[Math.max(0, categoryOrder.indexOf(name)) % NETWORK_COLOURS.length];
   const colourByCategory = (nodes: any[]) =>
     nodes.map(group => ({ ...group, children: group.children?.map((topic: any) => ({ ...topic, itemStyle: { ...topic.itemStyle, color: colourOfCategory(group.name) } })) }));
@@ -460,30 +436,8 @@
   }
 
 
-  // (chart updates handled in the filteredTopics reactive block above)
 
-  // Watch for visualization toggle changes
-  $: if (browser && showNetworkDiagram !== undefined) {
-    setTimeout(async () => {
-      if (showNetworkDiagram) {
-        if (!networkChart) {
-          initNetworkChart();
-        } else {
-          networkChart.resize();
-          updateNetworkChart();
-        }
-      } else {
-        if (!treemapChart) {
-          await initTreemapChart();
-        } else {
-          treemapChart.resize();
-          await updateTreemapChart();
-        }
-      }
-    }, 100);
-  }
-
-  let exportState: ExportState = IDLE_EXPORT;
+  let exportState: ExportState = $state(IDLE_EXPORT);
 
   // Exports the topics as listed, after the category, search and size filters
   function exportTopicData() {
@@ -501,12 +455,67 @@
   }
 
   // The topic whose posts are open in the side panel
-  let drilldown: { title: string; filters: PostFilters } | null = null;
+  let drilldown: { title: string; filters: PostFilters } | null = $state(null);
 
   function selectTopic(topic: Topic) {
     selectedTopic = topic;
     drilldown = { title: `Topic: ${topic.name}`, filters: { topic: String(topic.id), ...filtersFromParams({ ...(workspaceId ? { workspace_id: workspaceId } : {}), ...currentFilterParams }) } };
   }
+  const workspaceId = $derived(page.url.searchParams.get('workspace'));
+  // Reactive: re-fetch from API only when category or search change (debounced)
+  $effect(() => {
+    if ((selectedCategory !== 'all' || searchQuery !== '') && !loading && topicsData.length > 0) {
+      if (filterDebounceTimer) clearTimeout(filterDebounceTimer);
+      filterDebounceTimer = setTimeout(loadFilteredTopics, 300);
+    }
+  });
+  // Log-scale mapping: slider 0-100 → minTopicSize 1 to maxSize
+  const maxTopicSize = $derived(Math.max(100, topicsData.reduce((max, t) => Math.max(max, t.size), 100)));
+  const minTopicSize = $derived(sliderValue === 0 ? 1 : Math.round(Math.pow(10, (sliderValue / 100) * Math.log10(maxTopicSize))));
+  // Client-side filtering for minTopicSize (no API call needed)
+  const filteredTopics = $derived(topicsData.filter(t => t.size >= minTopicSize));
+  // Update charts when filteredTopics change
+  $effect(() => {
+    if (browser && filteredTopics && !loading) {
+      // networkChart and treemapChart are read here, as before; the update itself is not tracked
+      const network = networkChart;
+      const treemap = treemapChart;
+      untrack(() => {
+        if (network) updateNetworkChart();
+        if (treemap) setTimeout(async () => await updateTreemapChart(), 50);
+      });
+    }
+  });
+  // Get categories from database data
+  const categories = $derived(['all', ...topicCategories.map(cat => cat.category)]);
+  // A category has the same colour in the network, the treemap and the legend
+  // The order is the sorted names of every category, not just those left after a filter, so a category keeps its
+  // colour when the filters change and cannot differ between the two charts
+  const categoryOrder = $derived([...new Set([...topicCategories.map(cat => cat.category), ...topicsData.map(topic => topic.category)].filter(Boolean))].sort());
+  // (chart updates handled in the filteredTopics reactive block above)
+
+  // Watch for visualization toggle changes
+  $effect(() => {
+    if (browser && showNetworkDiagram !== undefined) {
+      setTimeout(async () => {
+        if (showNetworkDiagram) {
+          if (!networkChart) {
+            initNetworkChart();
+          } else {
+            networkChart.resize();
+            updateNetworkChart();
+          }
+        } else {
+          if (!treemapChart) {
+            await initTreemapChart();
+          } else {
+            treemapChart.resize();
+            await updateTreemapChart();
+          }
+        }
+      }, 100);
+    }
+  });
 </script>
 
 <svelte:head>
@@ -520,19 +529,19 @@
     subtitle="Discover themes and relationships in your social media data with advanced topic analysis"
     backHref="/text-analytics">
     <svelte:fragment slot="icon">
-      <div class="w-16 h-16 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-2xl shadow-lg flex items-center justify-center mr-6 border border-white/20 backdrop-blur-sm">
-        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-        </svg>
-      </div>
-    </svelte:fragment>
+        <div class="w-16 h-16 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-2xl shadow-lg flex items-center justify-center mr-6 border border-white/20 backdrop-blur-sm">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+          </svg>
+        </div>
+      </svelte:fragment>
     <svelte:fragment slot="actions">
-      <button
-        on:click={exportTopicData}
-        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
-        Export Analysis
-      </button>
-    </svelte:fragment>
+        <button
+          onclick={exportTopicData}
+          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+          Export Analysis
+        </button>
+      </svelte:fragment>
   </PageHeader>
 
   <!-- Content -->
@@ -544,7 +553,7 @@
 
     <!-- Data Source Filter -->
     <div class="mb-6">
-      <FilterBar workspaceId={workspaceId} datasetTypes={["social_media"]} on:change={handleFilterChange} />
+      <FilterBar workspaceId={workspaceId} datasetTypes={["social_media"]} onchange={handleFilterChange} />
     </div>
     {#if loading}
       <div class="flex items-center justify-center py-16">
@@ -710,7 +719,7 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button 
-                    on:click={() => selectTopic(topic)}
+                    onclick={() => selectTopic(topic)}
                     class="text-primary-700 hover:text-primary-900 font-medium">
                     View posts
                   </button>

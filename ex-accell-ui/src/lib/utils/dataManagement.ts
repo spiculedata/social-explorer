@@ -1,4 +1,4 @@
-import { formatNumber } from '$lib/utils/formatUtils';
+import { formatNumber } from '#lib/utils/formatUtils.ts';
 
 // Dataset and workflow rows come from the API in a few shapes, so pages read them loosely
 export type DataRow = Record<string, any>;

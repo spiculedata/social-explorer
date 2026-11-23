@@ -1,10 +1,10 @@
 <script lang="ts">
   // The platform badge sits beside the sentiment badge, and the categorical tints share hues with the sentiment
   // scale, so the platform is named in neutral ink and told apart by its icon and label
-  import { NEUTRAL_BADGE } from '$lib/utils/categoryColours';
-  import { getSentimentColor } from '$lib/utils/colorUtils';
-  import { investigationSelection, toggleSelectedId, setHoveredId } from '$lib/stores/investigationStore';
-  import type { InvestigationSelection } from '$lib/stores/investigationStore';
+  import { NEUTRAL_BADGE } from '#lib/utils/categoryColours.ts';
+  import { getSentimentColor } from '#lib/utils/colorUtils.ts';
+  import { investigationSelection, toggleSelectedId, setHoveredId } from '#lib/stores/investigationStore.ts';
+  import type { InvestigationSelection } from '#lib/stores/investigationStore.ts';
 
   export let posts: {
     id: string | number;

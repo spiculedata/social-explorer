@@ -1,10 +1,10 @@
 // Workspace Overview API Endpoint
 // Returns workspace details, data sources, investigations, and summary in one round trip
 
-import { apiFail, apiOk, apiServerError } from '$lib/server/apiResponse';
+import { apiFail, apiOk, apiServerError } from '#lib/server/apiResponse.ts';
 import type { RequestHandler } from './$types';
-import { postgresPool } from '$lib/services/postgres';
-import { WORKSPACE_SOURCES_SQL } from '$lib/server/workspaceSources';
+import { postgresPool } from '#lib/services/postgres.ts';
+import { WORKSPACE_SOURCES_SQL } from '#lib/server/workspaceSources.ts';
 
 export const GET: RequestHandler = async ({ url }) => {
   const workspaceId = url.searchParams.get('id');

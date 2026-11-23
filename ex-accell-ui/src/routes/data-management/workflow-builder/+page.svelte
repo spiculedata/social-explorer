@@ -6,17 +6,17 @@
    * Refactored to use modular components for better maintainability.
    */
 
-  import WorkflowCanvas from '$lib/components/workflow-builder/WorkflowCanvas.svelte';
-  import StepLibrary from '$lib/components/workflow-builder/StepLibrary.svelte';
-  import StepConfigPanel from '$lib/components/workflow-builder/StepConfigPanel.svelte';
-  import CodeExportModal from '$lib/components/workflow-builder/CodeExportModal.svelte';
-  import PublishWorkflowModal from '$lib/components/workflow-builder/PublishWorkflowModal.svelte';
-  import ExecuteWorkflowModal from '$lib/components/workflow-builder/ExecuteWorkflowModal.svelte';
+  import WorkflowCanvas from '#lib/components/workflow-builder/WorkflowCanvas.svelte';
+  import StepLibrary from '#lib/components/workflow-builder/StepLibrary.svelte';
+  import StepConfigPanel from '#lib/components/workflow-builder/StepConfigPanel.svelte';
+  import CodeExportModal from '#lib/components/workflow-builder/CodeExportModal.svelte';
+  import PublishWorkflowModal from '#lib/components/workflow-builder/PublishWorkflowModal.svelte';
+  import ExecuteWorkflowModal from '#lib/components/workflow-builder/ExecuteWorkflowModal.svelte';
 
   import { goto } from '$app/navigation';
-  import { workflowBuilder, type Dataset } from '$lib/stores/workflowBuilderStore';
-  import { setupProblems } from '$lib/utils/workflowSteps';
-  import { currentProject, loadCurrentProject } from '$lib/stores/projectStore';
+  import { workflowBuilder, type Dataset } from '#lib/stores/workflowBuilderStore.ts';
+  import { setupProblems } from '#lib/utils/workflowSteps.ts';
+  import { currentProject, loadCurrentProject } from '#lib/stores/projectStore.ts';
   import { onMount, onDestroy } from 'svelte';
 
   // ===================================================================

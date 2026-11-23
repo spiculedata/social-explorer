@@ -5,7 +5,7 @@ const service = vi.hoisted(() => ({
   executeWorkflow: vi.fn(),
   getWorkflowExecutions: vi.fn()
 }));
-vi.mock('$lib/services/serverWorkflowService', () => ({ serverWorkflowService: service }));
+vi.mock('#lib/services/serverWorkflowService.ts', () => ({ serverWorkflowService: service }));
 
 import { GET, POST } from './+server';
 

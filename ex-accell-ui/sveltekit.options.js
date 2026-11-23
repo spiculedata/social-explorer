@@ -10,10 +10,6 @@ export const sveltekitOptions = {
 	// Node server output, used by the Dockerfile (`node build`)
 	adapter: adapter(),
 
-	// `$lib` was removed in SvelteKit 3 in favour of the `#lib` subpath import. About 280 files still import `$lib`, so
-	// keep it as an explicit (deprecated) alias until those imports move.
-	alias: { $lib: 'src/lib' },
-
 	// Scripts run only from this site (the framework's own inline scripts get a per-response nonce), nothing is evaluated
 	// from strings, and the page cannot call other servers, be framed by other sites or load plugins. Styles allow inline
 	// because the UI and its charts set style attributes. Images and media may come from any https site (map tiles, post

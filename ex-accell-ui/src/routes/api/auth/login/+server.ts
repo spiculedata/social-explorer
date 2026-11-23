@@ -1,10 +1,10 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { MAX_PASSWORD_LENGTH, hashPassword, verifyPassword } from '$lib/server/auth/password';
-import { SESSION_COOKIE, getAuthConfig, loginIpThrottle, loginThrottle, prepareAuth } from '$lib/server/auth/runtime';
-import { createSessionToken, type SessionUser } from '$lib/server/auth/session';
-import { findUserByEmail, recordLogin } from '$lib/server/auth/userRepo';
-import { createLogger } from '$lib/utils/logger';
+import { MAX_PASSWORD_LENGTH, hashPassword, verifyPassword } from '#lib/server/auth/password.ts';
+import { SESSION_COOKIE, getAuthConfig, loginIpThrottle, loginThrottle, prepareAuth } from '#lib/server/auth/runtime.ts';
+import { createSessionToken, type SessionUser } from '#lib/server/auth/session.ts';
+import { findUserByEmail, recordLogin } from '#lib/server/auth/userRepo.ts';
+import { createLogger } from '#lib/utils/logger.ts';
 
 const log = createLogger('auth');
 

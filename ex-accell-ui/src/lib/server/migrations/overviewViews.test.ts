@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { bundledMigrations } from './files';
-import { WORKSPACE_SOURCES_SQL } from '$lib/server/workspaceSources';
+import { WORKSPACE_SOURCES_SQL } from '#lib/server/workspaceSources.ts';
 
 describe('overview views migration', () => {
   const migration = bundledMigrations().find((m) => m.name === '0008_overview_views_linked_datasets');

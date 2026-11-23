@@ -1,7 +1,7 @@
 <script lang="ts">
-import { getStatusColor } from '$lib/utils/colorUtils';
-  import { formatDateTime } from '$lib/utils/dataCapture/jobList';
-  import type { UiJob } from '$lib/utils/dataCapture/types';
+import { getStatusColor } from '#lib/utils/colorUtils.ts';
+  import { formatDateTime } from '#lib/utils/dataCapture/jobList.ts';
+  import type { UiJob } from '#lib/utils/dataCapture/types.ts';
 
   export let currentLogJob: UiJob;
   export let logContainer: HTMLElement | null;

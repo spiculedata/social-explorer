@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
-import { apiFail, apiOk, apiServerError, readJsonObject } from '$lib/server/apiResponse';
-import { jobStateStore, type JobState } from '$lib/services/jobStateStore.js';
+import { apiFail, apiOk, apiServerError, readJsonObject } from '#lib/server/apiResponse.ts';
+import { jobStateStore, type JobState } from '#lib/services/jobStateStore.ts';
 
 /**
  * Job State API - Dedicated endpoint for managing job state updates

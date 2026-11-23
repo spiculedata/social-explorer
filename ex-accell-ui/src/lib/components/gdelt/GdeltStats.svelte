@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { averageTone } from '$lib/utils/gdeltEvents';
-  import { GDELT_EVENT_TYPES, getEventType } from '$lib/utils/gdeltEventTypes';
-  import type { GdeltEvent } from '$lib/utils/gdeltFilters';
-  import { getToneDescription } from '$lib/utils/gdeltMentions';
+  import { averageTone } from '#lib/utils/gdeltEvents.ts';
+  import { GDELT_EVENT_TYPES, getEventType } from '#lib/utils/gdeltEventTypes.ts';
+  import type { GdeltEvent } from '#lib/utils/gdeltFilters.ts';
+  import { getToneDescription } from '#lib/utils/gdeltMentions.ts';
 
   /** The events that pass every filter */
   export let visibleEvents: GdeltEvent[];

@@ -1,51 +1,51 @@
 <script lang="ts">
-  import { page } from '$lib/stores/pageStore.svelte';
-  import PostDrilldown from '$lib/components/ui/PostDrilldown.svelte';
-  import type { PostFilters } from '$lib/services/postsApi';
-  import { currentProject } from '$lib/stores/projectStore';
-  import { onMount } from 'svelte';
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
-  import { summarizeTrigrams, trigramsDb, type TrigramData, type TrigramFilters, type TrigramStats } from '$lib/services/trigramsDb';
-  import { getTrendColor } from '$lib/utils/colorUtils';
-  import ErrorAlert from '$lib/components/ui/ErrorAlert.svelte';
-  import { platformOptions } from '$lib/utils/platformOptions';
-  import FilterBar from '$lib/components/ui/FilterBar.svelte';
-  import MethodNote from '$lib/components/ui/MethodNote.svelte';
-  import { currentRangeQuery, rangeReloader } from '$lib/utils/filterRange';
-  import { trigramDrilldownFilters } from '$lib/utils/trigramDrilldown';
+  import { page } from '$app/state';
+  import PostDrilldown from '#lib/components/ui/PostDrilldown.svelte';
+  import type { PostFilters } from '#lib/services/postsApi.ts';
+  import { currentProject } from '#lib/stores/projectStore.ts';
+  import { onMount, untrack } from 'svelte';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
+  import { summarizeTrigrams, trigramsDb, type TrigramData, type TrigramFilters, type TrigramStats } from '#lib/services/trigramsDb.ts';
+  import { getTrendColor } from '#lib/utils/colorUtils.ts';
+  import ErrorAlert from '#lib/components/ui/ErrorAlert.svelte';
+  import { platformOptions } from '#lib/utils/platformOptions.ts';
+  import FilterBar, { type FilterChange } from '#lib/components/ui/FilterBar.svelte';
+  import MethodNote from '#lib/components/ui/MethodNote.svelte';
+  import { currentRangeQuery, rangeReloader } from '#lib/utils/filterRange.ts';
+  import { trigramDrilldownFilters } from '#lib/utils/trigramDrilldown.ts';
 
   // The phrase the visitor chose; its posts open in the side panel
-  let drilldown: { title: string; filters: PostFilters } | null = null;
+  let drilldown: { title: string; filters: PostFilters } | null = $state(null);
 
-  $: workspaceId = $page.url.searchParams.get('workspace');
+  const workspaceId = $derived(page.url.searchParams.get('workspace'));
   
-  let errorMessage = '';
-  let truncated = false;
+  let errorMessage = $state('');
+  let truncated = $state(false);
 
   // Trigrams analysis data
-  let loading = true;
-  let trigramsData: TrigramData[] = [];
+  let loading = $state(true);
+  let trigramsData: TrigramData[] = $state([]);
   // Only platforms that appear in the data are offered
-  $: platformChoices = platformOptions(trigramsData.flatMap((t) => t.platforms ?? []));
-  let trigramStats: TrigramStats = {
+  const platformChoices = $derived(platformOptions(trigramsData.flatMap((t) => t.platforms ?? [])));
+  let trigramStats: TrigramStats = $state({
     totalTrigrams: 0,
     uniqueTrigrams: 0,
     averageFrequency: 0,
     sentimentDistribution: { positive: 0, neutral: 0, negative: 0 },
     trendDistribution: { up: 0, stable: 0, down: 0 }
-  };
-  let selectedPlatform = 'all';
+  });
+  let selectedPlatform = $state('all');
   // Phrases are counted over the last 7 days unless the date bar sets a range
   const DEFAULT_TIME_RANGE = '7d';
   const DEFAULT_DAYS = 7;
-  let hasRange = false;
+  let hasRange = $state(false);
   // Two mentions is already a repeated phrase; a higher default hid most of them
-  let minFrequency = 2;
-  let showChart = 'frequency';
-  let searchQuery = '';
+  let minFrequency = $state(2);
+  let showChart = $state('frequency');
+  let searchQuery = $state('');
   
   // Filtering
-  let filteredTrigrams: TrigramData[] = [];
+  let filteredTrigrams: TrigramData[] = $state([]);
   
   // A date change made while a load runs is picked up afterwards, and the newest range wins
   const rangeSync = rangeReloader(loadTrigramsData, () => loading);
@@ -99,9 +99,9 @@
   }
 
   // Highlights computed from the phrases currently shown
-  $: risingTrigrams = filteredTrigrams.filter((t) => t.trend === 'up').slice(0, 5);
-  $: mostPositive = filteredTrigrams.reduce<TrigramData | null>((best, t) => (t.sentiment > (best?.sentiment ?? 0) ? t : best), null);
-  $: mostCritical = filteredTrigrams.reduce<TrigramData | null>((worst, t) => (t.sentiment < (worst?.sentiment ?? 0) ? t : worst), null);
+  const risingTrigrams = $derived(filteredTrigrams.filter((t) => t.trend === 'up').slice(0, 5));
+  const mostPositive = $derived(filteredTrigrams.reduce<TrigramData | null>((best, t) => (t.sentiment > (best?.sentiment ?? 0) ? t : best), null));
+  const mostCritical = $derived(filteredTrigrams.reduce<TrigramData | null>((worst, t) => (t.sentiment < (worst?.sentiment ?? 0) ? t : worst), null));
   const signed = (value: number) => `${value > 0 ? '+' : ''}${value.toFixed(2)}`;
 
   function getSentimentColor(sentiment: number) {
@@ -152,11 +152,11 @@
   }
 
   // Reactive filtering
-  $: {
+  $effect(() => {
     if (trigramsData.length > 0) {
-      applyFilters();
+      untrack(() => applyFilters());
     }
-  }
+  });
 </script>
 
 <svelte:head>
@@ -170,22 +170,22 @@
     subtitle="Discover three-word phrase patterns and linguistic trends in your content"
     backHref="/text-analytics">
     <svelte:fragment slot="actions">
-      <div class="hidden lg:flex items-center space-x-6">
-        <div class="text-center">
-          <div class="text-3xl font-bold text-white">{trigramStats.totalTrigrams.toLocaleString()}</div>
-          <div class="text-purple-200 text-sm font-medium">Total Trigrams</div>
+        <div class="hidden lg:flex items-center space-x-6">
+          <div class="text-center">
+            <div class="text-3xl font-bold text-white">{trigramStats.totalTrigrams.toLocaleString()}</div>
+            <div class="text-purple-200 text-sm font-medium">Total Trigrams</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl font-bold text-white">{trigramStats.uniqueTrigrams}</div>
+            <div class="text-purple-200 text-sm font-medium">Unique Patterns</div>
+          </div>
         </div>
-        <div class="text-center">
-          <div class="text-3xl font-bold text-white">{trigramStats.uniqueTrigrams}</div>
-          <div class="text-purple-200 text-sm font-medium">Unique Patterns</div>
-        </div>
-      </div>
-    </svelte:fragment>
+      </svelte:fragment>
   </PageHeader>
 
   <!-- Dates: the same bar as the other analysis pages; with no dates set the last 7 days are analysed -->
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-    <FilterBar datesOnly compact on:change={() => { hasRange = Object.keys(currentRangeQuery()).length > 0; rangeSync.sync(); }} />
+    <FilterBar datesOnly compact onchange={() => { hasRange = Object.keys(currentRangeQuery()).length > 0; rangeSync.sync(); }} />
     {#if !hasRange}
       <p class="mt-2 text-xs text-ink-600">Showing the last 7 days. Pick dates above to analyse a different period.</p>
     {/if}
@@ -241,7 +241,7 @@
             <option value="trend">Trend Chart</option>
           </select>
           
-          <button on:click={exportTrigrams}
+          <button onclick={exportTrigrams}
                   class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -292,7 +292,7 @@
                   <div class="flex items-center justify-between mb-3">
                     <div class="flex items-center space-x-3">
                       <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2 py-1 rounded-full">#{i + 1}</span>
-                      <h3 class="text-lg font-semibold text-gray-900"><button type="button" class="text-left hover:text-primary-700 hover:underline" on:click={() => (drilldown = { title: `Phrase: “${trigram.trigram}”`, filters: trigramDrilldownFilters({ phrase: trigram.trigram, params: Object.fromEntries($page.url.searchParams), platform: selectedPlatform, defaultDays: DEFAULT_DAYS }) })}>"{trigram.trigram}"</button></h3>
+                      <h3 class="text-lg font-semibold text-gray-900"><button type="button" class="text-left hover:text-primary-700 hover:underline" onclick={() => (drilldown = { title: `Phrase: “${trigram.trigram}”`, filters: trigramDrilldownFilters({ phrase: trigram.trigram, params: Object.fromEntries(page.url.searchParams), platform: selectedPlatform, defaultDays: DEFAULT_DAYS }) })}>"{trigram.trigram}"</button></h3>
                     </div>
                     <div class="flex items-center space-x-2">
                       <svg class="w-4 h-4 {getTrendColor(trigram.trend)}" fill="none" stroke="currentColor" viewBox="0 0 24 24">

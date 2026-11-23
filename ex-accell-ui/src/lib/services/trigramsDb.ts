@@ -1,4 +1,4 @@
-import { currentRangeQuery } from '$lib/utils/filterRange';
+import { currentRangeQuery } from '#lib/utils/filterRange.ts';
 export interface TrigramData {
   trigram: string;
   frequency: number;

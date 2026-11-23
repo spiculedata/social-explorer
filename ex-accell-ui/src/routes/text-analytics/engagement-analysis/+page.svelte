@@ -1,29 +1,28 @@
 <script lang="ts">
-  import { CHART } from '$lib/utils/chartColors';
+  import { CHART } from '#lib/utils/chartColors.ts';
   import { goto } from '$app/navigation';
-  import FilterBar from '$lib/components/ui/FilterBar.svelte';
-  import { page } from '$lib/stores/pageStore.svelte';
-  import { currentProject } from '$lib/stores/projectStore';
-  import { engagementAnalysisDb } from '$lib/services/engagementAnalysisDb';
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
-  import WorkspaceBanner from '$lib/components/ui/WorkspaceBanner.svelte';
-  import { onMount } from 'svelte';
-  import { waitForEcharts, initChart } from '$lib/utils/echarts';
-  import { ErrorAlert } from '$lib/components/ui';
-  import { runExport, downloadCsv, IDLE_EXPORT, type ExportState } from '$lib/utils/exportAction';
-  import { toCsv } from '$lib/utils/evidenceExport';
-  import ExportStatus from '$lib/components/ui/ExportStatus.svelte';
-  import { rangeReloader } from '$lib/utils/filterRange';
-  import { getSentimentColor } from '$lib/utils/colorUtils';
-  import PostDrilldown from '$lib/components/ui/PostDrilldown.svelte';
-  import { filtersFromParams, type PostFilters } from '$lib/services/postsApi';
+  import FilterBar, { type FilterChange } from '#lib/components/ui/FilterBar.svelte';
+  import { page } from '$app/state';
+  import { currentProject } from '#lib/stores/projectStore.ts';
+  import { engagementAnalysisDb } from '#lib/services/engagementAnalysisDb.ts';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
+  import WorkspaceBanner from '#lib/components/ui/WorkspaceBanner.svelte';
+  import { onMount, untrack } from 'svelte';
+  import { waitForEcharts, initChart } from '#lib/utils/echarts.ts';
+  import { ErrorAlert } from '#lib/components/ui/index.ts';
+  import { runExport, downloadCsv, IDLE_EXPORT, type ExportState } from '#lib/utils/exportAction.ts';
+  import { toCsv } from '#lib/utils/evidenceExport.ts';
+  import ExportStatus from '#lib/components/ui/ExportStatus.svelte';
+  import { rangeReloader } from '#lib/utils/filterRange.ts';
+  import { getSentimentColor } from '#lib/utils/colorUtils.ts';
+  import PostDrilldown from '#lib/components/ui/PostDrilldown.svelte';
+  import { filtersFromParams, type PostFilters } from '#lib/services/postsApi.ts';
 
-  $: workspaceId = $page.url.searchParams.get('workspace');
 
   let currentFilterParams: Record<string, string> = {};
 
   // The platform whose posts were chosen; they open in the side panel
-  let drilldown: { title: string; filters: PostFilters } | null = null;
+  let drilldown: { title: string; filters: PostFilters } | null = $state(null);
   function openPlatformPosts(platform: string) {
     drilldown = {
       title: `${platform} posts`,
@@ -31,8 +30,7 @@
     };
   }
 
-  function handleFilterChange(event: CustomEvent) {
-    const detail = event.detail || {};
+  function handleFilterChange(detail: FilterChange) {
     currentFilterParams = {};
     if (detail.workspaceId) currentFilterParams.workspace_id = detail.workspaceId;
     currentFilterParams.platforms = (detail.platforms || []).join(',');
@@ -44,8 +42,8 @@
   const rangeSync = rangeReloader(loadEngagementAnalysisData, () => loading);
   
   // Loading state
-  let loading = true;
-  let errorMessage = '';
+  let loading = $state(true);
+  let errorMessage = $state('');
 
   onMount(async () => {
     // Load engagement analysis data from database
@@ -55,11 +53,11 @@
   });
 
   // Engagement analysis data - loaded from database
-  let engagementStats: any = {};
-  let platformEngagement: any[] = [];
-  let contentTypes: any[] = [];
+  let engagementStats: any = $state({});
+  let platformEngagement: any[] = $state([]);
+  let contentTypes: any[] = $state([]);
   let engagementTrends: any[] = [];
-  let topPosts: any[] = [];
+  let topPosts: any[] = $state([]);
   
   // Load engagement analysis data from database service
   async function loadEngagementAnalysisData() {
@@ -149,26 +147,17 @@
   }
 
   // Filters
-  let selectedPlatform = 'all';
-  let selectedContentType = 'all';
+  let selectedPlatform = $state('all');
+  let selectedContentType = $state('all');
   let timeRange = '7d';
-  let minEngagementRate = 0;
+  let minEngagementRate = $state(0);
 
   // Charts
-  let platformChart: any = null;
-  let contentChart: any = null;
-  let trendsChart: any = null;
+  let platformChart: any = $state(null);
+  let contentChart: any = $state(null);
+  let trendsChart: any = $state(null);
 
-  // Filtered data
-  $: filteredPlatforms = platformEngagement.filter(platform => {
-    return selectedPlatform === 'all' || platform.platform === selectedPlatform;
-  });
 
-  $: filteredContent = contentTypes.filter(content => {
-    const matchesType = selectedContentType === 'all' || content.type === selectedContentType;
-    const matchesRate = content.engagementRate >= minEngagementRate;
-    return matchesType && matchesRate;
-  });
 
   function getPlatformIcon(platform: string) {
     const icons: Record<string, string> = {
@@ -198,7 +187,7 @@
     return new Date(timestamp).toLocaleString();
   }
 
-  let exportState: ExportState = IDLE_EXPORT;
+  let exportState: ExportState = $state(IDLE_EXPORT);
 
   // Exports the top posts as listed
   function exportEngagementData() {
@@ -219,10 +208,6 @@
     }, (state) => (exportState = state));
   }
 
-  // Initialize charts after data is loaded
-  $: if (!loading && platformEngagement.length > 0 && typeof window !== 'undefined') {
-    initializeChartsWhenReady();
-  }
 
   async function initializeChartsWhenReady() {
     try {
@@ -400,17 +385,39 @@
     trendsChart.setOption(option);
   }
 
-  // Update charts when data changes
-  $: if (platformChart && contentChart && trendsChart && !loading && platformEngagement.length > 0) {
-    updatePlatformChart();
-    updateContentChart();
-    updateTrendsChart();
-  }
 
+  const workspaceId = $derived(page.url.searchParams.get('workspace'));
+  // Filtered data
+  const filteredPlatforms = $derived(platformEngagement.filter(platform => {
+    return selectedPlatform === 'all' || platform.platform === selectedPlatform;
+  }));
+  const filteredContent = $derived(contentTypes.filter(content => {
+    const matchesType = selectedContentType === 'all' || content.type === selectedContentType;
+    const matchesRate = content.engagementRate >= minEngagementRate;
+    return matchesType && matchesRate;
+  }));
+  // Initialize charts after data is loaded
+  $effect(() => {
+    if (!loading && platformEngagement.length > 0 && typeof window !== 'undefined') {
+      untrack(() => initializeChartsWhenReady());
+    }
+  });
+  // Update charts when data changes
+  $effect(() => {
+    if (platformChart && contentChart && trendsChart && !loading && platformEngagement.length > 0) {
+      untrack(() => {
+        updatePlatformChart();
+        updateContentChart();
+        updateTrendsChart();
+      });
+    }
+  });
   // Watch for filter changes and reload data
-  $: if (!loading && (selectedPlatform || selectedContentType || minEngagementRate)) {
-    loadFilteredData();
-  }
+  $effect(() => {
+    if (!loading && (selectedPlatform || selectedContentType || minEngagementRate)) {
+      untrack(() => loadFilteredData());
+    }
+  });
 </script>
 
 <svelte:head>
@@ -424,17 +431,17 @@
     subtitle="Likes, shares, comments and engagement rates across your content"
     backHref="/text-analytics">
     <svelte:fragment slot="actions">
-      <button
-        on:click={exportEngagementData}
-        class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-medium transition-colors border border-white/20 backdrop-blur-sm">
-        Export Analysis
-      </button>
-      <button
-        on:click={() => goto('/text-analytics/research-investigation')}
-        class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-medium transition-colors border border-white/20 backdrop-blur-sm">
-        Research Notebooks
-      </button>
-    </svelte:fragment>
+        <button
+          onclick={exportEngagementData}
+          class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-medium transition-colors border border-white/20 backdrop-blur-sm">
+          Export Analysis
+        </button>
+        <button
+          onclick={() => goto('/text-analytics/research-investigation')}
+          class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-medium transition-colors border border-white/20 backdrop-blur-sm">
+          Research Notebooks
+        </button>
+      </svelte:fragment>
   </PageHeader>
 
   <!-- Content -->
@@ -446,7 +453,7 @@
 
     <!-- Data Source Filter -->
     <div class="mb-6">
-      <FilterBar workspaceId={workspaceId} datasetTypes={["social_media"]} on:change={handleFilterChange} />
+      <FilterBar workspaceId={workspaceId} datasetTypes={["social_media"]} onchange={handleFilterChange} />
     </div>
     {#if loading}
       <div class="flex items-center justify-center py-16">
@@ -546,7 +553,7 @@
                 </div>
                 <div>
                   <div class="font-medium text-gray-900">
-                    <button type="button" class="hover:text-primary-700 hover:underline" on:click={() => openPlatformPosts(platform.platform)}>{platform.platform}</button>
+                    <button type="button" class="hover:text-primary-700 hover:underline" onclick={() => openPlatformPosts(platform.platform)}>{platform.platform}</button>
                   </div>
                   <div class="text-sm text-gray-500">{platform.posts.toLocaleString()} posts</div>
                 </div>

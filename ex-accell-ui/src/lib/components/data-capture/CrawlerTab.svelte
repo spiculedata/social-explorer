@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { CrawlerConfig, ScheduleConfig } from '$lib/utils/dataCapture/types';
+import type { CrawlerConfig, ScheduleConfig } from '#lib/utils/dataCapture/types.ts';
   import CrawlerBasicStep from './CrawlerBasicStep.svelte';
   import CrawlerPlatformStep from './CrawlerPlatformStep.svelte';
   import CrawlerAdvancedStep from './CrawlerAdvancedStep.svelte';

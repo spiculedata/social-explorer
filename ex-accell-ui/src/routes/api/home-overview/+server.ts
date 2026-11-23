@@ -2,11 +2,11 @@
 // Returns all data needed for the home page in one round trip:
 // projects with sparklines/sentiment/anomalies, activity feed, summary stats
 
-import { visibleProjectIds } from '$lib/server/auth/accessGuard';
-import { apiOk, apiServerError } from '$lib/server/apiResponse';
+import { visibleProjectIds } from '#lib/server/auth/accessGuard.ts';
+import { apiOk, apiServerError } from '#lib/server/apiResponse.ts';
 import type { RequestHandler } from './$types';
-import { postgresPool } from '$lib/services/postgres';
-import { WORKSPACE_SOURCES_SQL } from '$lib/server/workspaceSources';
+import { postgresPool } from '#lib/services/postgres.ts';
+import { WORKSPACE_SOURCES_SQL } from '#lib/server/workspaceSources.ts';
 
 export const GET: RequestHandler = async ({ locals }) => {
   try {

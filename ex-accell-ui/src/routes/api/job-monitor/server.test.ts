@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const store = vi.hoisted(() => ({ getAllJobStates: vi.fn() }));
-vi.mock('$lib/services/jobStateStore.js', () => ({ jobStateStore: store }));
+vi.mock('#lib/services/jobStateStore.ts', () => ({ jobStateStore: store }));
 
 import { GET } from './+server';
 
