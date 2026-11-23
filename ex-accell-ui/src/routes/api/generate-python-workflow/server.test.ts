@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const generator = vi.hoisted(() => ({ generatePythonDaprWorkflow: vi.fn() }));
-vi.mock('$lib/services/pythonDaprWorkflowGenerator', () => ({ pythonDaprWorkflowGenerator: generator }));
+vi.mock('#lib/services/pythonDaprWorkflowGenerator.ts', () => ({ pythonDaprWorkflowGenerator: generator }));
 
 import { POST } from './+server';
 

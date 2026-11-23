@@ -1,4 +1,4 @@
-import { filtersFromParams, type PostFilters } from '$lib/services/postsApi';
+import { filtersFromParams, type PostFilters } from '#lib/services/postsApi.ts';
 
 interface Options {
   /** The phrase as the page counted it. */

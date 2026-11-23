@@ -2,7 +2,7 @@
 // Manages multi-tiered project hierarchy with PostgreSQL persistence
 
 import { postgresPool } from './postgres';
-import { WORKSPACE_SOURCES_SQL } from '$lib/server/workspaceSources';
+import { WORKSPACE_SOURCES_SQL } from '#lib/server/workspaceSources.ts';
 
 /** Postgres undefined_table: the schema has not been created yet, so there is genuinely nothing to list. */
 const UNDEFINED_TABLE_CODE = '42P01';

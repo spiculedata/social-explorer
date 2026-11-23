@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { ensureJupyter } from '$lib/server/jupyterRuntime';
-import { JupyterNotSetUpError } from '$lib/server/jupyterManager';
+import { ensureJupyter } from '#lib/server/jupyterRuntime.ts';
+import { JupyterNotSetUpError } from '#lib/server/jupyterManager.ts';
 
 export const POST: RequestHandler = async ({ url }) => {
 	try {

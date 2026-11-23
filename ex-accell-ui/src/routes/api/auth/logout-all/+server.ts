@@ -1,8 +1,8 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { SESSION_COOKIE } from '$lib/server/auth/runtime';
-import { revokeSessions } from '$lib/server/auth/revocation';
-import { createLogger } from '$lib/utils/logger';
+import { SESSION_COOKIE } from '#lib/server/auth/runtime.ts';
+import { revokeSessions } from '#lib/server/auth/revocation.ts';
+import { createLogger } from '#lib/utils/logger.ts';
 
 const log = createLogger('auth');
 

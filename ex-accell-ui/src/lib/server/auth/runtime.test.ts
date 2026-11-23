@@ -9,12 +9,12 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('$app/env', () => ({ dev: false }));
-vi.mock('$lib/server/migrations', () => ({ migrateDatabase: mocks.migrateDatabase }));
+vi.mock('#lib/server/migrations/index.ts', () => ({ migrateDatabase: mocks.migrateDatabase }));
 vi.mock('./userRepo', () => ({
   ensureAuthSchema: mocks.ensureAuthSchema,
   bootstrapAdmin: mocks.bootstrapAdmin
 }));
-vi.mock('$lib/utils/logger', () => ({
+vi.mock('#lib/utils/logger.ts', () => ({
   createLogger: () => ({ warn: mocks.warn, info: mocks.info, error: vi.fn(), debug: vi.fn() })
 }));
 

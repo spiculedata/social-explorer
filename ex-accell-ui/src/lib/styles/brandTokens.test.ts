@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { getSentimentColor } from '$lib/utils/colorUtils';
-import { brandChartTheme } from '$lib/utils/echarts';
+import { getSentimentColor } from '#lib/utils/colorUtils.ts';
+import { brandChartTheme } from '#lib/utils/echarts.ts';
 
 // The tokens file is the source of truth. Code that needs a literal hex (canvas charts) must match it.
 const css = readFileSync(join(__dirname, 'brand-tokens.css'), 'utf8');

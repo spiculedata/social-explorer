@@ -1,5 +1,5 @@
-import { inputDateToGdeltDate } from '$lib/utils/gdeltDates';
-import { getEventType } from '$lib/utils/gdeltEventTypes';
+import { inputDateToGdeltDate } from '#lib/utils/gdeltDates.ts';
+import { getEventType } from '#lib/utils/gdeltEventTypes.ts';
 
 export interface GdeltEvent {
   id: number;

@@ -4,10 +4,10 @@ const repo = vi.hoisted(() => ({ loadProjectAccessInfo: vi.fn() }));
 const db = vi.hoisted(() => ({ addProjectMember: vi.fn(), removeProjectMember: vi.fn(), getProjectMembers: vi.fn() }));
 const cache = vi.hoisted(() => ({ forgetProjectAccess: vi.fn() }));
 const guard = vi.hoisted(() => ({ refuseIfNoAccess: vi.fn() }));
-vi.mock('$lib/server/auth/accessRepo', () => repo);
-vi.mock('$lib/services/projectsDb', () => ({ projectsDb: db }));
-vi.mock('$lib/server/auth/accessCheck', () => cache);
-vi.mock('$lib/server/auth/accessGuard', () => guard);
+vi.mock('#lib/server/auth/accessRepo.ts', () => repo);
+vi.mock('#lib/services/projectsDb.ts', () => ({ projectsDb: db }));
+vi.mock('#lib/server/auth/accessCheck.ts', () => cache);
+vi.mock('#lib/server/auth/accessGuard.ts', () => guard);
 
 import { DELETE, GET, POST } from './+server';
 

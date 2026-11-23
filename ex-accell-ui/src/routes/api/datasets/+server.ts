@@ -1,11 +1,11 @@
 // Dataset API Endpoints
 // RESTful API for managing datasets, permissions, and workspace associations
 
-import { parseResourceId } from '$lib/server/auth/access';
-import { refuseIfNoAccess } from '$lib/server/auth/accessGuard';
-import { apiFail, apiOk, apiServerError, readJsonObject } from '$lib/server/apiResponse';
+import { parseResourceId } from '#lib/server/auth/access.ts';
+import { refuseIfNoAccess } from '#lib/server/auth/accessGuard.ts';
+import { apiFail, apiOk, apiServerError, readJsonObject } from '#lib/server/apiResponse.ts';
 import type { RequestHandler } from './$types';
-import { datasetsDb } from '$lib/services/datasetsDb';
+import { datasetsDb } from '#lib/services/datasetsDb.ts';
 
 const MAX_BODY_BYTES = 64 * 1024;
 

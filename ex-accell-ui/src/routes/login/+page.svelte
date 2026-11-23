@@ -1,7 +1,7 @@
 <script lang="ts">
-  import BrandMark from '$lib/components/ui/BrandMark.svelte';
+  import BrandMark from '#lib/components/ui/BrandMark.svelte';
   import { goto, invalidateAll } from '$app/navigation';
-  import { sessionExpired } from '$lib/utils/sessionExpiry';
+  import { sessionExpired } from '#lib/utils/sessionExpiry.ts';
 
   export let data: { next: string };
 

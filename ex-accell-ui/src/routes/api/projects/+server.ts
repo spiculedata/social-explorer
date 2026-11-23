@@ -1,13 +1,13 @@
 // Projects API Endpoint
 // CRUD operations for projects and workspaces
 
-import { canManageProject, parseResourceId } from '$lib/server/auth/access';
-import { refuseIfNoAccess, visibleProjectIds } from '$lib/server/auth/accessGuard';
-import { loadProjectAccessInfo } from '$lib/server/auth/accessRepo';
-import { isEmail } from '$lib/server/auth/userInput';
+import { canManageProject, parseResourceId } from '#lib/server/auth/access.ts';
+import { refuseIfNoAccess, visibleProjectIds } from '#lib/server/auth/accessGuard.ts';
+import { loadProjectAccessInfo } from '#lib/server/auth/accessRepo.ts';
+import { isEmail } from '#lib/server/auth/userInput.ts';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { projectsDb } from '$lib/services/projectsDb';
+import { projectsDb } from '#lib/services/projectsDb.ts';
 
 /**
  * GET /api/projects

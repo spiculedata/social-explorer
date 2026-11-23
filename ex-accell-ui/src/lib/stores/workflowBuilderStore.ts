@@ -6,7 +6,7 @@
  */
 
 import { writable, derived, type Readable } from 'svelte/store';
-import { stepStatus } from '$lib/utils/workflowSteps';
+import { stepStatus } from '#lib/utils/workflowSteps.ts';
 
 // ===================================================================
 // Type Definitions

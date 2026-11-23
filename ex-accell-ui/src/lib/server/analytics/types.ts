@@ -1,4 +1,4 @@
-import type { WorkspaceDataScope } from '$lib/services/workspaceContextResolver';
+import type { WorkspaceDataScope } from '#lib/services/workspaceContextResolver.ts';
 
 /** What a unified-analytics handler gets: the request URL, the resolved workspace scope and the requested (non-empty) type. */
 export interface AnalyticsContext {

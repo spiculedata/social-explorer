@@ -1,6 +1,6 @@
-import { getCountryNameWithFallback } from '$lib/countryMapping';
-import { gdeltDateToInputDate } from '$lib/utils/gdeltDates';
-import type { GdeltEvent } from '$lib/utils/gdeltFilters';
+import { getCountryNameWithFallback } from '#lib/countryMapping.ts';
+import { gdeltDateToInputDate } from '#lib/utils/gdeltDates.ts';
+import type { GdeltEvent } from '#lib/utils/gdeltFilters.ts';
 
 /** Distinct country codes in the events, sorted by country name. */
 export function extractAvailableCountries(events: GdeltEvent[]): string[] {

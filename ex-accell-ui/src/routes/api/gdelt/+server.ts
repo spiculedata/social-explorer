@@ -1,9 +1,9 @@
 // GDELT Events API — optimised for map display
 import { json } from '@sveltejs/kit';
-import { apiFail, apiOk, apiServerError } from '$lib/server/apiResponse';
-import { validateDateParams } from '$lib/server/dateBounds';
-import { isMissingRelationError } from '$lib/server/queryErrors';
-import { postgresPool } from '$lib/services/postgres';
+import { apiFail, apiOk, apiServerError } from '#lib/server/apiResponse.ts';
+import { validateDateParams } from '#lib/server/dateBounds.ts';
+import { isMissingRelationError } from '#lib/server/queryErrors.ts';
+import { postgresPool } from '#lib/services/postgres.ts';
 
 export async function GET({ url }) {
 	try {

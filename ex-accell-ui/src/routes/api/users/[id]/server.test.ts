@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const revocation = vi.hoisted(() => ({ changeUserAccess: vi.fn(), changePassword: vi.fn() }));
-vi.mock('$lib/server/auth/revocation', () => revocation);
-vi.mock('$lib/server/auth/runtime', () => ({ prepareAuth: vi.fn().mockResolvedValue(undefined) }));
-vi.mock('$lib/utils/logger', () => ({ createLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }) }));
+vi.mock('#lib/server/auth/revocation.ts', () => revocation);
+vi.mock('#lib/server/auth/runtime.ts', () => ({ prepareAuth: vi.fn().mockResolvedValue(undefined) }));
+vi.mock('#lib/utils/logger.ts', () => ({ createLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }) }));
 
 import { PATCH } from './+server';
 

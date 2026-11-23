@@ -1,12 +1,12 @@
 // Who is in a project. Members can see the project and what is in it; only its creator or an admin can change the list.
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { canManageProject, parseResourceId } from '$lib/server/auth/access';
-import { forgetProjectAccess } from '$lib/server/auth/accessCheck';
-import { refuseIfNoAccess } from '$lib/server/auth/accessGuard';
-import { loadProjectAccessInfo } from '$lib/server/auth/accessRepo';
-import { isEmail } from '$lib/server/auth/userInput';
-import { projectsDb } from '$lib/services/projectsDb';
+import { canManageProject, parseResourceId } from '#lib/server/auth/access.ts';
+import { forgetProjectAccess } from '#lib/server/auth/accessCheck.ts';
+import { refuseIfNoAccess } from '#lib/server/auth/accessGuard.ts';
+import { loadProjectAccessInfo } from '#lib/server/auth/accessRepo.ts';
+import { isEmail } from '#lib/server/auth/userInput.ts';
+import { projectsDb } from '#lib/services/projectsDb.ts';
 
 const failure = (error: string, status: number) => json({ success: false, data: null, error }, { status });
 

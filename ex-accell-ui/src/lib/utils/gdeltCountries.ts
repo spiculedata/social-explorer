@@ -1,4 +1,4 @@
-import { getAllCountries } from '$lib/countryMapping';
+import { getAllCountries } from '#lib/countryMapping.ts';
 
 // Global South countries list from BISA
 export const GLOBAL_SOUTH_COUNTRIES = [

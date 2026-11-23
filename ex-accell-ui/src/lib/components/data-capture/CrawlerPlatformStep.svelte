@@ -1,6 +1,6 @@
 <script lang="ts">
-import type { CrawlerConfig } from '$lib/utils/dataCapture/types';
-  import { validateTdlibUrl, validateTelegramUrl } from '$lib/utils/dataCapture/crawlerValidation';
+import type { CrawlerConfig } from '#lib/utils/dataCapture/types.ts';
+  import { validateTdlibUrl, validateTelegramUrl } from '#lib/utils/dataCapture/crawlerValidation.ts';
 
   export let crawlerConfig: CrawlerConfig;
   export let urlUploadFiles: FileList | null;

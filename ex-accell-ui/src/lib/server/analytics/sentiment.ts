@@ -1,9 +1,9 @@
 import { json } from '@sveltejs/kit';
 import { executeQuery } from './executeQuery';
-import { dateBoundToEpochMs } from '$lib/server/dateBounds';
-import { queryErrorResponse } from '$lib/server/queryErrors';
-import { exportRangeConditions } from '$lib/server/exportRange';
-import { buildPlatformFilter } from '$lib/services/workspaceContextResolver';
+import { dateBoundToEpochMs } from '#lib/server/dateBounds.ts';
+import { queryErrorResponse } from '#lib/server/queryErrors.ts';
+import { exportRangeConditions } from '#lib/server/exportRange.ts';
+import { buildPlatformFilter } from '#lib/services/workspaceContextResolver.ts';
 import type { AnalyticsContext, AnalyticsHandler } from './types';
 
 /** The most rows one export holds, so a very large dataset cannot build an unbounded response. */

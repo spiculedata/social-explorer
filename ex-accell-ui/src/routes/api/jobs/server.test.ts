@@ -11,7 +11,7 @@ const store = vi.hoisted(() => ({
 }));
 const invoke = vi.hoisted(() => vi.fn());
 
-vi.mock('$lib/services/jobStateStore.js', () => ({ jobStateStore: store }));
+vi.mock('#lib/services/jobStateStore.ts', () => ({ jobStateStore: store }));
 vi.mock('@dapr/dapr', () => ({
   DaprClient: class {
     invoker = { invoke };

@@ -1,7 +1,7 @@
 // The registry of packages this install has published to, or imported from, IPFS. The table
 // (ipfs_published_packages) is created by db/migrations/0007_ipfs_registry.sql.
 
-import { postgresPool } from '$lib/services/postgres';
+import { postgresPool } from '#lib/services/postgres.ts';
 
 const PUBLIC_COLUMNS = 'id, dataset_id, package_id, cid, gateway_url, package_name, description, row_count, file_size_bytes, status, published_at, withdrawn_at, metadata';
 

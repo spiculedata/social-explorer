@@ -10,9 +10,9 @@ const db = vi.hoisted(() => ({
   revokeDatasetPermission: vi.fn()
 }));
 
-vi.mock('$lib/services/datasetsDb', () => ({ datasetsDb: db }));
+vi.mock('#lib/services/datasetsDb.ts', () => ({ datasetsDb: db }));
 const access = vi.hoisted(() => ({ checkAccess: vi.fn() }));
-vi.mock('$lib/server/auth/accessCheck', () => access);
+vi.mock('#lib/server/auth/accessCheck.ts', () => access);
 
 import { DELETE, GET, POST } from './+server';
 

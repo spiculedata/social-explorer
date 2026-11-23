@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { PrincetonSmartConfig } from '$lib/utils/dataCapture/types';
+import type { PrincetonSmartConfig } from '#lib/utils/dataCapture/types.ts';
 
   export let princetonSmartConfig: PrincetonSmartConfig;
   export let activeTab: string;

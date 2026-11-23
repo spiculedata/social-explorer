@@ -7,7 +7,7 @@ const routing = vi.hoisted(() => ({ search: '' }));
 
 vi.mock('$app/navigation', () => nav);
 vi.mock('$app/state', () => ({ page: { get url() { return new URL(`http://localhost/data-management${routing.search}`); } } }));
-vi.mock('$lib/stores/projectStore', async () => {
+vi.mock('#lib/stores/projectStore.ts', async () => {
   const { writable } = await import('svelte/store');
   const currentProject = writable<unknown>(null);
   return {

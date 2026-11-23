@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/svelte';
 
 const scheduleJob = vi.hoisted(() => vi.fn());
-vi.mock('$lib/services/jobSchedulerService', () => ({ jobSchedulerService: { scheduleJob } }));
+vi.mock('#lib/services/jobSchedulerService.ts', () => ({ jobSchedulerService: { scheduleJob } }));
 vi.mock('$app/navigation', () => ({ goto: vi.fn() }));
 
 import Page from './+page.svelte';

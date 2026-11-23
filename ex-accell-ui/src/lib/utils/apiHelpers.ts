@@ -6,7 +6,7 @@
  *
  * Usage in API endpoints:
  * ```typescript
- * import { createSuccessResponse, createErrorResponse } from '$lib/utils/apiHelpers';
+ * import { createSuccessResponse, createErrorResponse } from '#lib/utils/apiHelpers.ts';
  *
  * export const GET: RequestHandler = async () => {
  *   try {
@@ -19,7 +19,7 @@
  * ```
  */
 
-import type { ApiResponse, ErrorResponse, PaginationMeta, ResponseMeta } from '$lib/types/apiTypes';
+import type { ApiResponse, ErrorResponse, PaginationMeta, ResponseMeta } from '#lib/types/apiTypes.ts';
 import { v4 as uuidv4 } from 'uuid';
 
 // ===================================================================

@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { CHART } from '$lib/utils/chartColors';
+  import { CHART } from '#lib/utils/chartColors.ts';
   import { onMount, createEventDispatcher } from 'svelte';
   import * as d3 from 'd3';
   import LagAnalysisChart from '../LagAnalysisChart.svelte';
-  import { getPortalView, setPortalView, type CrossFilter } from '$lib/stores/investigationStore';
-  import { computeTimelineHighlightDays } from '$lib/utils/crossFilterHelpers';
-  import { getAgreementColor, getSentimentColor } from '$lib/utils/colorUtils';
+  import { getPortalView, setPortalView, type CrossFilter } from '#lib/stores/investigationStore.ts';
+  import { computeTimelineHighlightDays } from '#lib/utils/crossFilterHelpers.ts';
+  import { getAgreementColor, getSentimentColor } from '#lib/utils/colorUtils.ts';
   import CrossFilterBadge from '../CrossFilterBadge.svelte';
   import ToneLegend from '../ToneLegend.svelte';
 

@@ -1,10 +1,10 @@
 <script lang="ts">
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
   import { goto } from '$app/navigation';
-  import { setCurrentProject } from '$lib/stores/projectStore';
+  import { setCurrentProject } from '#lib/stores/projectStore.ts';
   import { onMount } from 'svelte';
-  import { getStatusColor } from '$lib/utils/colorUtils';
-  import { formatDate } from '$lib/utils/formatUtils';
+  import { getStatusColor } from '#lib/utils/colorUtils.ts';
+  import { formatDate } from '#lib/utils/formatUtils.ts';
 
   let projects: any[] = [];
   let loading = true;

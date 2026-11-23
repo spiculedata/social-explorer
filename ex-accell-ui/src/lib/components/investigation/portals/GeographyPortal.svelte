@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { CHART } from '$lib/utils/chartColors';
+  import { CHART } from '#lib/utils/chartColors.ts';
   import { onMount, createEventDispatcher } from 'svelte';
   import * as d3 from 'd3';
-  import { getPortalView, setPortalView, type CrossFilter } from '$lib/stores/investigationStore';
-  import { computeHighlightSet } from '$lib/utils/crossFilterHelpers';
-  import { getToneColor, getToneLabel } from '$lib/utils/colorUtils';
+  import { getPortalView, setPortalView, type CrossFilter } from '#lib/stores/investigationStore.ts';
+  import { computeHighlightSet } from '#lib/utils/crossFilterHelpers.ts';
+  import { getToneColor, getToneLabel } from '#lib/utils/colorUtils.ts';
   import CrossFilterBadge from '../CrossFilterBadge.svelte';
   import ToneLegend from '../ToneLegend.svelte';
 

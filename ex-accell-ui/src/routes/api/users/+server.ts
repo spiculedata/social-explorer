@@ -1,10 +1,10 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { validatePasswordStrength } from '$lib/server/auth/password';
-import { prepareAuth } from '$lib/server/auth/runtime';
-import { isAdmin, isEmail, isName, isRole } from '$lib/server/auth/userInput';
-import { createUser, listUsers, type UserRecord } from '$lib/server/auth/userRepo';
-import { createLogger } from '$lib/utils/logger';
+import { validatePasswordStrength } from '#lib/server/auth/password.ts';
+import { prepareAuth } from '#lib/server/auth/runtime.ts';
+import { isAdmin, isEmail, isName, isRole } from '#lib/server/auth/userInput.ts';
+import { createUser, listUsers, type UserRecord } from '#lib/server/auth/userRepo.ts';
+import { createLogger } from '#lib/utils/logger.ts';
 
 const log = createLogger('users');
 

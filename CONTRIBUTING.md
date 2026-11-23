@@ -76,7 +76,7 @@ dependencies change.
 - **Styling:** Tailwind utility classes only. No `<style>` blocks or inline styles.
 - **Immutability:** prefer returning new objects over mutating inputs.
 - **Size:** keep functions small and files under ~800 lines.
-- **No `console.log`** in production code; use `createLogger` from `$lib/utils/logger`.
+- **No `console.log`** in production code; use `createLogger` from `#lib/utils/logger.ts`.
 - **Errors:** handle them explicitly. Never return a success response for a failed operation.
 - **API responses:** `{ success, data, error }` envelope.
 - **Server-only code** goes under `src/lib/server/`.

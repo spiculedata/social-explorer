@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { CHART } from '$lib/utils/chartColors';
+  import { CHART } from '#lib/utils/chartColors.ts';
   /**
    * Workflow Canvas Component
    *
@@ -7,9 +7,9 @@
    * Handles step positioning, connection management, and canvas interactions.
    */
 
-  import { workflowBuilder, type WorkflowStep, type WorkflowConnection } from '$lib/stores/workflowBuilderStore';
+  import { workflowBuilder, type WorkflowStep, type WorkflowConnection } from '#lib/stores/workflowBuilderStore.ts';
   import { stepColorClasses, getStepColorClasses } from './stepLibraryData';
-  import { getStatusColor } from '$lib/utils/colorUtils';
+  import { getStatusColor } from '#lib/utils/colorUtils.ts';
 
   // Props
   let { canvasElement = $bindable(null) }: { canvasElement?: HTMLDivElement | null } = $props();

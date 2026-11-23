@@ -10,7 +10,7 @@
     paginate,
     type GdeltMention,
     type SortDirection
-  } from '$lib/utils/gdeltMentions';
+  } from '#lib/utils/gdeltMentions.ts';
 
   export let mentions: GdeltMention[];
   /** The event the mentions belong to, or null when they come from every filtered event */

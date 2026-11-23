@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const revokeSessions = vi.hoisted(() => vi.fn());
-vi.mock('$lib/server/auth/revocation', () => ({ revokeSessions }));
-vi.mock('$lib/server/auth/runtime', () => ({ SESSION_COOKIE: 'ex_session' }));
-vi.mock('$lib/utils/logger', () => ({ createLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }) }));
+vi.mock('#lib/server/auth/revocation.ts', () => ({ revokeSessions }));
+vi.mock('#lib/server/auth/runtime.ts', () => ({ SESSION_COOKIE: 'ex_session' }));
+vi.mock('#lib/utils/logger.ts', () => ({ createLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }) }));
 
 import { POST } from './+server';
 

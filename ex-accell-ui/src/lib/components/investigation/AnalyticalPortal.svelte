@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { getPortalView, setPortalView } from '$lib/stores/investigationStore';
+  import { getPortalView, setPortalView } from '#lib/stores/investigationStore.ts';
 
   export let portalId: string;
   export let title: string;

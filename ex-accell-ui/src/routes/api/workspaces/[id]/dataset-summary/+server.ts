@@ -1,6 +1,6 @@
-import { apiFail, apiOk, apiServerError } from '$lib/server/apiResponse';
+import { apiFail, apiOk, apiServerError } from '#lib/server/apiResponse.ts';
 import type { RequestHandler } from './$types';
-import { datasetsDb } from '$lib/services/datasetsDb';
+import { datasetsDb } from '#lib/services/datasetsDb.ts';
 
 export const GET: RequestHandler = async ({ params }) => {
   try {
