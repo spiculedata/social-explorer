@@ -1,11 +1,11 @@
 // Database connection and query service for Sentiment Analysis data
 // Uses PostgreSQL with pg_duckdb extension via unified analytics API
 
-import { toIsoTimestamp } from '$lib/utils/timestamps';
-import { currentRangeQuery } from '$lib/utils/filterRange';
+import { toIsoTimestamp } from '#lib/utils/timestamps.ts';
+import { currentRangeQuery } from '#lib/utils/filterRange.ts';
 import { BaseDatabaseService } from './baseDatabaseService';
-import { getSentimentColor } from '$lib/utils/colorUtils';
-import { CHART } from '$lib/utils/chartColors';
+import { getSentimentColor } from '#lib/utils/colorUtils.ts';
+import { CHART } from '#lib/utils/chartColors.ts';
 import type {
   SentimentStats,
   SentimentCategory,

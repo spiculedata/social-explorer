@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { GDELT_EVENT_TYPES, getEventType } from '$lib/utils/gdeltEventTypes';
-  import type { GdeltEvent } from '$lib/utils/gdeltFilters';
+  import { GDELT_EVENT_TYPES, getEventType } from '#lib/utils/gdeltEventTypes.ts';
+  import type { GdeltEvent } from '#lib/utils/gdeltFilters.ts';
 
   export let events: GdeltEvent[];
   /** The events that pass every filter */

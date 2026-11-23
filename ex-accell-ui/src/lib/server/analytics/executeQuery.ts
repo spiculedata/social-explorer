@@ -1,4 +1,4 @@
-import { postgresPool } from '$lib/services/postgres';
+import { postgresPool } from '#lib/services/postgres.ts';
 
 /** Columns the pg driver returns as strings that the dashboards expect as numbers. */
 const NUMERIC_COLUMNS = new Set([

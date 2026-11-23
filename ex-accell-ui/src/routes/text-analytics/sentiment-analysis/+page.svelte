@@ -1,27 +1,26 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import PostDrilldown from '$lib/components/ui/PostDrilldown.svelte';
-  import { filtersFromParams, type PostFilters } from '$lib/services/postsApi';
-  import MethodNote from '$lib/components/ui/MethodNote.svelte';
-  import { apiErrors } from '$lib/stores/apiErrors';
-  import { runExport, downloadCsv, IDLE_EXPORT, type ExportState } from '$lib/utils/exportAction';
-  import { toCsv } from '$lib/utils/evidenceExport';
-  import ExportStatus from '$lib/components/ui/ExportStatus.svelte';
-  import FilterBar from '$lib/components/ui/FilterBar.svelte';
-  import { page } from '$lib/stores/pageStore.svelte';
-  import { currentProject } from '$lib/stores/projectStore';
-  import { sentimentAnalysisDb } from '$lib/services/sentimentAnalysisDb';
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
-  import WorkspaceBanner from '$lib/components/ui/WorkspaceBanner.svelte';
-  import { onMount } from 'svelte';
-  import { getSentimentColor, getSentimentIcon } from '$lib/utils/colorUtils';
-  import { formatTimestamp } from '$lib/utils/formatUtils';
-  import { waitForEcharts, initChart } from '$lib/utils/echarts';
+  import PostDrilldown from '#lib/components/ui/PostDrilldown.svelte';
+  import { filtersFromParams, type PostFilters } from '#lib/services/postsApi.ts';
+  import MethodNote from '#lib/components/ui/MethodNote.svelte';
+  import { apiErrors } from '#lib/stores/apiErrors.ts';
+  import { runExport, downloadCsv, IDLE_EXPORT, type ExportState } from '#lib/utils/exportAction.ts';
+  import { toCsv } from '#lib/utils/evidenceExport.ts';
+  import ExportStatus from '#lib/components/ui/ExportStatus.svelte';
+  import FilterBar, { type FilterChange } from '#lib/components/ui/FilterBar.svelte';
+  import { page } from '$app/state';
+  import { currentProject } from '#lib/stores/projectStore.ts';
+  import { sentimentAnalysisDb } from '#lib/services/sentimentAnalysisDb.ts';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
+  import WorkspaceBanner from '#lib/components/ui/WorkspaceBanner.svelte';
+  import { onMount, untrack } from 'svelte';
+  import { getSentimentColor, getSentimentIcon } from '#lib/utils/colorUtils.ts';
+  import { formatTimestamp } from '#lib/utils/formatUtils.ts';
+  import { waitForEcharts, initChart } from '#lib/utils/echarts.ts';
 
-  $: workspaceId = $page.url.searchParams.get('workspace');
 
   // Loading state
-  let loading = true;
+  let loading = $state(true);
   let currentFilterParams: Record<string, string> = {};
 
   function handleFilterReady(params: Record<string, string>) {
@@ -29,8 +28,7 @@
     loadSentimentData();
   }
 
-  function handleFilterChange(event: CustomEvent) {
-    const detail = event.detail || {};
+  function handleFilterChange(detail: FilterChange) {
     currentFilterParams = {};
     if (detail.workspaceId) currentFilterParams.workspace_id = detail.workspaceId;
     currentFilterParams.platforms = (detail.platforms || []).join(',');
@@ -47,27 +45,27 @@
     negative: { count: 0, percentage: 0, confidence: 0 },
     neutral: { count: 0, percentage: 0, confidence: 0 }
   });
-  let sentimentStats: any = emptySentimentStats();
+  let sentimentStats: any = $state(emptySentimentStats());
   // A failed load is not the same as an empty range, so the two are told apart in the page
-  let loadFailed = false;
+  let loadFailed = $state(false);
   // Sections that failed while the rest loaded, so one bad request does not blank the whole page
-  let failedSections: string[] = [];
+  let failedSections: string[] = $state([]);
   // The sentiment segment whose posts are open in the side panel
-  let drilldown: { title: string; filters: PostFilters } | null = null;
+  let drilldown: { title: string; filters: PostFilters } | null = $state(null);
 
   let totalPosts = 0;
 
   // Detailed sentiment categories
-  let detailedSentiments: any[] = [];
+  let detailedSentiments: any[] = $state([]);
 
   // Emotion analysis data
   let emotionStats: any[] = [];
 
   // Sentiment over time data
-  let sentimentTrends: any[] = [];
+  let sentimentTrends: any[] = $state([]);
 
   // Sample posts with sentiment analysis
-  let samplePosts: any[] = [];
+  let samplePosts: any[] = $state([]);
 
   // Load sentiment analysis data from database service
   async function loadSentimentData() {
@@ -119,7 +117,6 @@
       emotionStats = [];
       sentimentTrends = [];
       samplePosts = [];
-      filteredPosts = [];
       loading = false;
     }
   }
@@ -127,12 +124,11 @@
   // The list shows a page of posts at a time, and "Show more" asks for another page
   const POST_PAGE = 50;
   const POST_MAX = 500;
-  let postLimit = POST_PAGE;
-  let postsLoading = false;
+  let postLimit = $state(POST_PAGE);
+  let postsLoading = $state(false);
   let postRequest = 0; // only the newest request may set the list, so a slow older answer cannot overwrite it
   // One extra post is requested, so "there is more" is known exactly rather than guessed from a full page
-  let postsAvailable = 0;
-  $: hasMorePosts = postsAvailable > postLimit && postLimit < POST_MAX;
+  let postsAvailable = $state(0);
 
   function showMorePosts() {
     if (postsLoading) return;
@@ -165,9 +161,9 @@
 
 
   // Filters
-  let selectedSentiment = 'all';
+  let selectedSentiment = $state('all');
   let selectedPlatform = 'all';
-  let confidenceThreshold = 0.7;
+  let confidenceThreshold = $state(0.7);
   // Used when the date bar is empty; the date bar wins when it is set
   let timeRange = '30d';
   let showEmotions = true;
@@ -178,26 +174,12 @@
   // Reload when a page-level filter changes. The key is compared first, so the block does nothing when it
   // re-runs only because `loading` changed, and the trends carry the same filters as the first load.
   let lastFilterKey = '';
-  $: filterKey = [selectedSentiment, selectedPlatform, confidenceThreshold, timeRange].join('|');
-  $: if (filterKey !== lastFilterKey) {
-    lastFilterKey = filterKey;
-    postLimit = POST_PAGE; // a new filter starts again from the first page
-    if (!loading) {
-      loadFilteredPosts();
-      sentimentAnalysisDb.getSentimentTrends(timeRange, workspaceId || undefined, requestFilters()).then(trends => {
-        sentimentTrends = trends;
-        updateTrendChart();
-      });
-    }
-  }
 
-  // Filtered posts (for display purposes, actual filtering happens in database)
-  $: filteredPosts = samplePosts;
 
 
   // Matches the limit the export endpoint applies
   const EXPORT_MAX_ROWS = 10_000;
-  let exportState: ExportState = IDLE_EXPORT;
+  let exportState: ExportState = $state(IDLE_EXPORT);
 
   function exportSentimentData() {
     return runExport(async () => {
@@ -216,9 +198,9 @@
   }
 
   // Chart initialization
-  let sentimentChart: any = null;
-  let emotionChart: any = null;
-  let trendChart: any = null;
+  let sentimentChart: any = $state(null);
+  let emotionChart: any = $state(null);
+  let trendChart: any = $state(null);
 
   function initializeCharts() {
     initSentimentChart();
@@ -432,12 +414,36 @@
     trendChart.setOption(option);
   }
 
+  const workspaceId = $derived(page.url.searchParams.get('workspace'));
+  const filterKey = $derived([selectedSentiment, selectedPlatform, confidenceThreshold, timeRange].join('|'));
+  $effect(() => {
+    if (filterKey !== lastFilterKey) {
+      lastFilterKey = filterKey;
+      untrack(() => {
+        postLimit = POST_PAGE; // a new filter starts again from the first page
+        if (!loading) {
+          loadFilteredPosts();
+          sentimentAnalysisDb.getSentimentTrends(timeRange, workspaceId || undefined, requestFilters()).then(trends => {
+            sentimentTrends = trends;
+            updateTrendChart();
+          });
+        }
+      });
+    }
+  });
+  const hasMorePosts = $derived(postsAvailable > postLimit && postLimit < POST_MAX);
+  // Filtered posts (for display purposes, actual filtering happens in database)
+  const filteredPosts = $derived(samplePosts);
   // Update charts when data changes
-  $: if (sentimentChart && emotionChart && trendChart) {
-    updateSentimentChart();
-    updateEmotionChart();
-    updateTrendChart();
-  }
+  $effect(() => {
+    if (sentimentChart && emotionChart && trendChart) {
+      untrack(() => {
+        updateSentimentChart();
+        updateEmotionChart();
+        updateTrendChart();
+      });
+    }
+  });
 </script>
 
 <svelte:head>
@@ -451,20 +457,20 @@
     subtitle="Emotional tone and sentiment across your social media posts"
     backHref="/text-analytics">
     <svelte:fragment slot="icon">
-      <div class="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl shadow-lg flex items-center justify-center mr-6 border border-white/20 backdrop-blur-sm">
-        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.01M15 10h1.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-      </div>
-    </svelte:fragment>
+        <div class="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl shadow-lg flex items-center justify-center mr-6 border border-white/20 backdrop-blur-sm">
+          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.01M15 10h1.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </svelte:fragment>
     <svelte:fragment slot="actions">
-      <button
-        on:click={exportSentimentData}
-        disabled={exportState.kind === 'working'}
-        class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-medium transition-colors border border-white/20 backdrop-blur-sm">
-        {exportState.kind === 'working' ? 'Exporting…' : 'Export Analysis'}
-      </button>
-    </svelte:fragment>
+        <button
+          onclick={exportSentimentData}
+          disabled={exportState.kind === 'working'}
+          class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-medium transition-colors border border-white/20 backdrop-blur-sm">
+          {exportState.kind === 'working' ? 'Exporting…' : 'Export Analysis'}
+        </button>
+      </svelte:fragment>
   </PageHeader>
 
   <!-- Content -->
@@ -476,7 +482,7 @@
 
     <!-- Data Source Filter -->
     <div class="mb-6">
-      <FilterBar workspaceId={workspaceId} datasetTypes={["social_media"]} onReady={handleFilterReady} on:change={handleFilterChange} />
+      <FilterBar workspaceId={workspaceId} datasetTypes={["social_media"]} onReady={handleFilterReady} onchange={handleFilterChange} />
     </div>
     <div class="mb-6">
       <MethodNote>
@@ -586,7 +592,7 @@
           <ul role="list" class="mt-3 flex flex-wrap gap-2" aria-label="Open the posts behind each sentiment">
             {#each detailedSentiments.filter((entry) => entry.label) as item}
               <li>
-                <button type="button" on:click={() => openSentimentDrilldown(item.label)} class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-600">
+                <button type="button" onclick={() => openSentimentDrilldown(item.label)} class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-600">
                   View {item.label} posts <span class="text-gray-500">({item.count.toLocaleString()})</span>
                 </button>
               </li>
@@ -667,7 +673,7 @@
             {#if hasMorePosts}Showing the first {filteredPosts.length} posts.{:else if postsAvailable > POST_MAX}Showing the first {POST_MAX} posts, the most this list shows. Narrow the filters to see others.{:else}All {filteredPosts.length} matching posts are shown.{/if}
           </p>
           {#if hasMorePosts}
-            <button type="button" on:click={showMorePosts} disabled={postsLoading} class="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60">{postsLoading ? 'Loading…' : `Show ${POST_PAGE} more`}</button>
+            <button type="button" onclick={showMorePosts} disabled={postsLoading} class="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60">{postsLoading ? 'Loading…' : `Show ${POST_PAGE} more`}</button>
           {/if}
         </div>
       {/if}

@@ -1,6 +1,6 @@
 // Layout rules for the analytical portals grid: which are shown, in what order, how big.
 
-import type { PortalGridItem } from '$lib/stores/investigationStore';
+import type { PortalGridItem } from '#lib/stores/investigationStore.ts';
 
 export interface PortalLayout {
   visible: string[];

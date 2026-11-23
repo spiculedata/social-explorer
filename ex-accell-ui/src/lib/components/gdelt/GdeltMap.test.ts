@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import GdeltMap from './GdeltMap.svelte';
-import type { GdeltEventFilters } from '$lib/utils/gdeltFilters';
+import type { GdeltEventFilters } from '#lib/utils/gdeltFilters.ts';
 
 type FakeMarker = ReturnType<typeof marker>;
 const marker = () => {

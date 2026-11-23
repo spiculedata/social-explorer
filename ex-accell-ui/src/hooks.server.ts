@@ -1,13 +1,13 @@
 import type { Handle } from '@sveltejs/kit/hooks';
-import { decideAccess } from '$lib/server/auth/guard';
-import { SESSION_COOKIE, getAuthConfig } from '$lib/server/auth/runtime';
-import { readSessionToken } from '$lib/server/auth/session';
-import { isSessionCurrent } from '$lib/server/auth/revocation';
-import { preloadFont } from '$lib/server/fontPreload';
-import { checkAccess } from '$lib/server/auth/accessCheck';
-import { resourcesInRequest } from '$lib/server/auth/access';
-import { isCrossSiteWrite, requestHosts } from '$lib/server/auth/csrf';
-import { createRateLimiter, parseRateLimit } from '$lib/server/rateLimit';
+import { decideAccess } from '#lib/server/auth/guard.ts';
+import { SESSION_COOKIE, getAuthConfig } from '#lib/server/auth/runtime.ts';
+import { readSessionToken } from '#lib/server/auth/session.ts';
+import { isSessionCurrent } from '#lib/server/auth/revocation.ts';
+import { preloadFont } from '#lib/server/fontPreload.ts';
+import { checkAccess } from '#lib/server/auth/accessCheck.ts';
+import { resourcesInRequest } from '#lib/server/auth/access.ts';
+import { isCrossSiteWrite, requestHosts } from '#lib/server/auth/csrf.ts';
+import { createRateLimiter, parseRateLimit } from '#lib/server/rateLimit.ts';
 
 const denial = (error: string, status: number) =>
   new Response(JSON.stringify({ success: false, data: null, error }), {

@@ -10,22 +10,22 @@ const mocks = vi.hoisted(() => ({
   forgive: vi.fn()
 }));
 
-vi.mock('$lib/server/auth/userRepo', () => ({ findUserByEmail: mocks.findUserByEmail }));
-vi.mock('$lib/server/auth/revocation', () => ({ changePassword: mocks.changePassword }));
-vi.mock('$lib/server/auth/password', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('$lib/server/auth/password')>()),
+vi.mock('#lib/server/auth/userRepo.ts', () => ({ findUserByEmail: mocks.findUserByEmail }));
+vi.mock('#lib/server/auth/revocation.ts', () => ({ changePassword: mocks.changePassword }));
+vi.mock('#lib/server/auth/password.ts', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('#lib/server/auth/password.ts')>()),
   verifyPassword: mocks.verifyPassword
 }));
-vi.mock('$lib/server/auth/runtime', () => ({
+vi.mock('#lib/server/auth/runtime.ts', () => ({
   SESSION_COOKIE: 'ex_session',
   getAuthConfig: () => ({ sessionSecret: 's'.repeat(32), sessionTtlSeconds: 3600, secureCookies: false }),
   prepareAuth: vi.fn().mockResolvedValue(undefined),
   loginThrottle: { isBlocked: () => mocks.blocked, recordFailure: mocks.recordFailure, reset: mocks.reset, forgive: mocks.forgive }
 }));
-vi.mock('$lib/utils/logger', () => ({ createLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }) }));
+vi.mock('#lib/utils/logger.ts', () => ({ createLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }) }));
 
 import { POST } from './+server';
-import { verifySessionToken } from '$lib/server/auth/session';
+import { verifySessionToken } from '#lib/server/auth/session.ts';
 
 const user = { id: 'u1', email: 'a@b.co', name: 'A', role: 'user' as const };
 const stored = { ...user, passwordHash: 'h', sessionVersion: 1, isDisabled: false };

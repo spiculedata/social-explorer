@@ -1,4 +1,4 @@
-import { query } from '$lib/services/postgres';
+import { query } from '#lib/services/postgres.ts';
 import type { ProjectAccessInfo } from './access';
 
 /** A project's creator and members, or null when there is no such project. */

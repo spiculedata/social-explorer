@@ -9,14 +9,14 @@ const { duckdbQuery, healthCheck, getPoolStats } = vi.hoisted(() => ({
   getPoolStats: vi.fn()
 }));
 
-vi.mock('$lib/services/postgres', () => ({ postgresPool: { duckdbQuery, healthCheck, getPoolStats } }));
+vi.mock('#lib/services/postgres.ts', () => ({ postgresPool: { duckdbQuery, healthCheck, getPoolStats } }));
 const { resolveWorkspaceScope } = vi.hoisted(() => ({ resolveWorkspaceScope: vi.fn() }));
 
-vi.mock('$lib/services/workspaceContextResolver', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('$lib/services/workspaceContextResolver')>()),
+vi.mock('#lib/services/workspaceContextResolver.ts', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('#lib/services/workspaceContextResolver.ts')>()),
   resolveWorkspaceScope
 }));
-vi.mock('$lib/utils/logger', () => ({
+vi.mock('#lib/utils/logger.ts', () => ({
   createLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() })
 }));
 

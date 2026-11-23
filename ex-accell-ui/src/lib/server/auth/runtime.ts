@@ -1,7 +1,7 @@
 import { dev } from '$app/env';
-import { createLogger } from '$lib/utils/logger';
+import { createLogger } from '#lib/utils/logger.ts';
 import { resolveAuthConfig, type AuthConfig } from './config';
-import { migrateDatabase } from '$lib/server/migrations';
+import { migrateDatabase } from '#lib/server/migrations/index.ts';
 import { createLoginThrottle } from './throttle';
 import { bootstrapAdmin, ensureAuthSchema } from './userRepo';
 

@@ -10,7 +10,7 @@
     setPortalLayout,
     type CrossFilter,
     type PortalGridItem
-  } from '$lib/stores/investigationStore';
+  } from '#lib/stores/investigationStore.ts';
   import {
     ALL_PORTALS,
     defaultLayout,
@@ -20,15 +20,15 @@
     swapPortals,
     togglePortalVisibility,
     visiblePortalIds
-  } from '$lib/utils/portalGrid';
-  import type { GdeltEvent, RadioSegment, WorkbenchPost } from '$lib/utils/investigationTypes';
-  import type { TimelineEntry } from '$lib/components/investigation/SwimLaneTimeline.svelte';
-  import SentimentPortal from '$lib/components/investigation/portals/SentimentPortal.svelte';
-  import VolumePortal from '$lib/components/investigation/portals/VolumePortal.svelte';
-  import CorrelationPortal from '$lib/components/investigation/portals/CorrelationPortal.svelte';
-  import TopicsPortal from '$lib/components/investigation/portals/TopicsPortal.svelte';
-  import GeographyPortal from '$lib/components/investigation/portals/GeographyPortal.svelte';
-  import ActorsPortal from '$lib/components/investigation/portals/ActorsPortal.svelte';
+  } from '#lib/utils/portalGrid.ts';
+  import type { GdeltEvent, RadioSegment, WorkbenchPost } from '#lib/utils/investigationTypes.ts';
+  import type { TimelineEntry } from '#lib/components/investigation/SwimLaneTimeline.svelte';
+  import SentimentPortal from '#lib/components/investigation/portals/SentimentPortal.svelte';
+  import VolumePortal from '#lib/components/investigation/portals/VolumePortal.svelte';
+  import CorrelationPortal from '#lib/components/investigation/portals/CorrelationPortal.svelte';
+  import TopicsPortal from '#lib/components/investigation/portals/TopicsPortal.svelte';
+  import GeographyPortal from '#lib/components/investigation/portals/GeographyPortal.svelte';
+  import ActorsPortal from '#lib/components/investigation/portals/ActorsPortal.svelte';
 
   /** Days inside the chosen time range */
   export let timelineData: TimelineEntry[];

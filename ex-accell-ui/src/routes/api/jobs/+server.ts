@@ -1,7 +1,7 @@
 import type { RequestHandler } from './$types';
-import { apiFail, apiOk, apiServerError, readJsonObject } from '$lib/server/apiResponse';
-import { jobStateStore } from '$lib/services/jobStateStore.js';
-import { createLogger } from '$lib/utils/logger';
+import { apiFail, apiOk, apiServerError, readJsonObject } from '#lib/server/apiResponse.ts';
+import { jobStateStore } from '#lib/services/jobStateStore.ts';
+import { createLogger } from '#lib/utils/logger.ts';
 import { DaprClient, CommunicationProtocolEnum, HttpMethod } from '@dapr/dapr';
 
 const log = createLogger('jobs-api');

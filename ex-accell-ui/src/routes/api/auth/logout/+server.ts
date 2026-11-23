@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { SESSION_COOKIE } from '$lib/server/auth/runtime';
+import { SESSION_COOKIE } from '#lib/server/auth/runtime.ts';
 
 export const POST: RequestHandler = async ({ cookies }) => {
   cookies.delete(SESSION_COOKIE, { path: '/' });

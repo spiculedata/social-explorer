@@ -4,9 +4,9 @@
 </svelte:head>
 
 <script lang="ts">
-  import { CHART } from '$lib/utils/chartColors';
+  import { CHART } from '#lib/utils/chartColors.ts';
   import { onMount, onDestroy } from 'svelte';
-  import { insightText, needsFirstRun, sourceNames } from '$lib/utils/homeProject';
+  import { insightText, needsFirstRun, sourceNames } from '#lib/utils/homeProject.ts';
   import { goto } from '$app/navigation';
 
   // ---------- types ----------

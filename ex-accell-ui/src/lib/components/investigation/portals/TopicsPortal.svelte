@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { CHART } from '$lib/utils/chartColors';
+  import { CHART } from '#lib/utils/chartColors.ts';
   import { onMount, createEventDispatcher } from 'svelte';
   import * as d3 from 'd3';
   import KeywordNetwork from '../KeywordNetwork.svelte';
   import WordCloudChart from '../WordCloudChart.svelte';
-  import { getPortalView, setPortalView, type CrossFilter } from '$lib/stores/investigationStore';
-  import { computeHighlightSet } from '$lib/utils/crossFilterHelpers';
+  import { getPortalView, setPortalView, type CrossFilter } from '#lib/stores/investigationStore.ts';
+  import { computeHighlightSet } from '#lib/utils/crossFilterHelpers.ts';
   import CrossFilterBadge from '../CrossFilterBadge.svelte';
 
   const dispatch = createEventDispatcher<{ crossfilter: CrossFilter }>();

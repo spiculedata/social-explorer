@@ -1,4 +1,4 @@
-import { postgresPool, query } from '$lib/services/postgres';
+import { postgresPool, query } from '#lib/services/postgres.ts';
 import { hashPassword, validatePasswordStrength } from './password';
 import type { UserRole } from './session';
 import { ADD_DISABLED_SQL, ADD_SESSION_VERSION_SQL, CREATE_INDEX_SQL, CREATE_TABLE_SQL } from './authSchema';

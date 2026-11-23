@@ -11,7 +11,7 @@ const service = vi.hoisted(() => ({
 }));
 const setOption = vi.hoisted(() => vi.fn());
 const echartsInit = vi.hoisted(() => vi.fn(() => ({ setOption, resize: vi.fn(), dispose: vi.fn() })));
-vi.mock('$lib/services/androidResearchDb', () => ({ androidResearchDb: service }));
+vi.mock('#lib/services/androidResearchDb.ts', () => ({ androidResearchDb: service }));
 vi.mock('$app/navigation', () => ({ goto: vi.fn() }));
 vi.mock('echarts', () => ({ init: echartsInit }));
 

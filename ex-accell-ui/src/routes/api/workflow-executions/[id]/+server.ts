@@ -2,9 +2,9 @@
 // Handles operations on specific workflow executions
 
 import type { RequestHandler } from './$types';
-import { apiFail, apiOk, apiServerError } from '$lib/server/apiResponse';
-import { toPublicExecution } from '$lib/server/workflowExecutionView';
-import { serverWorkflowService } from '$lib/services/serverWorkflowService';
+import { apiFail, apiOk, apiServerError } from '#lib/server/apiResponse.ts';
+import { toPublicExecution } from '#lib/server/workflowExecutionView.ts';
+import { serverWorkflowService } from '#lib/services/serverWorkflowService.ts';
 
 /**
  * GET /api/workflow-executions/[id]

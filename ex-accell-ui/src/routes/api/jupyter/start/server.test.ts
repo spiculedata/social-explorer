@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { JupyterNotSetUpError } from '$lib/server/jupyterManager';
+import { JupyterNotSetUpError } from '#lib/server/jupyterManager.ts';
 
 const ensureJupyter = vi.hoisted(() => vi.fn());
-vi.mock('$lib/server/jupyterRuntime', () => ({ ensureJupyter }));
+vi.mock('#lib/server/jupyterRuntime.ts', () => ({ ensureJupyter }));
 
 import { POST } from './+server';
 

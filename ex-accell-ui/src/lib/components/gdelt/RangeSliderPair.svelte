@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
-  import { clampRange } from '$lib/utils/gdeltFilters';
+  import { clampRange } from '#lib/utils/gdeltFilters.ts';
 
   /** The scale the sliders cover, and the step they move in */
   export let scaleMin: number;

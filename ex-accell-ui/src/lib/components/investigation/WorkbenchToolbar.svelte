@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { goto } from '$app/navigation';
-  import { formatDay } from '$lib/utils/dayFormat';
+  import { formatDay } from '#lib/utils/dayFormat.ts';
 
   export let name: string;
   export let keywords: string[];

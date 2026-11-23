@@ -1,15 +1,15 @@
 // Investigations API Endpoint
 // CRUD operations for investigation configurations
 
-import type { SessionUser } from '$lib/server/auth/session';
-import { parseResourceId } from '$lib/server/auth/access';
-import { filterByWorkspaceAccess, refuseIfNoAccess } from '$lib/server/auth/accessGuard';
-import { canModifyInvestigation } from '$lib/server/investigationAccess';
-import { investigationListQuery } from '$lib/server/investigationQuery';
+import type { SessionUser } from '#lib/server/auth/session.ts';
+import { parseResourceId } from '#lib/server/auth/access.ts';
+import { filterByWorkspaceAccess, refuseIfNoAccess } from '#lib/server/auth/accessGuard.ts';
+import { canModifyInvestigation } from '#lib/server/investigationAccess.ts';
+import { investigationListQuery } from '#lib/server/investigationQuery.ts';
 import { json } from '@sveltejs/kit';
-import { validateDayRange } from '$lib/utils/calendarDay';
+import { validateDayRange } from '#lib/utils/calendarDay.ts';
 import type { RequestHandler } from './$types';
-import { postgresPool } from '$lib/services/postgres';
+import { postgresPool } from '#lib/services/postgres.ts';
 
 let tableEnsured = false;
 

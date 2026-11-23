@@ -7,8 +7,8 @@ const executor = vi.hoisted(() => ({
   purgeWorkflow: vi.fn(),
   getWorkflowStatus: vi.fn()
 }));
-vi.mock('$lib/services/serverWorkflowService', () => ({ serverWorkflowService: service }));
-vi.mock('$lib/services/hybridDaprWorkflowExecutor', () => ({ hybridDaprWorkflowExecutor: executor }));
+vi.mock('#lib/services/serverWorkflowService.ts', () => ({ serverWorkflowService: service }));
+vi.mock('#lib/services/hybridDaprWorkflowExecutor.ts', () => ({ hybridDaprWorkflowExecutor: executor }));
 
 import { GET, POST } from './+server';
 

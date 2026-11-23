@@ -1,6 +1,6 @@
-import { apiFail, apiOk, apiServerError, readJsonObject } from '$lib/server/apiResponse';
+import { apiFail, apiOk, apiServerError, readJsonObject } from '#lib/server/apiResponse.ts';
 import type { RequestHandler } from './$types';
-import { jobStateStore } from '$lib/services/jobStateStore.js';
+import { jobStateStore } from '#lib/services/jobStateStore.ts';
 
 /**
  * Log monitoring endpoint that can parse live console output from dapr run

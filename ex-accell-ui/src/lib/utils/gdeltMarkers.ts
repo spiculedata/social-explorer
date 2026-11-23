@@ -1,7 +1,7 @@
-import { getCountryNameWithFallback } from '$lib/countryMapping';
-import { gdeltDateToInputDate } from '$lib/utils/gdeltDates';
-import { GDELT_EVENT_TYPES, getEventType, getEventTypeColor } from '$lib/utils/gdeltEventTypes';
-import type { GdeltEvent } from '$lib/utils/gdeltFilters';
+import { getCountryNameWithFallback } from '#lib/countryMapping.ts';
+import { gdeltDateToInputDate } from '#lib/utils/gdeltDates.ts';
+import { GDELT_EVENT_TYPES, getEventType, getEventTypeColor } from '#lib/utils/gdeltEventTypes.ts';
+import type { GdeltEvent } from '#lib/utils/gdeltFilters.ts';
 
 const MARKER_BASE_RADIUS = 4;
 const MARKER_RADIUS_PER_GOLDSTEIN_POINT = 1.5;

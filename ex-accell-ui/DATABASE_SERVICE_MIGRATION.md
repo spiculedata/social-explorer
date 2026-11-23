@@ -357,7 +357,7 @@ const wrong: WrongType[] = await service.getData(); // ❌ TypeScript error
 ```typescript
 import { BaseDatabaseService } from './baseDatabaseService';
 // or
-import { BaseDatabaseService } from '$lib/services/baseDatabaseService';
+import { BaseDatabaseService } from '#lib/services/baseDatabaseService.ts';
 ```
 
 ### Issue: "queryAPI returns empty array"

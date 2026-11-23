@@ -5,10 +5,10 @@
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { postgresPool } from '$lib/services/postgres';
-import { buildPostSearch, POST_SEARCH_DEFAULT_LIMIT, type PostSearchFilters } from '$lib/server/postSearch';
-import { resolveWorkspaceScope } from '$lib/services/workspaceContextResolver';
-import { queryErrorResponse } from '$lib/server/queryErrors';
+import { postgresPool } from '#lib/services/postgres.ts';
+import { buildPostSearch, POST_SEARCH_DEFAULT_LIMIT, type PostSearchFilters } from '#lib/server/postSearch.ts';
+import { resolveWorkspaceScope } from '#lib/services/workspaceContextResolver.ts';
+import { queryErrorResponse } from '#lib/server/queryErrors.ts';
 
 const integerParam = (value: string | null): number | undefined | null => {
   if (value === null || value === '') return undefined;

@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { CHART } from '$lib/utils/chartColors';
+  import { CHART } from '#lib/utils/chartColors.ts';
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
   import * as d3 from 'd3';
 
-  import type { CrossFilter } from '$lib/stores/investigationStore';
+  import type { CrossFilter } from '#lib/stores/investigationStore.ts';
 
   export let data: { label: string; value: number; color: string }[] = [];
   export let crossFilter: CrossFilter | null = null;

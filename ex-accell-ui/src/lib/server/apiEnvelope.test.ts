@@ -3,7 +3,7 @@ import { join, relative, sep } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 // Ratchet for issue #52. Every API route answers with the envelope `{ success, data, error }` (see
-// `$lib/server/apiResponse.ts`), sends the client a generic message on a 500 and logs the detail. Routes not yet migrated
+// `#lib/server/apiResponse.ts`), sends the client a generic message on a 500 and logs the detail. Routes not yet migrated
 // are listed below with exact counts, so the numbers can only go down: lower a baseline (or delete a list entry) in the same
 // change that fixes the route; the test fails when it is too high or too low.
 //

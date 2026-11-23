@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { UiJob } from '$lib/utils/dataCapture/types';
+import type { UiJob } from '#lib/utils/dataCapture/types.ts';
 
   export let jobToDelete: UiJob;
   export let deleteJob: () => void;

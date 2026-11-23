@@ -10,29 +10,29 @@ vi.mock('$app/navigation', () => ({ goto: hoisted.goto, beforeNavigate: hoisted.
 vi.mock('$app/state', () => ({ page: { params: { id: '5' } } }));
 
 // The d3 charts draw nothing useful without layout, so stand-ins show what they were given
-vi.mock('$lib/components/investigation/SwimLaneTimeline.svelte', async () => ({
+vi.mock('#lib/components/investigation/SwimLaneTimeline.svelte', async () => ({
   default: (await import('../../../test/stubs/TimelineStub.svelte')).default
 }));
-vi.mock('$lib/components/investigation/portals/SentimentPortal.svelte', async () => ({
+vi.mock('#lib/components/investigation/portals/SentimentPortal.svelte', async () => ({
   default: (await import('../../../test/stubs/PortalStub.svelte')).default
 }));
-vi.mock('$lib/components/investigation/portals/VolumePortal.svelte', async () => ({
+vi.mock('#lib/components/investigation/portals/VolumePortal.svelte', async () => ({
   default: (await import('../../../test/stubs/PortalStub.svelte')).default
 }));
-vi.mock('$lib/components/investigation/portals/CorrelationPortal.svelte', async () => ({
+vi.mock('#lib/components/investigation/portals/CorrelationPortal.svelte', async () => ({
   default: (await import('../../../test/stubs/PortalStub.svelte')).default
 }));
-vi.mock('$lib/components/investigation/portals/TopicsPortal.svelte', async () => ({
+vi.mock('#lib/components/investigation/portals/TopicsPortal.svelte', async () => ({
   default: (await import('../../../test/stubs/PortalStub.svelte')).default
 }));
-vi.mock('$lib/components/investigation/portals/GeographyPortal.svelte', async () => ({
+vi.mock('#lib/components/investigation/portals/GeographyPortal.svelte', async () => ({
   default: (await import('../../../test/stubs/PortalStub.svelte')).default
 }));
-vi.mock('$lib/components/investigation/portals/ActorsPortal.svelte', async () => ({
+vi.mock('#lib/components/investigation/portals/ActorsPortal.svelte', async () => ({
   default: (await import('../../../test/stubs/PortalStub.svelte')).default
 }));
 
-import { clearSelection } from '$lib/stores/investigationStore';
+import { clearSelection } from '#lib/stores/investigationStore.ts';
 import Page from './+page.svelte';
 
 const investigation = {

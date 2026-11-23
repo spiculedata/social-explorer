@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { WavePulseConfig } from '$lib/utils/dataCapture/types';
+import type { WavePulseConfig } from '#lib/utils/dataCapture/types.ts';
 
   export let wavePulseConfig: WavePulseConfig;
   export let wavePulseStatus: string;

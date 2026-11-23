@@ -8,10 +8,10 @@ const getWorkspacesByProject = vi.hoisted(() => vi.fn());
 const getWorkspaceDataSources = vi.hoisted(() => vi.fn());
 const repo = vi.hoisted(() => ({ loadProjectAccessInfo: vi.fn() }));
 
-vi.mock('$lib/services/projectsDb', () => ({ projectsDb: { createWorkspace, getWorkspaceById, deleteWorkspace, updateWorkspace, getWorkspacesByProject, getWorkspaceDataSources } }));
-vi.mock('$lib/server/auth/accessRepo', () => repo);
+vi.mock('#lib/services/projectsDb.ts', () => ({ projectsDb: { createWorkspace, getWorkspaceById, deleteWorkspace, updateWorkspace, getWorkspacesByProject, getWorkspaceDataSources } }));
+vi.mock('#lib/server/auth/accessRepo.ts', () => repo);
 const access = vi.hoisted(() => ({ checkAccess: vi.fn() }));
-vi.mock('$lib/server/auth/accessCheck', () => access);
+vi.mock('#lib/server/auth/accessCheck.ts', () => access);
 
 import { DELETE, GET, POST, PUT } from './+server';
 

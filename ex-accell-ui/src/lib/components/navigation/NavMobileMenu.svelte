@@ -1,6 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  import { currentProject } from '$lib/stores/projectStore';
+  import { currentProject } from '#lib/stores/projectStore.ts';
   import MobileUserPanel from './MobileUserPanel.svelte';
   import {
     getDataAvailabilityIcon,

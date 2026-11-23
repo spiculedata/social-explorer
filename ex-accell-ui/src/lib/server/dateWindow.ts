@@ -1,6 +1,6 @@
 // The date range of the analysis filter bar, as SQL conditions over a timestamp column. Days are whole UTC days,
 // matching how the bar builds its presets.
-import { validateDayRange } from '$lib/utils/calendarDay';
+import { validateDayRange } from '#lib/utils/calendarDay.ts';
 import { dateBoundToEpochMs } from './dateBounds';
 
 /** `start` is inclusive and `end` is exclusive: the first instant after the last chosen day. */

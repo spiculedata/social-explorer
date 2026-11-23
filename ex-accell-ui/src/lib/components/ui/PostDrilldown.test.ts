@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/svelte';
 import { tick } from 'svelte';
 
 const fetchPosts = vi.hoisted(() => vi.fn());
-vi.mock('$lib/services/postsApi', () => ({ fetchPosts }));
+vi.mock('#lib/services/postsApi.ts', () => ({ fetchPosts }));
 
 import PostDrilldown from './PostDrilldown.svelte';
 
