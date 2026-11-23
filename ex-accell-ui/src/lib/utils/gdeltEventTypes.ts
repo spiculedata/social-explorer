@@ -1,4 +1,4 @@
-import { CHART } from '$lib/utils/chartColors';
+import { CHART } from '#lib/utils/chartColors.ts';
 
 export interface GdeltEventTypeConfig {
   codes: string[];

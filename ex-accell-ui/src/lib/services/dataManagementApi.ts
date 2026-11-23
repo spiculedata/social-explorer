@@ -1,5 +1,5 @@
-import { normalizeDataset, type DatasetRow } from '$lib/utils/datasetRows';
-import type { CrawlRequest, RadioConfig, WavePulseStatus } from '$lib/utils/dataManagement';
+import { normalizeDataset, type DatasetRow } from '#lib/utils/datasetRows.ts';
+import type { CrawlRequest, RadioConfig, WavePulseStatus } from '#lib/utils/dataManagement.ts';
 
 // The data management endpoints answer { success, ... } and these helpers hand that answer back as it is, so the page
 // decides what a failed answer means. A network error or an unreadable body still throws.

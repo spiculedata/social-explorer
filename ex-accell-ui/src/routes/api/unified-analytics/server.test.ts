@@ -5,20 +5,20 @@ const { duckdbQuery, healthCheck } = vi.hoisted(() => ({
   healthCheck: vi.fn().mockResolvedValue(true)
 }));
 
-vi.mock('$lib/services/postgres', () => ({ postgresPool: { duckdbQuery, healthCheck } }));
+vi.mock('#lib/services/postgres.ts', () => ({ postgresPool: { duckdbQuery, healthCheck } }));
 const { resolveWorkspaceScope } = vi.hoisted(() => ({ resolveWorkspaceScope: vi.fn().mockResolvedValue({ kind: 'none' }) }));
 
-vi.mock('$lib/services/workspaceContextResolver', () => ({
+vi.mock('#lib/services/workspaceContextResolver.ts', () => ({
   resolveWorkspaceScope,
   buildPlatformFilter: vi.fn().mockReturnValue(null),
   hasDataType: vi.fn().mockReturnValue(true)
 }));
-vi.mock('$lib/utils/logger', () => ({
+vi.mock('#lib/utils/logger.ts', () => ({
   createLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() })
 }));
 
 import { GET } from './+server';
-import { WORKFLOW_DATASET_COUNT_QUERIES } from '$lib/server/workflowDatasets';
+import { WORKFLOW_DATASET_COUNT_QUERIES } from '#lib/server/workflowDatasets.ts';
 
 const call = (type: string, query = '') =>
   GET({ url: new URL(`http://localhost/api/unified-analytics?type=${type}${query}`) } as Parameters<typeof GET>[0]);

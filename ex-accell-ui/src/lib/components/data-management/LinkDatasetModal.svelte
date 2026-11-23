@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { Modal } from '$lib/components/ui';
-  import { formatNumber } from '$lib/utils/formatUtils';
-  import type { DatasetRow } from '$lib/utils/datasetRows';
+  import { Modal } from '#lib/components/ui/index.ts';
+  import { formatNumber } from '#lib/utils/formatUtils.ts';
+  import type { DatasetRow } from '#lib/utils/datasetRows.ts';
 
   export let open: boolean;
   /** The datasets that are not yet linked to the workspace */

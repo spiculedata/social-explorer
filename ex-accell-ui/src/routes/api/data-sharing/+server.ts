@@ -2,16 +2,16 @@
 // Reads are open to every signed-in role; POST (generate, publish, withdraw, import) is admin-only (see auth/guard.ts).
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { postgresPool } from '$lib/services/postgres';
-import { ipfsService } from '$lib/services/ipfsService';
-import { isValidCid } from '$lib/services/ipfsCid';
-import { InvalidCidError, IpfsDisabledError, PackageTooLargeError, UnsafePackageError } from '$lib/services/ipfsErrors';
-import { NetworkConfigError } from '$lib/services/ipfsNetworkConfig';
-import { parseResourceId } from '$lib/server/auth/access';
-import { createLogger } from '$lib/utils/logger';
-import { DataSharingError, badRequest, conflict, notFound, unprocessable } from '$lib/server/dataSharing/errors';
-import { exclusive } from '$lib/server/dataSharing/exclusive';
-import { importFromCid } from '$lib/server/dataSharing/importPackage';
+import { postgresPool } from '#lib/services/postgres.ts';
+import { ipfsService } from '#lib/services/ipfsService.ts';
+import { isValidCid } from '#lib/services/ipfsCid.ts';
+import { InvalidCidError, IpfsDisabledError, PackageTooLargeError, UnsafePackageError } from '#lib/services/ipfsErrors.ts';
+import { NetworkConfigError } from '#lib/services/ipfsNetworkConfig.ts';
+import { parseResourceId } from '#lib/server/auth/access.ts';
+import { createLogger } from '#lib/utils/logger.ts';
+import { DataSharingError, badRequest, conflict, notFound, unprocessable } from '#lib/server/dataSharing/errors.ts';
+import { exclusive } from '#lib/server/dataSharing/exclusive.ts';
+import { importFromCid } from '#lib/server/dataSharing/importPackage.ts';
 import {
   checkSourceTable,
   describeExport,
@@ -23,8 +23,8 @@ import {
   readDataPackage,
   readPackage,
   writeDataPackage
-} from '$lib/server/dataSharing/packages';
-import { findByCid, listPublished, listPublishedCids, markWithdrawn, recordPublished } from '$lib/server/dataSharing/registry';
+} from '#lib/server/dataSharing/packages.ts';
+import { findByCid, listPublished, listPublishedCids, markWithdrawn, recordPublished } from '#lib/server/dataSharing/registry.ts';
 
 const log = createLogger('data-sharing-api');
 

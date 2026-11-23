@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { CHART } from '$lib/utils/chartColors';
+  import { CHART } from '#lib/utils/chartColors.ts';
   import { onMount } from 'svelte';
-  import DataUnavailable from '$lib/components/ui/DataUnavailable.svelte';
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
-  import { ErrorAlert } from '$lib/components/ui';
-  import { formatNumber } from '$lib/utils/formatUtils';
-  import { waitForEcharts, initChart } from '$lib/utils/echarts';
+  import DataUnavailable from '#lib/components/ui/DataUnavailable.svelte';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
+  import { ErrorAlert } from '#lib/components/ui/index.ts';
+  import { formatNumber } from '#lib/utils/formatUtils.ts';
+  import { waitForEcharts, initChart } from '#lib/utils/echarts.ts';
 
   let loading = true;
   let errorMessage = '';

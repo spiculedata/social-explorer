@@ -1,10 +1,10 @@
 <script lang="ts">
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
-  import { CHART, DIVERGING } from '$lib/utils/chartColors';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
+  import { CHART, DIVERGING } from '#lib/utils/chartColors.ts';
   import { goto } from '$app/navigation';
   import { onMount, tick } from 'svelte';
   import * as echarts from 'echarts';
-  import { androidResearchDb } from '$lib/services/androidResearchDb';
+  import { androidResearchDb } from '#lib/services/androidResearchDb.ts';
   import type {
     AppTransition,
     AttentionSpan,
@@ -14,10 +14,10 @@
     DigitalPhenotype,
     ResearchFinding,
     TemporalUsagePattern
-  } from '$lib/services/types/androidResearchTypes';
-  import { acyclicTransitions, behaviouralMetrics, hasAndroidData, temporalUsageFromSessions } from '$lib/utils/androidData';
-  import DataUnavailable from '$lib/components/ui/DataUnavailable.svelte';
-  import ErrorAlert from '$lib/components/ui/ErrorAlert.svelte';
+  } from '#lib/services/types/androidResearchTypes.ts';
+  import { acyclicTransitions, behaviouralMetrics, hasAndroidData, temporalUsageFromSessions } from '#lib/utils/androidData.ts';
+  import DataUnavailable from '#lib/components/ui/DataUnavailable.svelte';
+  import ErrorAlert from '#lib/components/ui/ErrorAlert.svelte';
 
   const LOAD_ERROR = 'Could not load Android research data. Check the connection and try again.';
   const CHART_SETTLE_MS = 200;

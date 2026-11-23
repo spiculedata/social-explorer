@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { page } from '$app/state';
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
 
   interface UserRow {
     id: string;

@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { CHART } from '$lib/utils/chartColors';
-  import DataUnavailable from '$lib/components/ui/DataUnavailable.svelte';
+  import { CHART } from '#lib/utils/chartColors.ts';
+  import DataUnavailable from '#lib/components/ui/DataUnavailable.svelte';
   import { onMount } from 'svelte';
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
-  import { ErrorAlert } from '$lib/components/ui';
-  import { formatNumber } from '$lib/utils/formatUtils';
-  import { waitForEcharts, initChart } from '$lib/utils/echarts';
-  import ModelTierSelector from '$lib/components/ui/ModelTierSelector.svelte';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
+  import { ErrorAlert } from '#lib/components/ui/index.ts';
+  import { formatNumber } from '#lib/utils/formatUtils.ts';
+  import { waitForEcharts, initChart } from '#lib/utils/echarts.ts';
+  import ModelTierSelector from '#lib/components/ui/ModelTierSelector.svelte';
 
   let selectedTier = 'fast';
 

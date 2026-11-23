@@ -3,9 +3,9 @@
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { postgresPool } from '$lib/services/postgres';
-import { apiFail, apiServerError } from '$lib/server/apiResponse';
-import { createLogger } from '$lib/utils/logger';
+import { postgresPool } from '#lib/services/postgres.ts';
+import { apiFail, apiServerError } from '#lib/server/apiResponse.ts';
+import { createLogger } from '#lib/utils/logger.ts';
 
 const log = createLogger('analytics-query');
 

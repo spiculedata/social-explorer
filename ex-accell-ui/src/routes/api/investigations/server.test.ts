@@ -3,8 +3,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const query = vi.hoisted(() => vi.fn());
 
 const access = vi.hoisted(() => ({ checkAccess: vi.fn() }));
-vi.mock('$lib/services/postgres', () => ({ postgresPool: { query } }));
-vi.mock('$lib/server/auth/accessCheck', () => access);
+vi.mock('#lib/services/postgres.ts', () => ({ postgresPool: { query } }));
+vi.mock('#lib/server/auth/accessCheck.ts', () => access);
 
 import { GET, POST, PATCH, DELETE } from './+server';
 
@@ -158,7 +158,7 @@ describe('investigations API failures', () => {
   it('answers a database failure with a generic 500 and never the database message', async () => {
     const mod = await import('./+server');
     const failing = vi.fn().mockRejectedValue(new Error('relation "investigations" does not exist at 10.0.0.5'));
-    const { postgresPool } = await import('$lib/services/postgres');
+    const { postgresPool } = await import('#lib/services/postgres.ts');
     const original = postgresPool.query;
     (postgresPool as any).query = failing;
     try {

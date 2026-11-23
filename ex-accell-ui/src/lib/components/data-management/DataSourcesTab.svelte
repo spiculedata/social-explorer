@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { formatNumber } from '$lib/utils/formatUtils';
-  import type { DataSource } from '$lib/utils/dataManagement';
+  import { formatNumber } from '#lib/utils/formatUtils.ts';
+  import type { DataSource } from '#lib/utils/dataManagement.ts';
 
   export let dataSources: DataSource[];
   export let onLinkDataset: () => void;

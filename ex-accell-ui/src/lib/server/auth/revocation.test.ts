@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const repo = vi.hoisted(() => ({ getSessionVersion: vi.fn(), bumpSessionVersion: vi.fn(), ensureAuthSchema: vi.fn(), setUserPassword: vi.fn(), updateUserAccess: vi.fn() }));
 vi.mock('./userRepo', () => repo);
-vi.mock('$lib/utils/logger', () => ({ createLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }) }));
+vi.mock('#lib/utils/logger.ts', () => ({ createLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }) }));
 
 import { changePassword, changeUserAccess, isSessionCurrent, resetRevocationCacheForTests, revokeSessions } from './revocation';
 

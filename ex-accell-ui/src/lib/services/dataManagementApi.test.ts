@@ -9,7 +9,7 @@ import {
   startWavePulse,
   stopWavePulse
 } from './dataManagementApi';
-import { defaultCrawlerConfig, defaultRadioConfig } from '$lib/utils/dataManagement';
+import { defaultCrawlerConfig, defaultRadioConfig } from '#lib/utils/dataManagement.ts';
 
 const fetchMock = vi.fn();
 const reply = (body: unknown) => ({ json: async () => body });

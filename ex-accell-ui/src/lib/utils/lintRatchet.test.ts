@@ -46,7 +46,7 @@ describe('any ratchet', () => {
 describe('console ratchet', () => {
   it('does not change except downwards', () => {
     const count = countMatches(CONSOLE, [LOGGER]);
-    expect(count, `console.* calls in src (non-test, excluding the logger): found ${count}, baseline ${CONSOLE_BASELINE}. Lower CONSOLE_BASELINE if you removed some; use createLogger from $lib/utils/logger if you added some.`).toBe(CONSOLE_BASELINE);
+    expect(count, `console.* calls in src (non-test, excluding the logger): found ${count}, baseline ${CONSOLE_BASELINE}. Lower CONSOLE_BASELINE if you removed some; use createLogger from #lib/utils/logger.ts if you added some.`).toBe(CONSOLE_BASELINE);
   });
 });
 

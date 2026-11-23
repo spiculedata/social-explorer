@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { CHART } from '$lib/utils/chartColors';
+  import { CHART } from '#lib/utils/chartColors.ts';
 	import { onMount, createEventDispatcher, tick } from 'svelte';
 	import * as d3 from 'd3';
 
-	import type { CrossFilter } from '$lib/stores/investigationStore';
-	import { layoutWordCloud, type WordCloudPlacement } from '$lib/utils/wordCloudLayout';
+	import type { CrossFilter } from '#lib/stores/investigationStore.ts';
+	import { layoutWordCloud, type WordCloudPlacement } from '#lib/utils/wordCloudLayout.ts';
 
 	export let words: { text: string; size: number }[] = [];
 	export let crossFilter: CrossFilter | null = null;

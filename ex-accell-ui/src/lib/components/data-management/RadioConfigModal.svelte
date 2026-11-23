@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { blankRadioStream, type RadioConfig, type WavePulseStatus } from '$lib/utils/dataManagement';
+  import { blankRadioStream, type RadioConfig, type WavePulseStatus } from '#lib/utils/dataManagement.ts';
 
   /** The stations and settings, which the form edits, so bind it */
   export let radioConfig: RadioConfig;

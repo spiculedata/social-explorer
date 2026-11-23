@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { goto } from '$app/navigation';
-  import { currentProject } from '$lib/stores/projectStore';
+  import { currentProject } from '#lib/stores/projectStore.ts';
   import { formatRecordCount, getDatasetTypeBadges, type NavWorkspace, type WorkspaceSummary } from './navItems';
 
   export let workspaces: NavWorkspace[];

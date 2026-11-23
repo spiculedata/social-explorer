@@ -1,11 +1,11 @@
 // Database connection and query service for Overview Dashboard data
 // Uses PostgreSQL with pg_duckdb extension via unified analytics API
 
-import { platformColour } from '$lib/utils/categoryColours';
+import { platformColour } from '#lib/utils/categoryColours.ts';
 import { BaseDatabaseService } from './baseDatabaseService';
 
-import { CHART } from '$lib/utils/chartColors';
-import { getSentimentColor } from '$lib/utils/colorUtils';
+import { CHART } from '#lib/utils/chartColors.ts';
+import { getSentimentColor } from '#lib/utils/colorUtils.ts';
 interface OverviewStats {
   activeProjects: number;
   postsAnalyzed: number;

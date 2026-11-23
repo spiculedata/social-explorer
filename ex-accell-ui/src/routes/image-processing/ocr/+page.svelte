@@ -1,10 +1,10 @@
 <script lang="ts">
-  import DataUnavailable from '$lib/components/ui/DataUnavailable.svelte';
+  import DataUnavailable from '#lib/components/ui/DataUnavailable.svelte';
   import { onMount } from 'svelte';
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
-  import { ErrorAlert } from '$lib/components/ui';
-  import { formatNumber } from '$lib/utils/formatUtils';
-  import ModelTierSelector from '$lib/components/ui/ModelTierSelector.svelte';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
+  import { ErrorAlert } from '#lib/components/ui/index.ts';
+  import { formatNumber } from '#lib/utils/formatUtils.ts';
+  import ModelTierSelector from '#lib/components/ui/ModelTierSelector.svelte';
 
   let selectedTier = 'fast';
 

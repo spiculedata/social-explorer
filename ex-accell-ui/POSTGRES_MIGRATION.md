@@ -193,7 +193,7 @@ Response includes:
 ### Standard PostgreSQL Query
 
 ```typescript
-import { postgresPool } from '$lib/services/postgres';
+import { postgresPool } from '#lib/services/postgres.ts';
 
 // Regular PostgreSQL query
 const users = await postgresPool.query('SELECT * FROM users WHERE active = $1', [true]);
@@ -242,7 +242,7 @@ const result = await conn.runAndReadAll('SELECT * FROM posts');
 
 ### After (PostgreSQL with pg_duckdb)
 ```typescript
-import { postgresPool } from '$lib/services/postgres';
+import { postgresPool } from '#lib/services/postgres.ts';
 
 // Analytical query with DuckDB engine
 const result = await postgresPool.duckdbQuery('SELECT * FROM posts');

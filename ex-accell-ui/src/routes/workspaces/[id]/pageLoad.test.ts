@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const db = vi.hoisted(() => ({ getWorkspaceById: vi.fn() }));
-vi.mock('$lib/services/projectsDb', () => ({ projectsDb: db }));
+vi.mock('#lib/services/projectsDb.ts', () => ({ projectsDb: db }));
 
 import { load } from './+page.server';
 

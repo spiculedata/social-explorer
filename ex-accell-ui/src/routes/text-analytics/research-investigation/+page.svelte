@@ -1,9 +1,9 @@
 <script lang="ts">
-  import PageHeader from '$lib/components/ui/PageHeader.svelte';
+  import PageHeader from '#lib/components/ui/PageHeader.svelte';
   import { goto } from '$app/navigation';
-  import { currentProject, loadCurrentProject } from '$lib/stores/projectStore';
+  import { currentProject, loadCurrentProject } from '#lib/stores/projectStore.ts';
   import { onMount } from 'svelte';
-  import ErrorAlert from '$lib/components/ui/ErrorAlert.svelte';
+  import ErrorAlert from '#lib/components/ui/ErrorAlert.svelte';
   import {
     connectJupyter,
     fetchJupyterStatus,
@@ -13,9 +13,9 @@
     openStartingTab,
     type JupyterConnection,
     type JupyterPoll
-  } from '$lib/utils/jupyterClient';
-  import { extractCommand } from '$lib/utils/commandHint';
-  import CopyCommand from '$lib/components/ui/CopyCommand.svelte';
+  } from '#lib/utils/jupyterClient.ts';
+  import { extractCommand } from '#lib/utils/commandHint.ts';
+  import CopyCommand from '#lib/components/ui/CopyCommand.svelte';
 
   // Load current project and check if exists
   onMount(async () => {

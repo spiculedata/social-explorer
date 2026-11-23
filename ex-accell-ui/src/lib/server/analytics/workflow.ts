@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { executeQuery } from './executeQuery';
-import { WORKFLOW_DATASET_COUNT_QUERIES, buildWorkflowDatasets, type WorkflowDatasetCounts } from '$lib/server/workflowDatasets';
-import { isMissingRelationError, queryErrorResponse } from '$lib/server/queryErrors';
+import { WORKFLOW_DATASET_COUNT_QUERIES, buildWorkflowDatasets, type WorkflowDatasetCounts } from '#lib/server/workflowDatasets.ts';
+import { isMissingRelationError, queryErrorResponse } from '#lib/server/queryErrors.ts';
 import type { AnalyticsContext, AnalyticsHandler } from './types';
 
 async function workflowDatasets(_ctx: AnalyticsContext): Promise<Response> {

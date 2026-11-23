@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { CHART } from '$lib/utils/chartColors';
+  import { CHART } from '#lib/utils/chartColors.ts';
   import { onMount, createEventDispatcher } from 'svelte';
-  import { getSentimentColor } from '$lib/utils/colorUtils';
+  import { getSentimentColor } from '#lib/utils/colorUtils.ts';
   import * as d3 from 'd3';
   import AnalyticalPortal from '../AnalyticalPortal.svelte';
   import SentimentDistribution from '../SentimentDistribution.svelte';
-  import { getPortalView, setPortalView, type CrossFilter } from '$lib/stores/investigationStore';
-  import { computeTimelineHighlightDays } from '$lib/utils/crossFilterHelpers';
+  import { getPortalView, setPortalView, type CrossFilter } from '#lib/stores/investigationStore.ts';
+  import { computeTimelineHighlightDays } from '#lib/utils/crossFilterHelpers.ts';
   import CrossFilterBadge from '../CrossFilterBadge.svelte';
 
   // Hoisted so the d3 accessors below do not look the colours up per point

@@ -2,10 +2,10 @@
 // Returns all data needed for the project detail page in one round trip:
 // project details, enriched workspace data (sparklines, sentiment, anomalies), activity feed, summary stats
 
-import { apiFail, apiOk, apiServerError } from '$lib/server/apiResponse';
+import { apiFail, apiOk, apiServerError } from '#lib/server/apiResponse.ts';
 import type { RequestHandler } from './$types';
-import { postgresPool } from '$lib/services/postgres';
-import { WORKSPACE_SOURCES_SQL } from '$lib/server/workspaceSources';
+import { postgresPool } from '#lib/services/postgres.ts';
+import { WORKSPACE_SOURCES_SQL } from '#lib/server/workspaceSources.ts';
 
 export const GET: RequestHandler = async ({ url }) => {
   const projectId = url.searchParams.get('id');

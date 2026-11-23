@@ -2,8 +2,8 @@
 // Uses PostgreSQL with pg_duckdb extension via unified analytics API
 
 import { BaseDatabaseService } from './baseDatabaseService';
-import { CHART } from '$lib/utils/chartColors';
-import { getSentimentColor } from '$lib/utils/colorUtils';
+import { CHART } from '#lib/utils/chartColors.ts';
+import { getSentimentColor } from '#lib/utils/colorUtils.ts';
 import type {
   RadioOverviewStats,
   StationStats,

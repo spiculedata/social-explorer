@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { setCrossFilter, type CrossFilter } from '$lib/stores/investigationStore';
-  import { formatGdeltDate, goldsteinColor, toneBarWidth } from '$lib/utils/investigationFormat';
-  import type { GdeltEvent } from '$lib/utils/investigationTypes';
+  import { setCrossFilter, type CrossFilter } from '#lib/stores/investigationStore.ts';
+  import { formatGdeltDate, goldsteinColor, toneBarWidth } from '#lib/utils/investigationFormat.ts';
+  import type { GdeltEvent } from '#lib/utils/investigationTypes.ts';
 
   export let loading: boolean;
   /** Events after the cross-filter */

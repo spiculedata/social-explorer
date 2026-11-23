@@ -1,7 +1,7 @@
 <script lang="ts">
-  import ChangePasswordForm from '$lib/components/ChangePasswordForm.svelte';
-  import { initials } from '$lib/utils/initials';
-  import { signOut, signOutEverywhere } from '$lib/utils/signOut';
+  import ChangePasswordForm from '#lib/components/ChangePasswordForm.svelte';
+  import { initials } from '#lib/utils/initials.ts';
+  import { signOut, signOutEverywhere } from '#lib/utils/signOut.ts';
   import type { NavUser } from './navItems';
 
   export let user: NavUser | null | undefined;

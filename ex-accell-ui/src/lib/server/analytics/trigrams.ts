@@ -1,10 +1,10 @@
 import { json } from '@sveltejs/kit';
 import { executeQuery } from './executeQuery';
-import { TRIGRAM_DEFAULT_DAYS, TRIGRAM_MAX_POSTS, TRIGRAM_TIME_RANGE_DAYS, trigramPostsQuery } from '$lib/server/trigramQueries';
-import { computeTrigrams, trendWindow } from '$lib/server/trigrams';
-import { hasNoSocialData } from '$lib/server/languageQueries';
-import { queryErrorResponse } from '$lib/server/queryErrors';
-import { parseDateWindow, windowConditions } from '$lib/server/dateWindow';
+import { TRIGRAM_DEFAULT_DAYS, TRIGRAM_MAX_POSTS, TRIGRAM_TIME_RANGE_DAYS, trigramPostsQuery } from '#lib/server/trigramQueries.ts';
+import { computeTrigrams, trendWindow } from '#lib/server/trigrams.ts';
+import { hasNoSocialData } from '#lib/server/languageQueries.ts';
+import { queryErrorResponse } from '#lib/server/queryErrors.ts';
+import { parseDateWindow, windowConditions } from '#lib/server/dateWindow.ts';
 import type { AnalyticsContext, AnalyticsHandler } from './types';
 
 interface TrigramPostRow {

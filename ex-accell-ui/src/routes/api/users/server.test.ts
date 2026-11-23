@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const repo = vi.hoisted(() => ({ listUsers: vi.fn(), createUser: vi.fn() }));
-vi.mock('$lib/server/auth/userRepo', () => repo);
-vi.mock('$lib/server/auth/runtime', () => ({ prepareAuth: vi.fn().mockResolvedValue(undefined) }));
-vi.mock('$lib/utils/logger', () => ({ createLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }) }));
+vi.mock('#lib/server/auth/userRepo.ts', () => repo);
+vi.mock('#lib/server/auth/runtime.ts', () => ({ prepareAuth: vi.fn().mockResolvedValue(undefined) }));
+vi.mock('#lib/utils/logger.ts', () => ({ createLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }) }));
 
 import { GET, POST } from './+server';
 

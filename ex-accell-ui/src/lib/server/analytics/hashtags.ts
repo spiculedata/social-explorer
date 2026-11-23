@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { executeQuery } from './executeQuery';
-import { queryErrorResponse } from '$lib/server/queryErrors';
-import { hasNoSocialData } from '$lib/server/languageQueries';
+import { queryErrorResponse } from '#lib/server/queryErrors.ts';
+import { hasNoSocialData } from '#lib/server/languageQueries.ts';
 import type { AnalyticsContext, AnalyticsHandler } from './types';
 
 interface HashtagPostSource {
