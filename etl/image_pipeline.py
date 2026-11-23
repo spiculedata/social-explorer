@@ -214,6 +214,8 @@ def detect_faces(img, tier='fast'):
 
 # ── CLIP Classification (Standard Tier) ──────────────────────────────────────
 
+CLIP_MODEL_NAME = 'ViT-B-32-quickgelu'  # matches the 'openai' weights; plain 'ViT-B-32' degrades on open-clip-torch 3+
+CLIP_PRETRAINED = 'openai'
 _clip_model = None
 
 def get_clip_model():
@@ -222,8 +224,8 @@ def get_clip_model():
         try:
             import open_clip
             import torch
-            model, _, preprocess = open_clip.create_model_and_transforms('ViT-B-32', pretrained='openai')
-            tokenizer = open_clip.get_tokenizer('ViT-B-32')
+            model, _, preprocess = open_clip.create_model_and_transforms(CLIP_MODEL_NAME, pretrained=CLIP_PRETRAINED)
+            tokenizer = open_clip.get_tokenizer(CLIP_MODEL_NAME)
             model.eval()
             _clip_model = (model, preprocess, tokenizer)
             logger.info("CLIP ViT-B/32 model loaded")
