@@ -5,6 +5,7 @@ import { DaprClient, CommunicationProtocolEnum, WorkflowRuntimeStatus } from '@d
 import { spawn } from 'child_process';
 import { join } from 'path';
 import { assertSafeIdentifier } from '#lib/utils/pathSafety.ts';
+import { daprFetch } from '#lib/server/daprFetch.ts';
 import type { PublishedWorkflow, WorkflowExecution } from './serverWorkflowService';
 import { pythonDaprWorkflowGenerator, type PythonDaprWorkflow } from './pythonDaprWorkflowGenerator';
 
@@ -94,7 +95,7 @@ export class HybridDaprWorkflowExecutor {
    */
   private async checkWorkflowEngineReady(port: number): Promise<boolean> {
     try {
-      const response = await fetch(`http://localhost:${port}/v1.0/metadata`);
+      const response = await daprFetch(`http://localhost:${port}/v1.0/metadata`);
       if (!response.ok) return false;
       
       const metadata = await response.json();
@@ -136,7 +137,7 @@ export class HybridDaprWorkflowExecutor {
 
         for (const endpoint of endpoints) {
           try {
-            const response = await fetch(endpoint, {
+            const response = await daprFetch(endpoint, {
               signal: AbortSignal.timeout(2000)
             });
             

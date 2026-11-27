@@ -1,0 +1,21 @@
+# Dapr sidecar configuration used by the ui-dapr service in docker-compose.yml.
+# Access control applies to service invocation INTO the app this sidecar hosts
+# (ex-accell-ui): only a caller whose own sidecar presents the ex-accell-ui identity
+# in trust domain "public" and namespace "default" may invoke it; every other caller
+# is denied. The sidecar's own HTTP/gRPC API is additionally protected by
+# DAPR_API_TOKEN (set in docker-compose.yml).
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  name: compose-config
+spec:
+  accessControl:
+    defaultAction: deny
+    trustDomain: public
+    policies:
+    - appId: ex-accell-ui
+      defaultAction: allow
+      trustDomain: public
+      namespace: default
+      operations:
+      - name: "*"

@@ -15,19 +15,37 @@ fi
 CURRENT_DIR=$(pwd)
 
 # Check if Redis is running (required for job store)
+# The Dapr components authenticate to Redis with the redisPassword in secrets.json, and the
+# container is bound to loopback only, so the password never crosses or leaves the host.
 echo "🔍 Checking Redis availability..."
 if ! nc -z localhost 6379 2>/dev/null; then
     echo "⚠️  Redis is not running. Starting Redis with Docker..."
-    docker run -d --name redis-dapr -p 6379:6379 redis:alpine
+    REDIS_PASS=$(openssl rand -hex 32)
+    docker run -d --name redis-dapr -p 127.0.0.1:6379:6379 \
+        redis:7-alpine redis-server --requirepass "$REDIS_PASS"
     sleep 3
     if ! nc -z localhost 6379 2>/dev/null; then
         echo "❌ Failed to start Redis. Please ensure Docker is running and try:"
-        echo "   docker run -d --name redis-dapr -p 6379:6379 redis:alpine"
+        echo "   docker run -d --name redis-dapr -p 127.0.0.1:6379:6379 redis:7-alpine redis-server --requirepass '<password from secrets.json>'"
         exit 1
+    fi
+    if [ -f secrets.json ]; then
+        node -e '
+const fs = require("fs");
+const file = process.argv[1];
+const pass = process.argv[2];
+const data = JSON.parse(fs.readFileSync(file, "utf8"));
+data.redisPassword = pass;
+fs.writeFileSync(file, JSON.stringify(data, null, 2) + "\n");
+' secrets.json "$REDIS_PASS"
+        chmod 600 secrets.json
+        echo "🔑 Wrote the Redis password into secrets.json"
     fi
     echo "✅ Redis started successfully"
 else
     echo "✅ Redis is already running"
+    echo "⚠️  The Dapr components authenticate with the redisPassword from secrets.json;"
+    echo "   make sure the running Redis requires that same password."
 fi
 
 # Check if telegram-scraper exists and build if needed

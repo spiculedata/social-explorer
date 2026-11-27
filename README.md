@@ -77,8 +77,8 @@ git clone https://github.com/spiculedata/social-explorer.git
 cd social-explorer
 
 cp .env.example .env
-# Edit .env: set SESSION_SECRET (openssl rand -hex 32), ADMIN_PASSWORD (12+ characters)
-# and change POSTGRES_PASSWORD.
+# Edit .env: set SESSION_SECRET, REDIS_PASSWORD and DAPR_API_TOKEN (all openssl rand -hex 32),
+# ADMIN_PASSWORD (12+ characters) and change POSTGRES_PASSWORD.
 
 docker compose up -d --build postgres redis dapr-placement ui ui-dapr
 ```
@@ -100,7 +100,9 @@ empty states until you load some; `npm run seed:demo` loads a synthetic demo dat
   port. Stop it (`docker stop dapr_scheduler`) or leave `dapr-placement` out of the command; the web
   app works without it, but Dapr features will not.
 - **`SESSION_SECRET` error on start.** The secret is required. Generate one with
-  `openssl rand -hex 32` and put it in `.env`.
+  `openssl rand -hex 32` and put it in `.env`. The same applies to `REDIS_PASSWORD` and
+  `DAPR_API_TOKEN`: Redis requires its password and the Dapr sidecar rejects API calls
+  without the token, so both must be set before the stack will come up.
 - **Login does not stick over plain HTTP.** Keep `COOKIE_SECURE=false` for `http://localhost`, and
   set it to `true` only when serving over HTTPS.
 - **Data lives in `./data`.** Set `DATA_DIR` in `.env` to move it. Remove the directory to reset.

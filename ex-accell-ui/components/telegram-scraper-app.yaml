@@ -10,5 +10,7 @@ spec:
     value: "http://localhost:3001"
   - name: method
     value: "POST"
-  scopes:
-  - ex-accell-ui
+# scopes must sit at the top level of the component: indented under spec.metadata it is
+# ignored and the binding is unscoped (readable by any app the sidecar hosts).
+scopes:
+- ex-accell-ui

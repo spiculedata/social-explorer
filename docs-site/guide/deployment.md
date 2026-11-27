@@ -33,6 +33,8 @@ Copy `.env.example` to `.env` and set at least:
 | Variable | Notes |
 |----------|-------|
 | `SESSION_SECRET` | Required. 32 or more random characters (`openssl rand -hex 32`) |
+| `REDIS_PASSWORD` | Required. The compose Redis starts with it and the Dapr Redis components read it through the sidecar's environment secret store. Generate with `openssl rand -hex 32` |
+| `DAPR_API_TOKEN` | Required. The Dapr sidecar answers 401 to any API call that does not carry it (`dapr-api-token` header); the ui container gets the same value so the app's own calls authenticate. Generate with `openssl rand -hex 32` |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Creates the first admin while the user table is empty. Password: 12+ characters |
 | `POSTGRES_PASSWORD` | Change from the example value |
 | `COOKIE_SECURE` | Set to `true` whenever the site is served over HTTPS |
@@ -72,8 +74,9 @@ The UI container runs the same way: unprivileged uid and gid 1000, not root. Com
 including when upgrading from the earlier root image. If you run the image without compose, `chown -R 1000:1000`
 both folders yourself; otherwise the app cannot write its IPFS node state or data packages.
 
-Do not publish the Postgres, Redis, Ollama or Jupyter ports to the internet. The compose file maps
-them to the host for convenience; bind them to `127.0.0.1` or remove the mappings on a server.
+Do not publish the Postgres, Redis, Ollama or Jupyter ports to the internet. Redis is already
+mapped to `127.0.0.1` and requires the `REDIS_PASSWORD`; the compose file maps the other ports to
+the host for convenience — bind them to `127.0.0.1` or remove the mappings on a server.
 
 ## Backups
 

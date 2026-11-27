@@ -31,6 +31,8 @@ async function makeRequest(url, options = {}) {
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
+        // The sidecar rejects API calls without this when DAPR_API_TOKEN is set
+        ...(process.env.DAPR_API_TOKEN ? { 'dapr-api-token': process.env.DAPR_API_TOKEN } : {}),
         ...options.headers
       },
       ...options

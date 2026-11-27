@@ -1,6 +1,7 @@
 import type { RequestHandler } from './$types';
 import { apiFail, apiOk, apiServerError, readJsonObject } from '#lib/server/apiResponse.ts';
 import { jobStateStore } from '#lib/services/jobStateStore.ts';
+import { daprFetch } from '#lib/server/daprFetch.ts';
 import { createLogger } from '#lib/utils/logger.ts';
 import { DaprClient, CommunicationProtocolEnum, HttpMethod } from '@dapr/dapr';
 
@@ -220,7 +221,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			if (jobName) {
 				daprJobs = await getDaprClient().invoker.invoke(TELEGRAM_SCRAPER_APP_ID, 'getJob', HttpMethod.POST, { jobName });
 			} else {
-				const response = await fetch('http://localhost:3500/v1.0-alpha1/jobs');
+				const response = await daprFetch('http://localhost:3500/v1.0-alpha1/jobs');
 				if (response.ok) daprJobs = await response.json();
 			}
 		} catch (daprError) {
@@ -264,7 +265,7 @@ export const DELETE: RequestHandler = async ({ url }) => {
 		// Delete from the Dapr Jobs API; a Dapr that is down does not fail the whole operation
 		if (jobName) {
 			try {
-				const response = await fetch(`http://localhost:3500/v1.0-alpha1/jobs/${encodeURIComponent(jobName)}`, { method: 'DELETE' });
+				const response = await daprFetch(`http://localhost:3500/v1.0-alpha1/jobs/${encodeURIComponent(jobName)}`, { method: 'DELETE' });
 				if (response.ok || response.status === 404) deletedFromDapr = true;
 				else log.warn('Dapr jobs API delete failed', { status: response.status });
 			} catch (daprError) {

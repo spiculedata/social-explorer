@@ -57,8 +57,9 @@ curl -fsSL https://raw.githubusercontent.com/dapr/cli/master/install/install.sh 
 # 3. Initialize Dapr
 dapr init
 
-# 4. Start Redis (required for Dapr components)
-docker run -d --name redis-dapr -p 6379:6379 redis:alpine
+# 4. Start Redis (required for Dapr components; loopback only, password from secrets.json)
+docker run -d --name redis-dapr -p 127.0.0.1:6379:6379 redis:7-alpine \
+  redis-server --requirepass '<password from secrets.json>'
 ```
 
 ## Quick Start
@@ -723,11 +724,13 @@ npm run check
 
 #### Redis Connection Issues
 ```bash
-# Start Redis container
-docker run -d --name redis-dapr -p 6379:6379 redis:alpine
+# Start Redis container (loopback only, authenticated — run npm run dapr:setup instead and it
+# generates the password and writes it into secrets.json)
+docker run -d --name redis-dapr -p 127.0.0.1:6379:6379 redis:7-alpine \
+  redis-server --requirepass '<password from secrets.json>'
 
 # Test Redis connection
-docker exec -it redis-dapr redis-cli ping
+docker exec -it redis-dapr redis-cli -a '<password from secrets.json>' ping
 ```
 
 ### Debug Mode

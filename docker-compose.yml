@@ -23,12 +23,18 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    # Redis is authenticated (same REDIS_PASSWORD the Dapr components read through their
+    # secret store) and only bound to loopback on the host: anything that can reach it on
+    # the compose network is expected to hold the password, but the wider host must not.
+    command: ["sh", "-c", "exec redis-server --requirepass \"$$REDIS_PASSWORD\""]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD (openssl rand -hex 32)}
     ports:
-      - "6379:6379"
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
     volumes:
       - redisdata:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a \"$$REDIS_PASSWORD\" ping | grep PONG"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -65,6 +71,10 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       DAPR_HTTP_PORT: "3500"
+      # Same DAPR_API_TOKEN the sidecar has (both come from .env): the sidecar rejects
+      # calls to its API without the dapr-api-token header, so the app's own Dapr calls
+      # (jobs, crawler, state store) send it. The @dapr/dapr SDK reads the env var itself.
+      DAPR_API_TOKEN: ${DAPR_API_TOKEN:?Set DAPR_API_TOKEN (openssl rand -hex 32)}
       OLLAMA_HOST: http://ollama:11434
       # Peer-to-peer data sharing (IPFS) is opt-in: anything published is public and copies others fetch cannot be recalled.
       # Set IPFS_ENABLED=true in .env after reading docs-site/guide/data-sharing.md
@@ -106,7 +116,11 @@ services:
       - ${DATA_DIR:-/data}/ipfs:/data/ipfs
       - ${DATA_DIR:-/data}/packages:/data/packages
 
-  # Dapr sidecar for UI — shares network namespace with ui container
+  # Dapr sidecar for UI — shares network namespace with ui container.
+  # DAPR_API_TOKEN makes the sidecar answer 401 to any request to its own API that does
+  # not carry the matching dapr-api-token header; REDIS_PASSWORD is the secret the Redis
+  # components read (deploy/components/secretstore.yaml reads it from the environment).
+  # Both are the same values the ui container gets, so set them once in .env.
   ui-dapr:
     image: daprio/daprd:1.14.4
     command: [
@@ -117,10 +131,15 @@ services:
       "--dapr-grpc-port", "50001",
       "--placement-host-address", "dapr-placement:50006",
       "--resources-path", "/components",
+      "--config", "/configurations/dapr-config.yaml",
       "--log-level", "warn"
     ]
+    environment:
+      DAPR_API_TOKEN: ${DAPR_API_TOKEN:?Set DAPR_API_TOKEN (openssl rand -hex 32)}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD (openssl rand -hex 32)}
     volumes:
       - ./deploy/components:/components:ro
+      - ./deploy/configuration:/configurations:ro
     network_mode: "service:ui"
     depends_on:
       - ui

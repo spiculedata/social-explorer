@@ -3,6 +3,7 @@
 
 import type { RequestHandler } from './$types';
 import { apiFail, apiOk, apiServerError, readJsonObject } from '#lib/server/apiResponse.ts';
+import { daprFetch } from '#lib/server/daprFetch.ts';
 
 const DAPR_HTTP_PORT = process.env.DAPR_HTTP_PORT || '3500';
 const DAPR_URL = `http://localhost:${DAPR_HTTP_PORT}`;
@@ -38,7 +39,7 @@ export const POST: RequestHandler = async ({ request }) => {
     };
 
     // Schedule via Dapr service invocation to crawler
-    const response = await fetch(`${DAPR_URL}/v1.0/invoke/crawler/method/crawl`, {
+    const response = await daprFetch(`${DAPR_URL}/v1.0/invoke/crawler/method/crawl`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(jobData)
@@ -50,7 +51,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // Fallback: try Dapr Jobs API
-    const jobResponse = await fetch(`${DAPR_URL}/v1.0-alpha1/jobs/${encodeURIComponent(jobName)}`, {
+    const jobResponse = await daprFetch(`${DAPR_URL}/v1.0-alpha1/jobs/${encodeURIComponent(jobName)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ dueTime: '5s', data: { value: JSON.stringify(jobData) } })
@@ -71,7 +72,7 @@ export const POST: RequestHandler = async ({ request }) => {
  */
 export const GET: RequestHandler = async () => {
   try {
-    const response = await fetch(`${DAPR_URL}/v1.0/invoke/crawler/method/health`, {
+    const response = await daprFetch(`${DAPR_URL}/v1.0/invoke/crawler/method/health`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });

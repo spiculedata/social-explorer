@@ -8,8 +8,12 @@ spec:
   metadata:
   - name: redisHost
     value: redis:6379
+  # Password comes from the REDIS_PASSWORD environment variable of the sidecar container
+  # (docker-compose.yml sets it; the same value is passed to redis-server as --requirepass).
   - name: redisPassword
-    value: ""
+    secretKeyRef:
+      name: REDIS_PASSWORD
+      key: REDIS_PASSWORD
   - name: enableTLS
     value: false
 scopes:

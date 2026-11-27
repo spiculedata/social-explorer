@@ -8,8 +8,13 @@ spec:
   metadata:
   - name: redisHost
     value: localhost:6379
+  # Password comes from the local-file secret store (./secrets.json, key redisPassword).
+  # scripts/setup-deployment.sh starts the dev Redis with that password and writes it into
+  # secrets.json; keep the value out of git.
   - name: redisPassword
-    value: ""
+    secretKeyRef:
+      name: redisPassword
+      key: redisPassword
   - name: enableTLS
     value: false
 scopes:

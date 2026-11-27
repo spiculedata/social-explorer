@@ -1,3 +1,5 @@
+import { daprFetch } from '#lib/server/daprFetch.ts';
+
 import type { RequestHandler } from '@sveltejs/kit';
 
 const DAPR_HTTP_PORT = 3500;
@@ -61,7 +63,7 @@ export class JobStateStore {
 	private async checkDaprConnection(): Promise<void> {
 		try {
 			// Test the state store directly instead of health endpoint
-			const response = await fetch(`${this.baseUrl}/dapr-health-test`, {
+			const response = await daprFetch(`${this.baseUrl}/dapr-health-test`, {
 				method: 'GET',
 				signal: AbortSignal.timeout(3000) // 3 second timeout
 			});
@@ -97,7 +99,7 @@ export class JobStateStore {
 			await this.checkDaprConnection();
 			
 			// Save the job state
-			const saveJobResponse = await fetch(this.baseUrl, {
+			const saveJobResponse = await daprFetch(this.baseUrl, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -133,7 +135,7 @@ export class JobStateStore {
 	private async updateJobRegistry(jobId: string): Promise<void> {
 		try {
 			// Get current registry
-			const registryResponse = await fetch(`${this.baseUrl}/job-registry`, {
+			const registryResponse = await daprFetch(`${this.baseUrl}/job-registry`, {
 				method: 'GET',
 			});
 
@@ -151,7 +153,7 @@ export class JobStateStore {
 				jobIds.push(jobId);
 
 				// Save updated registry
-				await fetch(this.baseUrl, {
+				await daprFetch(this.baseUrl, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
@@ -176,7 +178,7 @@ export class JobStateStore {
 	private async removeFromJobRegistry(jobId: string): Promise<void> {
 		try {
 			// Get current registry
-			const registryResponse = await fetch(`${this.baseUrl}/job-registry`, {
+			const registryResponse = await daprFetch(`${this.baseUrl}/job-registry`, {
 				method: 'GET',
 			});
 
@@ -196,7 +198,7 @@ export class JobStateStore {
 			// Only update if something was removed
 			if (jobIds.length < originalLength) {
 				// Save updated registry
-				await fetch(this.baseUrl, {
+				await daprFetch(this.baseUrl, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
@@ -222,7 +224,7 @@ export class JobStateStore {
 		try {
 			await this.checkDaprConnection();
 			
-			const response = await fetch(`${this.baseUrl}/job:${jobId}`, {
+			const response = await daprFetch(`${this.baseUrl}/job:${jobId}`, {
 				method: 'GET',
 			});
 
@@ -256,7 +258,7 @@ export class JobStateStore {
 			await this.checkDaprConnection();
 			
 			// Get job registry to find all job IDs
-			const registryResponse = await fetch(`${this.baseUrl}/job-registry`, {
+			const registryResponse = await daprFetch(`${this.baseUrl}/job-registry`, {
 				method: 'GET',
 			});
 
@@ -283,7 +285,7 @@ export class JobStateStore {
 			}
 
 			// Fetch all job states using bulk get
-			const bulkResponse = await fetch(`${this.baseUrl}/bulk`, {
+			const bulkResponse = await daprFetch(`${this.baseUrl}/bulk`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -382,7 +384,7 @@ export class JobStateStore {
 			await this.checkDaprConnection();
 			
 			// Delete the job state
-			const response = await fetch(`${this.baseUrl}/job:${jobId}`, {
+			const response = await daprFetch(`${this.baseUrl}/job:${jobId}`, {
 				method: 'DELETE',
 			});
 

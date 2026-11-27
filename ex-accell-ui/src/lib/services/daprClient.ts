@@ -1,3 +1,4 @@
+import { daprFetch } from '#lib/server/daprFetch.ts';
 import { DaprClient, CommunicationProtocolEnum, HttpMethod } from 'dapr-client';
 
 const DAPR_HTTP_PORT = process.env.DAPR_HTTP_PORT || '3500';
@@ -39,7 +40,7 @@ class DaprClientService {
         return await this.client.binding.send(bindingName, operation, data);
       } else {
         // Fall back to HTTP API
-        const response = await fetch(`http://localhost:${DAPR_HTTP_PORT}/v1.0/bindings/${bindingName}`, {
+        const response = await daprFetch(`http://localhost:${DAPR_HTTP_PORT}/v1.0/bindings/${bindingName}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -74,7 +75,7 @@ class DaprClientService {
         await this.client.pubsub.publish(pubsubName, topicName, data);
       } else {
         // Fall back to HTTP API
-        const response = await fetch(`http://localhost:${DAPR_HTTP_PORT}/v1.0/publish/${pubsubName}/${topicName}`, {
+        const response = await daprFetch(`http://localhost:${DAPR_HTTP_PORT}/v1.0/publish/${pubsubName}/${topicName}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -103,7 +104,7 @@ class DaprClientService {
         return await this.client.state.get(storeName, key);
       } else {
         // Fall back to HTTP API
-        const response = await fetch(`http://localhost:${DAPR_HTTP_PORT}/v1.0/state/${storeName}/${key}`);
+        const response = await daprFetch(`http://localhost:${DAPR_HTTP_PORT}/v1.0/state/${storeName}/${key}`);
 
         if (!response.ok) {
           if (response.status === 404) {
@@ -131,7 +132,7 @@ class DaprClientService {
         await this.client.state.save(storeName, [{ key, value }]);
       } else {
         // Fall back to HTTP API
-        const response = await fetch(`http://localhost:${DAPR_HTTP_PORT}/v1.0/state/${storeName}`, {
+        const response = await daprFetch(`http://localhost:${DAPR_HTTP_PORT}/v1.0/state/${storeName}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -160,7 +161,7 @@ class DaprClientService {
         return await this.client.invoker.invoke(appId, methodName, httpVerb, data);
       } else {
         // Fall back to HTTP API
-        const response = await fetch(`http://localhost:${DAPR_HTTP_PORT}/v1.0/invoke/${appId}/method/${methodName}`, {
+        const response = await daprFetch(`http://localhost:${DAPR_HTTP_PORT}/v1.0/invoke/${appId}/method/${methodName}`, {
           method: httpVerb,
           headers: {
             'Content-Type': 'application/json',
@@ -192,7 +193,7 @@ class DaprClientService {
         return secrets[key] || null;
       } else {
         // Fall back to HTTP API
-        const response = await fetch(`http://localhost:${DAPR_HTTP_PORT}/v1.0/secrets/${secretStoreName}/${key}`);
+        const response = await daprFetch(`http://localhost:${DAPR_HTTP_PORT}/v1.0/secrets/${secretStoreName}/${key}`);
 
         if (!response.ok) {
           if (response.status === 404) {
