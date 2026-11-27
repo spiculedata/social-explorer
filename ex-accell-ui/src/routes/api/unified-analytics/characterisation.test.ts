@@ -3,13 +3,12 @@
 // so a refactor of the dispatcher can be proven behaviour-preserving (see __snapshots__).
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-const { duckdbQuery, healthCheck, getPoolStats } = vi.hoisted(() => ({
+const { duckdbQuery, healthCheck } = vi.hoisted(() => ({
   duckdbQuery: vi.fn(),
-  healthCheck: vi.fn(),
-  getPoolStats: vi.fn()
+  healthCheck: vi.fn()
 }));
 
-vi.mock('#lib/services/postgres.ts', () => ({ postgresPool: { duckdbQuery, healthCheck, getPoolStats } }));
+vi.mock('#lib/services/postgres.ts', () => ({ postgresPool: { duckdbQuery, healthCheck } }));
 const { resolveWorkspaceScope } = vi.hoisted(() => ({ resolveWorkspaceScope: vi.fn() }));
 
 vi.mock('#lib/services/workspaceContextResolver.ts', async (importOriginal) => ({
@@ -88,8 +87,6 @@ describe('unified-analytics characterisation', () => {
     resolveWorkspaceScope.mockResolvedValue({ kind: 'none' });
     healthCheck.mockReset();
     healthCheck.mockResolvedValue(true);
-    getPoolStats.mockReset();
-    getPoolStats.mockReturnValue({ total: 1 });
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200, text: async () => '', json: async () => ({ response: 'narrative' }) }));
     vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});

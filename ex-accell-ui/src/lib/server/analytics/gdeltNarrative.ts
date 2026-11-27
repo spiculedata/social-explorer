@@ -1,6 +1,10 @@
 import { json } from '@sveltejs/kit';
 import { executeQuery } from './executeQuery';
 import type { AnalyticsContext, AnalyticsHandler } from './types';
+import { queryErrorResponse } from '#lib/server/queryErrors.ts';
+import { createLogger } from '#lib/utils/logger.ts';
+
+const log = createLogger('gdelt-narrative');
 
 async function gdeltNarrativeSummary({ url }: AnalyticsContext): Promise<Response> {
   try {
@@ -110,7 +114,7 @@ Be factual and analytical. Do not speculate beyond what the data suggests.`;
 
     if (!ollamaResponse.ok) {
       const errText = await ollamaResponse.text();
-      console.error('Ollama error:', errText);
+      log.error('Ollama request failed', { status: ollamaResponse.status, detail: errText });
       return json({ success: false, error: `LLM unavailable: ${ollamaResponse.status}` }, { status: 502 });
     }
 
@@ -131,9 +135,8 @@ Be factual and analytical. Do not speculate beyond what the data suggests.`;
         }
       }
     });
-  } catch (error: any) {
-    console.error('GDELT narrative summary failed:', error);
-    return json({ success: false, error: error.message || 'Failed to generate narrative' }, { status: 500 });
+  } catch (error) {
+    return queryErrorResponse('GDELT narrative summary', error, null);
   }
 }
 

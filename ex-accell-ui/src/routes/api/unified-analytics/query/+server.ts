@@ -3,6 +3,7 @@
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { createHash } from 'node:crypto';
 import { postgresPool } from '#lib/services/postgres.ts';
 import { apiFail, apiServerError } from '#lib/server/apiResponse.ts';
 import { createLogger } from '#lib/utils/logger.ts';
@@ -33,7 +34,12 @@ export const POST: RequestHandler = async ({ request }) => {
   if (!Array.isArray(params)) return apiFail('params must be an array', 400);
 
   try {
-    log.info('Executing SQL query', { sql });
+    // The SQL can carry collected text in its literals, so the log keeps only its length and a
+    // hash: enough to correlate log lines with an execution, never the statement itself.
+    log.info('Executing SQL query', {
+      length: sql.length,
+      hash: createHash('sha256').update(sql).digest('hex').slice(0, 16)
+    });
 
     // Execute query using DuckDB execution engine for analytical queries
     const rows = await postgresPool.duckdbQuery(sql, params);

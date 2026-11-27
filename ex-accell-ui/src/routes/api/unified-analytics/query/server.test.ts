@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const { duckdbQuery } = vi.hoisted(() => ({ duckdbQuery: vi.fn() }));
-vi.mock('#lib/services/postgres.ts', () => ({ postgresPool: { duckdbQuery } }));
-vi.mock('#lib/utils/logger.ts', () => ({
-  createLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() })
+const { duckdbQuery, logFns } = vi.hoisted(() => ({
+  duckdbQuery: vi.fn(),
+  logFns: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }
 }));
+vi.mock('#lib/services/postgres.ts', () => ({ postgresPool: { duckdbQuery } }));
+vi.mock('#lib/utils/logger.ts', () => ({ createLogger: () => logFns }));
 
 import { POST } from './+server';
 
@@ -18,6 +19,10 @@ const post = (body: unknown) =>
 
 beforeEach(() => {
   duckdbQuery.mockReset();
+  logFns.debug.mockReset();
+  logFns.info.mockReset();
+  logFns.warn.mockReset();
+  logFns.error.mockReset();
 });
 
 describe('POST /api/unified-analytics/query', () => {
@@ -61,6 +66,34 @@ describe('POST /api/unified-analytics/query', () => {
 
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ success: false, data: null, error: 'syntax error at or near "SELEC"' });
+  });
+
+  it('logs an executed query as length and hash, never the statement itself', async () => {
+    duckdbQuery.mockResolvedValue([{ n: 1 }]);
+
+    const sql = "SELECT 'collected text literal' AS leak";
+    await post({ sql, params: [] });
+
+    const call = logFns.info.mock.calls.find(([message]) => message === 'Executing SQL query');
+    expect(call).toBeDefined();
+    const [, data] = call!;
+    expect(data).toEqual({ length: sql.length, hash: expect.any(String) });
+    expect(data.hash).toMatch(/^[0-9a-f]{16}$/);
+    // No log line of any level carries the statement or its literals
+    for (const fn of Object.values(logFns)) {
+      for (const logged of fn.mock.calls) {
+        expect(JSON.stringify(logged)).not.toContain(sql);
+      }
+    }
+  });
+
+  it('answers a generic 500 and no detail for an undefined table', async () => {
+    duckdbQuery.mockRejectedValue(Object.assign(new Error('relation "secret_table" does not exist'), { code: '42P01' }));
+
+    const response = await post({ sql: 'SELECT 1' });
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({ success: false, data: null, error: 'Query failed' });
   });
 
   it.each([

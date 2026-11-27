@@ -2,6 +2,9 @@ import { json } from '@sveltejs/kit';
 import { postgresPool } from '#lib/services/postgres.ts';
 import { executeQuery } from './executeQuery';
 import type { AnalyticsContext, AnalyticsHandler } from './types';
+import { createLogger } from '#lib/utils/logger.ts';
+
+const log = createLogger('analytics-connection');
 
 async function test({ scope }: AnalyticsContext): Promise<Response> {
   // Test PostgreSQL connection with pg_duckdb
@@ -13,9 +16,6 @@ async function test({ scope }: AnalyticsContext): Promise<Response> {
       const postCount = await executeQuery('SELECT COUNT(*) as count FROM sentiment_posts');
       const sentimentCount = await executeQuery('SELECT COUNT(*) as count FROM sentiment_classifications');
 
-      // Get connection pool stats
-      const poolStats = postgresPool.getPoolStats();
-
       return json({
         success: true,
         message: 'PostgreSQL with pg_duckdb extension connected',
@@ -25,7 +25,6 @@ async function test({ scope }: AnalyticsContext): Promise<Response> {
           sentiments: sentimentCount[0]?.count || 0,
           hasData: (postCount[0]?.count || 0) > 0
         },
-        poolStats,
         scope: scope ? {
           workspaceId: scope.workspaceId,
           workspaceName: scope.workspaceName,
@@ -37,7 +36,7 @@ async function test({ scope }: AnalyticsContext): Promise<Response> {
         } : null
       });
     } catch (error) {
-      console.warn('Could not check data status:', error);
+      log.warn('Could not check data status', { detail: error instanceof Error ? error.message : String(error) });
       return json({
         success: true,
         message: 'PostgreSQL connected (data status unknown)',

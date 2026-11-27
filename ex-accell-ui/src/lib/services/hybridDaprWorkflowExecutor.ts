@@ -5,8 +5,11 @@ import { DaprClient, CommunicationProtocolEnum, WorkflowRuntimeStatus } from '@d
 import { spawn } from 'child_process';
 import { join } from 'path';
 import { assertSafeIdentifier } from '#lib/utils/pathSafety.ts';
+import { createLogger } from '#lib/utils/logger.ts';
 import type { PublishedWorkflow, WorkflowExecution } from './serverWorkflowService';
 import { pythonDaprWorkflowGenerator, type PythonDaprWorkflow } from './pythonDaprWorkflowGenerator';
+
+const log = createLogger('dapr-workflow-executor');
 
 /**
  * Helper function to safely extract error messages
@@ -300,7 +303,9 @@ export class HybridDaprWorkflowExecutor {
 
         childProcess.stdout?.on('data', (data) => {
           const output = data.toString();
-          console.log(`Python workflow output: ${output}`);
+          // Workflow output can carry collected content, so it is only captured for the execution log
+          // the workflow owner already sees; the server log gets nothing at the default level.
+          log.debug('Python workflow output', { output });
           execution.logs.push({
             timestamp: new Date().toISOString(),
             level: 'info',
@@ -320,7 +325,7 @@ export class HybridDaprWorkflowExecutor {
 
         childProcess.stderr?.on('data', (data) => {
           const error = data.toString();
-          console.log(`Python workflow error: ${error}`);
+          log.debug('Python workflow stderr', { output: error });
           execution.logs.push({
             timestamp: new Date().toISOString(),
             level: 'warn',

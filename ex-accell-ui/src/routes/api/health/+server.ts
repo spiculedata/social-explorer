@@ -1,48 +1,48 @@
-// Health check endpoint with real dependency checks
+// Public health endpoint. It answers `{ status }` only: no error text, host, uptime or table
+// counts, and the dependency-check detail goes to the server log, not the client.
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { postgresPool } from '#lib/services/postgres.ts';
+import { createLogger } from '#lib/utils/logger.ts';
+
+const log = createLogger('health');
+
+// The endpoint is public and unauthenticated, so the database check runs at most once per TTL and
+// every other hit is answered from the cached result: a flood of probes cannot become a flood of
+// queries.
+const CACHE_TTL_MS = 15_000;
+
+let cache: { at: number; status: string } | null = null;
+
+/** True when the pool answers a trivial query. Any failure is logged server-side, never returned. */
+async function postgresHealthy(): Promise<boolean> {
+  try {
+    return await postgresPool.healthCheck();
+  } catch (err) {
+    log.error('Postgres health check failed', { detail: err instanceof Error ? err.message : String(err) });
+    return false;
+  }
+}
+
+/** The public status: 'healthy' or 'degraded', cached for CACHE_TTL_MS. */
+async function currentStatus(): Promise<string> {
+  const now = Date.now();
+  if (cache && now - cache.at < CACHE_TTL_MS) return cache.status;
+
+  const status = (await postgresHealthy()) ? 'healthy' : 'degraded';
+  cache = { at: now, status };
+  return status;
+}
 
 export const GET: RequestHandler = async () => {
-  const checks: Record<string, { status: string; detail?: string }> = {};
-  let overall = 'healthy';
-
-  // Check PostgreSQL
-  try {
-    const isHealthy = await postgresPool.healthCheck();
-    if (isHealthy) {
-      checks.postgres = { status: 'healthy' };
-    } else {
-      checks.postgres = { status: 'unhealthy', detail: 'Connection test failed' };
-      overall = 'degraded';
+  const status = await currentStatus();
+  return json(
+    { status },
+    {
+      status: status === 'healthy' ? 200 : 503,
+      headers: { 'Cache-Control': 'no-cache' }
     }
-  } catch (err: any) {
-    checks.postgres = { status: 'unhealthy', detail: err.message };
-    overall = 'degraded';
-  }
-
-  // Check table counts (lightweight query)
-  try {
-    const rows = await postgresPool.query<{ count: string }>(
-      "SELECT COUNT(*) as count FROM pg_stat_user_tables"
-    );
-    checks.tables = { status: 'healthy', detail: `${rows[0]?.count || 0} tables` };
-  } catch {
-    checks.tables = { status: 'unknown', detail: 'Could not query table count' };
-  }
-
-  const health = {
-    status: overall,
-    timestamp: new Date().toISOString(),
-    service: 'ex-accell-ui',
-    uptime: process.uptime(),
-    checks
-  };
-
-  return json(health, {
-    status: overall === 'healthy' ? 200 : 503,
-    headers: { 'Cache-Control': 'no-cache' }
-  });
+  );
 };
 
 /**

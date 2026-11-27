@@ -8,8 +8,8 @@ import { describe, expect, it } from 'vitest';
 // change that fixes the route; the test fails when it is too high or too low.
 //
 // Allowed exceptions, none of which count as debt:
-//   - health/+server.ts is a liveness probe whose plain body is read by orchestrators, not the UI. It is exempt from the
-//     envelope check only: its `detail: err.message` is counted in the leak baseline until it is changed.
+//   - health/+server.ts is a liveness probe whose plain `{ status }` body is read by orchestrators, not the UI. It is
+//     exempt from the envelope check only; it returns no error detail to the client at all.
 //   - A `.message` that is deliberately client-safe because the error class is ours and carries user-facing text
 //     (BodyTooLargeError, DataSharingError and the other typed data-sharing errors) or the line only compares it
 //     (`message === 'No such user'`). CLIENT_SAFE_LINE matches those lines, so a new leak in the same file is still counted.
@@ -24,7 +24,7 @@ const SVELTEKIT_ERROR = /(?<![.\w])error\(\s*\d{3}/g;
 
 // A non-logging line that reads `err.message`: the text is about to reach the client or the response shape.
 // Includes unified-analytics/query, which sends a Postgres syntax error (SQLSTATE 42601) to the admin who wrote the SQL, on purpose.
-const LEAKED_MESSAGE_BASELINE = 7;
+const LEAKED_MESSAGE_BASELINE = 5;
 const LEAKED_MESSAGE = /\b(?:err|error|e)\??\.message/;
 const LOGGING_LINE = /\b(?:console|log|logger)\.\w+\(/;
 // `x instanceof SomethingError` (not plain Error) names one of our typed errors; `.message ===` and `.test(err.message)` are comparisons, not sends

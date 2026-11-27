@@ -3,6 +3,9 @@
 
 import 'dotenv/config';
 import { Pool, type PoolClient, type QueryResult } from 'pg';
+import { createLogger } from '#lib/utils/logger.ts';
+
+const log = createLogger('postgres');
 
 interface PostgresConfig {
   host: string;
@@ -59,7 +62,8 @@ class PostgresConnectionPool {
       connectionTimeoutMillis: config?.connectionTimeoutMillis || 5000
     };
 
-    console.log('PostgreSQL Pool Config:', {
+    // Debug level: the configuration names the host, port and user, which is not for every log
+    log.debug('PostgreSQL pool configuration', {
       host: this.config.host,
       port: this.config.port,
       database: this.config.database,
@@ -246,32 +250,17 @@ class PostgresConnectionPool {
   }
 
   /**
-   * Get connection pool statistics
-   */
-  getPoolStats() {
-    if (!this.pool) {
-      return null;
-    }
-
-    return {
-      totalCount: this.pool.totalCount,
-      idleCount: this.pool.idleCount,
-      waitingCount: this.pool.waitingCount
-    };
-  }
-
-  /**
    * Check if the connection pool is healthy
    */
   async healthCheck(): Promise<boolean> {
-    console.log('Health check called, initialized:', this.initialized, 'has pool:', !!this.pool);
+    log.debug('Health check called', { initialized: this.initialized, hasPool: !!this.pool });
 
     if (!this.initialized || !this.pool) {
       try {
-        console.log('Attempting to connect...');
+        log.debug('Attempting to connect');
         await this.connect();
       } catch (error: any) {
-        console.error('Health check - connect failed:', error.message);
+        log.error('Health check connect failed', { detail: error.message });
         return false;
       }
     }
@@ -281,13 +270,13 @@ class PostgresConnectionPool {
       try {
         const result = await client.query('SELECT 1 as health');
         const isHealthy = result.rows[0].health === 1;
-        console.log('Health check result:', isHealthy);
+        log.debug('Health check result', { isHealthy });
         return isHealthy;
       } finally {
         client.release();
       }
     } catch (error: any) {
-      console.error('Health check failed:', {
+      log.error('Health check failed', {
         message: error.message,
         code: error.code,
         detail: error.detail

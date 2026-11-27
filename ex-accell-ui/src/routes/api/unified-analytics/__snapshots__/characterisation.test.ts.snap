@@ -3812,7 +3812,8 @@ exports[`unified-analytics characterisation > gdelt-narrative-summary > bad date
 exports[`unified-analytics characterisation > gdelt-narrative-summary > database error 1`] = `
 {
   "body": {
-    "error": "boom: secret detail",
+    "data": null,
+    "error": "Query failed",
     "success": false,
   },
   "queries": [
@@ -3864,8 +3865,11 @@ exports[`unified-analytics characterisation > gdelt-narrative-summary > empty wo
 exports[`unified-analytics characterisation > gdelt-narrative-summary > missing table 1`] = `
 {
   "body": {
-    "error": "relation missing",
-    "success": false,
+    "data": null,
+    "meta": {
+      "unavailable": true,
+    },
+    "success": true,
   },
   "queries": [
     [
@@ -3873,7 +3877,7 @@ exports[`unified-analytics characterisation > gdelt-narrative-summary > missing 
       [],
     ],
   ],
-  "status": 500,
+  "status": 200,
 }
 `;
 
@@ -11937,9 +11941,6 @@ exports[`unified-analytics characterisation > test > empty workspace 1`] = `
       "sentiments": 3,
     },
     "message": "PostgreSQL with pg_duckdb extension connected",
-    "poolStats": {
-      "total": 1,
-    },
     "scope": {
       "datasetCount": 0,
       "datasetTypes": [],
@@ -11993,9 +11994,6 @@ exports[`unified-analytics characterisation > test > plain 1`] = `
       "sentiments": 3,
     },
     "message": "PostgreSQL with pg_duckdb extension connected",
-    "poolStats": {
-      "total": 1,
-    },
     "scope": null,
     "success": true,
     "timestamp": "2024-03-01T00:00:00.000Z",
@@ -12023,9 +12021,6 @@ exports[`unified-analytics characterisation > test > platforms listed 1`] = `
       "sentiments": 3,
     },
     "message": "PostgreSQL with pg_duckdb extension connected",
-    "poolStats": {
-      "total": 1,
-    },
     "scope": null,
     "success": true,
     "timestamp": "2024-03-01T00:00:00.000Z",
@@ -12053,9 +12048,6 @@ exports[`unified-analytics characterisation > test > platforms switched off 1`] 
       "sentiments": 3,
     },
     "message": "PostgreSQL with pg_duckdb extension connected",
-    "poolStats": {
-      "total": 1,
-    },
     "scope": null,
     "success": true,
     "timestamp": "2024-03-01T00:00:00.000Z",
@@ -12094,9 +12086,6 @@ exports[`unified-analytics characterisation > test > rich 1`] = `
       "sentiments": 3,
     },
     "message": "PostgreSQL with pg_duckdb extension connected",
-    "poolStats": {
-      "total": 1,
-    },
     "scope": null,
     "success": true,
     "timestamp": "2024-03-01T00:00:00.000Z",
@@ -12124,9 +12113,6 @@ exports[`unified-analytics characterisation > test > social workspace 1`] = `
       "sentiments": 3,
     },
     "message": "PostgreSQL with pg_duckdb extension connected",
-    "poolStats": {
-      "total": 1,
-    },
     "scope": {
       "datasetCount": 0,
       "datasetTypes": [
