@@ -24,7 +24,7 @@
       "id": "ciTimeoutMinutes",
       "description": "Suggested timeout-minutes for the Unit Tests (Vitest) job in test.yml (today it has none, so the 360 minute default applies). Measured: about 1.6 minutes per run on 2026-11-12. Target is twice the observed p95 job duration.",
       "unit": "minutes",
-      "value": 10,
+      "value": 7,
       "baseline": 10,
       "min": 5,
       "max": 20,
@@ -35,7 +35,7 @@
       "id": "testStepBudgetSeconds",
       "description": "Suggested wall-clock budget for the `Run unit tests` step (Vitest with coverage). Measured: about 76 seconds on 2026-11-12. Target is three times the observed p95 duration of that step.",
       "unit": "seconds",
-      "value": 240,
+      "value": 300,
       "baseline": 240,
       "min": 120,
       "max": 480,
@@ -57,7 +57,7 @@
       "id": "ciPassRateFloorPct",
       "description": "Suggested minimum pass rate for the Tests workflow on main over the window, below which the nightly report should be treated as unhealthy. Target is the observed pass rate minus 5 points. Cannot fall below 80.",
       "unit": "percent",
-      "value": 85,
+      "value": 87,
       "baseline": 85,
       "min": 80,
       "max": 95,
@@ -65,5 +65,30 @@
       "loosen": "down"
     }
   ],
-  "history": []
+  "history": [
+    {
+      "at": "2026-11-23T05:35:55.743Z",
+      "runs": 30,
+      "changes": [
+        {
+          "id": "ciTimeoutMinutes",
+          "from": 10,
+          "to": 7,
+          "target": 7
+        },
+        {
+          "id": "testStepBudgetSeconds",
+          "from": 240,
+          "to": 300,
+          "target": 366
+        },
+        {
+          "id": "ciPassRateFloorPct",
+          "from": 85,
+          "to": 87,
+          "target": 95
+        }
+      ]
+    }
+  ]
 }
