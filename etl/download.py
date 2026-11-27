@@ -7,12 +7,21 @@ import time
 import glob
 from datetime import datetime
 
+
+def junkipedia_headers():
+    """Return request headers carrying the API token from $JUNKIPEDIA_TOKEN."""
+    token = os.environ.get("JUNKIPEDIA_TOKEN")
+    if not token:
+        raise SystemExit(
+            "JUNKIPEDIA_TOKEN is not set. Export the Junkipedia API bearer token "
+            "(see .env.example) and run again."
+        )
+    return {"Authorization": f"Bearer {token}"}
+
 def download_channels_data():
     # API configuration
     api_url = "https://www.junkipedia.org/api/v1/lists/5412/get_channels"
-    headers = {
-        "Authorization": "Bearer 2i1FjtjVU4LcpKC6hWLBjkd3"
-    }
+    headers = junkipedia_headers()
     
     # Create timestamped directory structure
     today = datetime.now().strftime("%Y-%m-%d")
@@ -76,9 +85,7 @@ def download_posts_for_channels():
     
     # API configuration
     base_url = "https://www.junkipedia.org/api/v1/posts"
-    headers = {
-        "Authorization": "Bearer 2i1FjtjVU4LcpKC6hWLBjkd3"
-    }
+    headers = junkipedia_headers()
     
     # Create timestamped directory structure
     today = datetime.now().strftime("%Y-%m-%d")

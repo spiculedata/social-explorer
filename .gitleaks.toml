@@ -1,0 +1,18 @@
+# Configuration for the secret scan (.github/workflows/secret-scan.yml), read
+# automatically by gitleaks when present at the repository root.
+#
+# [extend] keeps gitleaks' default rules and adds one custom rule. The defaults'
+# generic-api-key rule keys on words like "token", "key" or "secret" sitting next
+# to the value; an `Authorization: Bearer <value>` header literal does not match,
+# because "Authorization" is immediately followed by "ization", and no default
+# entropy-only rule catches a plain alphanumeric bearer token (this is exactly how
+# the Junkipedia token committed in the first commit, 56679080, survived every
+# scan until issue #362). The rule below catches that shape.
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "authorization-bearer-literal"
+description = "Bearer token literal in an Authorization header"
+regex = '''(?i)["']?authorization["']?\s*[:=]\s*["']?Bearer[ \t]+[A-Za-z0-9_\-.~+/=]{20,}'''

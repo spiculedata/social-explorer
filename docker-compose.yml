@@ -245,6 +245,9 @@ services:
       context: ./etl
       dockerfile: Dockerfile
     environment:
+      # Junkipedia API bearer token for etl/download.py, which exits with a
+      # clear message when it is unset.
+      JUNKIPEDIA_TOKEN: ${JUNKIPEDIA_TOKEN:-}
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-analytics}
       PGHOST: postgres
       PGPORT: "5432"

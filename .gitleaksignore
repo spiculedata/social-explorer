@@ -1,0 +1,7 @@
+# The Junkipedia bearer token was committed in the first commit (56679080) and
+# cannot be recovered from history without rewriting shared history, which this
+# repository forbids. These entries ignore only the historical findings; the
+# literal is gone from HEAD and the token must be revoked at the provider
+# (maintainer action, spiculedata/social-explorer#362).
+566790802b471e081558851cad34ba6f9add4ad9:etl/download.py:authorization-bearer-literal:14
+566790802b471e081558851cad34ba6f9add4ad9:etl/download.py:authorization-bearer-literal:80

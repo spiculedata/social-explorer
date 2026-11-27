@@ -40,7 +40,13 @@ duckdb ./duckdatabase               # Access database
 ## Usage
 
 ### Data Download
+
+The downloader reads its Junkipedia API token from the `JUNKIPEDIA_TOKEN`
+environment variable (set it in `.env` for the compose route; see
+`.env.example`). It exits with a clear message when the variable is unset.
+
 ```bash
+export JUNKIPEDIA_TOKEN=<your-token>    # from the Junkipedia API settings
 python download.py                    # Download channels and all posts
 python download.py channels          # Download channels only
 python download.py posts             # Download posts only
