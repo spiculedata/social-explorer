@@ -6,12 +6,17 @@ Exposes WavePulse radio recording/transcription as a REST API.
 
 import os
 import json
+import sys
 import threading
 import time
 from pathlib import Path
 from datetime import datetime
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+
+# wavepulse/src, so the validators can be imported however the server is launched
+sys.path.insert(0, str(Path(__file__).resolve().parent / 'src'))
+from audio_processor.station_names import STATION_NAME_RE, validate_station_name
 
 app = Flask(__name__)
 CORS(app)
@@ -54,6 +59,25 @@ def start_wavepulse():
         return jsonify({'error': 'WavePulse is already running'}), 400
 
     config = request.json or {}
+
+    # Station names become recorded file names that transcription backends
+    # use, including backends that run commands on the GPU instance; reject
+    # anything outside the safe alphabet before anything starts (#374).
+    invalid_names = []
+    for stream in config.get('radioStreams', []):
+        name = stream.get('radio_name', stream.get('radioName', 'Unknown'))
+        try:
+            validate_station_name(name)
+        except ValueError:
+            invalid_names.append(name)
+    if invalid_names:
+        return jsonify({
+            'error': (
+                'invalid radio station name(s): '
+                + ', '.join(repr(n) for n in invalid_names)
+                + f'; names must match {STATION_NAME_RE.pattern}'
+            )
+        }), 400
 
     wavepulse_state['status'] = 'starting'
     wavepulse_state['error'] = None

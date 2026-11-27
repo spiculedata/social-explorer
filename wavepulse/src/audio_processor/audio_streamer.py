@@ -25,6 +25,8 @@ from requests.exceptions import RequestException
 from typing import List, Dict, Optional
 from urllib.parse import urljoin
 
+from audio_processor.station_names import validate_station_name
+
 
 def record_segment(
     url: str, output_file: str, segment_duration: int, retries: int, wait_time: int
@@ -178,6 +180,12 @@ def record_live_stream(
             "segment_duration",
         )
     )
+
+    # Station names come from the schedule (the radio service's /start
+    # endpoint) and become recorded file names that transcription backends
+    # use, including backends that run remote commands. Reject anything
+    # outside the safe alphabet before a file is created.
+    radio_name = validate_station_name(radio_name)
 
     # Calculate the number of 30-minute segments
     num_segments = total_duration // segment_duration

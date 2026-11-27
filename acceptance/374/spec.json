@@ -1,0 +1,24 @@
+{
+  "issue": 374,
+  "title": "Radio service Scaleway GPU backend: remote command injection through station names, SSH host key not verified",
+  "kind": "command",
+  "criteria": [
+    {
+      "id": "C1",
+      "given": "an audio file name contains shell metacharacters such as $(, a backtick or a quote",
+      "then": "the GPU backend refuses it and the remote transcription command cannot be changed by the name"
+    },
+    {
+      "id": "C2",
+      "given": "the Scaleway GPU transcription backend source",
+      "then": "no StrictHostKeyChecking=no option remains: the host key is learned once into a dedicated known_hosts file and every later connection strictly verifies it"
+    },
+    {
+      "id": "C3",
+      "given": "the Scaleway GPU transcription backend source",
+      "then": "the remote container image is pinned by digest, not a floating tag"
+    }
+  ],
+  "command": ["bash", "acceptance/374/check.sh"],
+  "timeoutSeconds": 600
+}

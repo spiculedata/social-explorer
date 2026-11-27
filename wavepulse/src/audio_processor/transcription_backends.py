@@ -13,6 +13,7 @@ Configure via TRANSCRIPTION_BACKEND env var or --transcription-backend CLI arg.
 """
 
 import gc
+import ipaddress
 import json
 import os
 import subprocess
@@ -24,6 +25,11 @@ from typing import Dict, List, Optional
 import requests
 import torch
 from loguru import logger
+
+from audio_processor.gpu_command import (
+    build_remote_transcribe_command,
+    validate_audio_file_name,
+)
 
 
 class TranscriptionBackend(ABC):
@@ -295,6 +301,18 @@ class ScalewayGPUBackend(TranscriptionBackend):
         self.ssh_key_path = ssh_key_path or os.environ.get(
             "SCW_GPU_SSH_KEY", os.path.expanduser("~/.ssh/id_rsa")
         )
+        # Dedicated known_hosts file for this instance: the host key is
+        # learned once (TOFU) when the fresh instance is first reached, and
+        # every later connection strictly verifies against it. A changed or
+        # impersonating host then fails closed instead of silently receiving
+        # the uploaded audio.
+        self.known_hosts_path = os.environ.get(
+            "SCW_GPU_KNOWN_HOSTS",
+            os.path.join(
+                os.path.dirname(self.ssh_key_path),
+                f"known_hosts_scaleway_gpu_{self.instance_id[:8]}",
+            ),
+        )
 
         if not self.instance_id:
             raise ValueError(
@@ -318,7 +336,20 @@ class ScalewayGPUBackend(TranscriptionBackend):
     def _get_ip(self) -> str:
         output = self._run_scw("get", self.instance_id, "-o", "json")
         data = json.loads(output)
-        return data.get("public_ip", {}).get("address", "")
+        ip = data.get("public_ip", {}).get("address", "")
+        # The address goes into SSH/SCP target arguments; accept only a plain
+        # IP so an unexpected API response cannot inject arguments.
+        ipaddress.ip_address(ip)
+        return ip
+
+    def _ssh_common_options(self) -> List[str]:
+        """Options shared by every SSH/SCP invocation to the instance."""
+        return [
+            "-o",
+            f"UserKnownHostsFile={self.known_hosts_path}",
+            "-i",
+            self.ssh_key_path,
+        ]
 
     def _wait_for_ssh(self, ip: str, timeout: int = 180):
         deadline = time.time() + timeout
@@ -329,10 +360,13 @@ class ScalewayGPUBackend(TranscriptionBackend):
                         "ssh",
                         "-o",
                         "ConnectTimeout=5",
+                        # accept-new: learn the key of the freshly created
+                        # instance into the dedicated known_hosts file once;
+                        # every later connection (below) requires an exact
+                        # match. Never 'no': that would accept any host.
                         "-o",
-                        "StrictHostKeyChecking=no",
-                        "-i",
-                        self.ssh_key_path,
+                        "StrictHostKeyChecking=accept-new",
+                        *self._ssh_common_options(),
                         f"root@{ip}",
                         "true",
                     ],
@@ -362,21 +396,25 @@ class ScalewayGPUBackend(TranscriptionBackend):
             ssh_base = [
                 "ssh",
                 "-o",
-                "StrictHostKeyChecking=no",
-                "-i",
-                self.ssh_key_path,
+                "ConnectTimeout=10",
+                # Strict: the key was learned in _wait_for_ssh from the fresh
+                # instance and must match exactly from here on.
+                "-o",
+                "StrictHostKeyChecking=yes",
+                *self._ssh_common_options(),
                 f"root@{ip}",
             ]
             scp_base = [
                 "scp",
                 "-o",
-                "StrictHostKeyChecking=no",
-                "-i",
-                self.ssh_key_path,
+                "StrictHostKeyChecking=yes",
+                *self._ssh_common_options(),
             ]
 
-            # Upload audio file
-            remote_audio = f"/tmp/{os.path.basename(audio_file)}"
+            # Upload audio file. The name is validated first: it ends up in
+            # remote and local scp targets and in the transcription command.
+            audio_name = validate_audio_file_name(os.path.basename(audio_file))
+            remote_audio = f"/tmp/{audio_name}"
             remote_output = f"/tmp/transcript.json"
             subprocess.run(
                 [*scp_base, audio_file, f"root@{ip}:{remote_audio}"],
@@ -384,20 +422,11 @@ class ScalewayGPUBackend(TranscriptionBackend):
                 timeout=120,
             )
 
-            # Run transcription on GPU
-            cmd = (
-                f"docker run --rm --gpus all "
-                f"-v /tmp:/data "
-                f"ghcr.io/fedirz/faster-whisper-server:latest-cuda "
-                f"python -c \""
-                f"from faster_whisper import WhisperModel; "
-                f"import json; "
-                f"m = WhisperModel('large-v3', device='cuda', compute_type='float16'); "
-                f"segs, info = m.transcribe('/data/{os.path.basename(audio_file)}', beam_size=5, language='en'); "
-                f"result = [{{'start': s.start, 'end': s.end, 'text': s.text}} for s in segs]; "
-                f"json.dump({{'segments': result, 'language': 'en'}}, open('/data/transcript.json', 'w'))"
-                f"\""
-            )
+            # Run transcription on GPU. The command is built by
+            # gpu_command.build_remote_transcribe_command: a static python
+            # program plus validated, shell-quoted values only, so the audio
+            # file name can never become shell or python code on the host.
+            cmd = build_remote_transcribe_command(audio_name)
             subprocess.run(
                 [*ssh_base, cmd],
                 check=True,
@@ -405,7 +434,7 @@ class ScalewayGPUBackend(TranscriptionBackend):
             )
 
             # Download result
-            local_output = f"/tmp/transcript_{os.path.basename(audio_file)}.json"
+            local_output = f"/tmp/transcript_{audio_name}.json"
             subprocess.run(
                 [*scp_base, f"root@{ip}:{remote_output}", local_output],
                 check=True,
