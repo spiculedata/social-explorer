@@ -5,7 +5,6 @@ export interface JobScheduleRequest {
 		droid: string;
 		task: string;
 		urls?: string[];
-		urlFile?: string;
 		platform: 'telegram' | 'youtube';
 		crawlId?: string;
 		maxDepth?: number;
@@ -18,7 +17,6 @@ export interface JobScheduleRequest {
 		minPostDate?: string;
 		dateBetweenMin?: string;
 		dateBetweenMax?: string;
-		tdlibDatabaseUrls?: string[];
 		maxPages?: number;
 		skipMedia?: boolean;
 		timeAgo?: string;

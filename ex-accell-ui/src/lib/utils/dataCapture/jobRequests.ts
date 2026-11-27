@@ -100,9 +100,7 @@ export function buildRunNowPayload(job: UiJob, jobId: string, nowMs: number = Da
       // Media options
       skipMedia: job.jobData?.skipMedia !== false, // Default to true unless explicitly false
       // Advanced options
-      maxPages: job.jobData?.maxPages,
-      urlFile: job.jobData?.urlFile,
-      tdlibDatabaseUrls: job.jobData?.tdlibDatabaseUrls
+      maxPages: job.jobData?.maxPages
     }
   };
 }

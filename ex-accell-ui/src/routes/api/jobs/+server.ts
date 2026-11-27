@@ -2,6 +2,7 @@ import type { RequestHandler } from './$types';
 import { apiFail, apiOk, apiServerError, readJsonObject } from '#lib/server/apiResponse.ts';
 import { jobStateStore } from '#lib/services/jobStateStore.ts';
 import { createLogger } from '#lib/utils/logger.ts';
+import { sanitizeJobData, type SanitizedJobData } from '#lib/server/crawlerJobData.ts';
 import { DaprClient, CommunicationProtocolEnum, HttpMethod } from '@dapr/dapr';
 
 const log = createLogger('jobs-api');
@@ -61,38 +62,13 @@ function getTaskDescription(platform: string): string {
 	}
 }
 
+// The body is an untyped record: only the fields the crawler actually uses survive
+// sanitizeJobData, and operator-only configuration such as urlFile or tdlibDatabaseUrls is
+// refused (the crawler itself does not validate what it receives).
 interface JobScheduleRequest {
 	name: string;
 	dueTime: string;
-	data: {
-		droid: string;
-		task: string;
-		urls?: string[];
-		urlFile?: string;
-		platform: 'telegram' | 'youtube';
-		crawlId?: string;
-		// Core parameters
-		maxDepth?: number;
-		concurrency?: number;
-		maxPosts?: number;
-		maxPages?: number;
-		// YouTube specific parameters
-		youtubeApiKey?: string;
-		samplingMethod?: string;
-		minChannelVideos?: number;
-		sampleSize?: number;
-		// Date filtering parameters
-		minPostDate?: string;
-		dateBetweenMin?: string;
-		dateBetweenMax?: string;
-		timeAgo?: string;
-		// Media and advanced options
-		skipMedia?: boolean;
-		tdlibDatabaseUrls?: string[];
-		// Storage options
-		storageRoot?: string;
-		crawlLabel?: string;
-	};
+	data: Record<string, unknown>;
 }
 
 /** When the job is due: "now", a duration with a unit ("30s", "5m", "2h") or bare minutes ("5"). */
@@ -103,32 +79,27 @@ function scheduledForTime(dueTime: string): string {
 	return new Date(Date.now() + amount * DUE_UNIT_MS[unit]).toISOString();
 }
 
-function buildJobData(jobRequest: JobScheduleRequest, jobId: string, jobTypeName: string) {
-	const { data } = jobRequest;
+function buildJobData(data: SanitizedJobData, dueTime: string, jobId: string, jobTypeName: string) {
 	return {
 		jobName: jobTypeName, // Base job type name (e.g., "youtube-crawl", "telegram-crawl")
 		task: getTaskDescription(data.platform), // Human-readable task description
-		dueTime: jobRequest.dueTime === 'now' ? '0s' : jobRequest.dueTime, // Convert 'now' to immediate Dapr format
+		dueTime: dueTime === 'now' ? '0s' : dueTime, // Convert 'now' to immediate Dapr format
 		jobId, // Add jobId for tracking (UI-specific identifier)
-		urls: data.urls || [],
+		urls: data.urls,
 		platform: data.platform,
 		crawlId: data.crawlId || `crawl-${Date.now()}`,
-		maxDepth: data.maxDepth || 1,
-		concurrency: data.concurrency || 1,
-		maxPosts: data.maxPosts || 1000,
+		maxDepth: data.maxDepth,
+		concurrency: data.concurrency,
+		maxPosts: data.maxPosts,
 		...(data.platform === 'youtube' && {
 			youtubeApiKey: data.youtubeApiKey,
 			samplingMethod: data.samplingMethod || 'channel',
-			minChannelVideos: data.minChannelVideos || 10,
-			sampleSize: data.sampleSize || 100
+			minChannelVideos: data.minChannelVideos,
+			sampleSize: data.sampleSize
 		}),
-		...(data.platform === 'telegram' && {
-			tdlibDatabaseUrls: data.tdlibDatabaseUrls || []
-		}),
-		urlFile: data.urlFile,
-		maxPages: data.maxPages,
-		skipMedia: data.skipMedia,
-		timeAgo: data.timeAgo
+		...(data.maxPages !== undefined && { maxPages: data.maxPages }),
+		...(data.skipMedia !== undefined && { skipMedia: data.skipMedia }),
+		...(data.timeAgo !== undefined && { timeAgo: data.timeAgo })
 	};
 }
 
@@ -143,13 +114,18 @@ export const POST: RequestHandler = async ({ request }) => {
 	}
 	if (!DUE_TIME.test(jobRequest.dueTime)) return apiFail('dueTime must be "now", a duration such as "30s", "5m" or "2h", or minutes such as "5"', 400);
 
+	// The crawler does not validate what it receives, so the payload is reduced to the
+	// allow-listed fields here; anything else, including operator-only configuration, is a 400.
+	const sanitized = sanitizeJobData(jobRequest.data);
+	if (!sanitized.ok) return apiFail(sanitized.error, 400);
+	const data = sanitized.data;
+
 	try {
-		// The crawler validates the platform and URLs, which gives more accurate errors than checking here
 		const jobId = `${jobRequest.name}-${Date.now()}`;
 		const scheduledFor = scheduledForTime(jobRequest.dueTime);
-		log.info('Scheduling job', { name: jobRequest.name, platform: jobRequest.data.platform, dueTime: jobRequest.dueTime });
+		log.info('Scheduling job', { name: jobRequest.name, platform: data.platform, dueTime: jobRequest.dueTime });
 
-		const jobState = jobStateStore.createJobState(jobId, jobRequest.name, scheduledFor, jobRequest.data.platform, jobRequest.data);
+		const jobState = jobStateStore.createJobState(jobId, jobRequest.name, scheduledFor, data.platform, data);
 
 		// Saving the state is best effort, unless Dapr itself is down
 		let jobStateSaved = false;
@@ -161,8 +137,8 @@ export const POST: RequestHandler = async ({ request }) => {
 			log.warn('Could not save job state', { detail: stateError instanceof Error ? stateError.message : String(stateError) });
 		}
 
-		const jobTypeName = getJobTypeFromPlatform(jobRequest.data.platform);
-		const jobData = buildJobData(jobRequest, jobId, jobTypeName);
+		const jobTypeName = getJobTypeFromPlatform(data.platform);
+		const jobData = buildJobData(data, jobRequest.dueTime, jobId, jobTypeName);
 
 		try {
 			// Call the telegram-scraper's scheduleJob handler, which creates the Dapr job for the job type

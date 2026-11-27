@@ -95,6 +95,95 @@ describe('POST /api/jobs', () => {
   });
 });
 
+describe('POST /api/jobs payload validation', () => {
+  const lastPayload = () => invoke.mock.calls[invoke.mock.calls.length - 1][3];
+
+  it.each([
+    ['urlFile', '/etc/hosts'],
+    ['tdlibDatabaseUrls', ['https://example.test/db.tgz']]
+  ])('refuses a body carrying %s with a 400 before anything is scheduled', async (field, value) => {
+    const response = await post({ ...valid, data: { ...valid.data, [field]: value } });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ success: false, data: null, error: expect.stringContaining(field) });
+    expect(invoke).not.toHaveBeenCalled();
+    expect(store.createJobState).not.toHaveBeenCalled();
+  });
+
+  it.each(['../etc', 'a/b', '.hidden', 'crawl id'])('refuses a crawlId of %j with a 400', async (crawlId) => {
+    const response = await post({ ...valid, data: { ...valid.data, crawlId } });
+
+    expect(response.status).toBe(400);
+    expect(invoke).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [0, 1],
+    [-1, 1],
+    [1e9, 32],
+    [4, 4]
+  ])('clamps concurrency %d to %d', async (concurrency, clamped) => {
+    await post({ ...valid, data: { ...valid.data, concurrency } });
+
+    expect(lastPayload().concurrency).toBe(clamped);
+  });
+
+  it('clamps maxDepth and maxPosts into their configured ranges', async () => {
+    await post({ ...valid, data: { ...valid.data, maxDepth: 1e9, maxPosts: -3 } });
+
+    expect(lastPayload().maxDepth).toBe(100);
+    expect(lastPayload().maxPosts).toBe(1);
+  });
+
+  it('refuses an unknown platform and urls that do not fit the platform', async () => {
+    expect((await post({ ...valid, data: { ...valid.data, platform: 'rss' } })).status).toBe(400);
+    expect((await post({ ...valid, data: { ...valid.data, urls: ['https://evil.example.com/x'] } })).status).toBe(400);
+    const youtube = { ...valid, data: { ...valid.data, platform: 'youtube', urls: ['@a'] } };
+    expect((await post(youtube)).status).toBe(400);
+    expect(invoke).not.toHaveBeenCalled();
+  });
+
+  it('refuses urls that are not text values', async () => {
+    const response = await post({ ...valid, data: { ...valid.data, urls: ['@a', 5] } });
+
+    expect(response.status).toBe(400);
+    expect(invoke).not.toHaveBeenCalled();
+  });
+
+  it('forwards only allow-listed fields to Dapr and stores the sanitized data', async () => {
+    const response = await post({
+      ...valid,
+      data: {
+        ...valid.data,
+        crawlId: 'crawl_1',
+        maxPages: 5,
+        skipMedia: true,
+        timeAgo: '7d',
+        storageRoot: '/tmp/evil',
+        crawlLabel: 'x',
+        droid: 'x',
+        task: 'x'
+      }
+    });
+
+    expect(response.status).toBe(200);
+    expect(Object.keys(lastPayload()).sort()).toEqual(
+      ['concurrency', 'crawlId', 'dueTime', 'jobId', 'jobName', 'maxDepth', 'maxPages', 'maxPosts', 'platform', 'skipMedia', 'task', 'timeAgo', 'urls'].sort()
+    );
+    expect(store.createJobState).toHaveBeenCalledWith(expect.any(String), 'crawl-1', expect.any(String), 'telegram', {
+      platform: 'telegram',
+      urls: ['@a'],
+      crawlId: 'crawl_1',
+      maxDepth: 1,
+      concurrency: 1,
+      maxPosts: 1000,
+      maxPages: 5,
+      skipMedia: true,
+      timeAgo: '7d'
+    });
+  });
+});
+
 describe('POST /api/jobs dueTime', () => {
   it.each([['30s', 30_000], ['5m', 5 * 60_000], ['2h', 2 * 3_600_000], ['5', 5 * 60_000]])('reads %s as the right delay', async (dueTime, ms) => {
     const before = Date.now();

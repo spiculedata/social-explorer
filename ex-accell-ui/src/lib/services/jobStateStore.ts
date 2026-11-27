@@ -1,4 +1,5 @@
 import type { RequestHandler } from '@sveltejs/kit';
+import type { SanitizedJobData } from '#lib/server/crawlerJobData.ts';
 
 const DAPR_HTTP_PORT = 3500;
 const STATE_STORE_NAME = 'statestore';
@@ -11,27 +12,7 @@ export interface JobState {
 	updatedAt: string;
 	scheduledFor: string;
 	platform: 'telegram' | 'youtube';
-	jobData: {
-		droid: string;
-		task: string;
-		urls?: string[];
-		urlFile?: string;
-		crawlId?: string;
-		maxDepth?: number;
-		concurrency?: number;
-		maxPosts?: number;
-		youtubeApiKey?: string;
-		samplingMethod?: string;
-		minChannelVideos?: number;
-		sampleSize?: number;
-		minPostDate?: string;
-		dateBetweenMin?: string;
-		dateBetweenMax?: string;
-		tdlibDatabaseUrls?: string[];
-		maxPages?: number;
-		skipMedia?: boolean;
-		timeAgo?: string;
-	};
+	jobData: SanitizedJobData;
 	executionLog?: string[];
 	result?: {
 		success: boolean;
