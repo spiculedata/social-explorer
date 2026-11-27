@@ -275,3 +275,22 @@ describe('GET /api/investigations list scope fails closed', () => {
     }
   );
 });
+
+describe('POST/PATCH /api/investigations body size', () => {
+  const oversizedBody = JSON.stringify({ name: 'x' }) + ' '.repeat(200 * 1024);
+
+  it.each([
+    ['POST', (body: string) => call(body)],
+    ['PATCH', (body: string) => PATCH({
+      request: new Request('http://localhost/api/investigations', { method: 'PATCH', body }),
+      locals: { user: { email: 'ada@example.com' } }
+    } as unknown as Parameters<typeof PATCH>[0])]
+  ])('refuses an oversized %s body with 413 and stores nothing', async (_method, send) => {
+    query.mockReset();
+
+    const response = await send(oversizedBody);
+
+    expect(response.status).toBe(413);
+    expect(query.mock.calls.some(([sql]) => String(sql).includes('INSERT INTO investigations'))).toBe(false);
+  });
+});

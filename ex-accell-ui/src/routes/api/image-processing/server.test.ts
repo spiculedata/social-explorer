@@ -106,3 +106,16 @@ describe('POST /api/image-processing', () => {
     expect(JSON.stringify(await response.json())).not.toContain('password');
   });
 });
+
+describe('GET /api/image-processing clamps request-chosen paging', () => {
+  const callWith = (search: string) =>
+    GET({ url: new URL(`http://localhost/api/image-processing?${search}`) } as unknown as Parameters<typeof GET>[0]);
+
+  it('clamps limit=100000000 and falls back for unparsable values instead of NaN reaching SQL', async () => {
+    await callWith('action=object-results&limit=100000000');
+    expect(query.mock.calls.at(-1)![1]).toEqual([500, 0]);
+
+    await callWith('action=object-results&limit=abc&offset=xyz');
+    expect(query.mock.calls.at(-1)![1]).toEqual([50, 0]);
+  });
+});

@@ -5,6 +5,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { postgresPool } from '#lib/services/postgres.ts';
 import { readJsonObject } from '#lib/server/apiResponse.ts';
+import { clampInt } from '#lib/server/analytics/limits.ts';
 import { queryErrorResponse } from '#lib/server/queryErrors.ts';
 import { emptyImageData } from '#lib/server/imageProcessingEmpty.ts';
 
@@ -13,8 +14,8 @@ import { emptyImageData } from '#lib/server/imageProcessingEmpty.ts';
  */
 export const GET: RequestHandler = async ({ url }) => {
   const action = url.searchParams.get('action') || 'stats';
-  const limit = parseInt(url.searchParams.get('limit') || '50');
-  const offset = parseInt(url.searchParams.get('offset') || '0');
+  const limit = clampInt(url.searchParams.get('limit'), 50, 1, 500);
+  const offset = clampInt(url.searchParams.get('offset'), 0, 0, 100000);
 
   try {
     // ── Aggregate stats for the hub page ──────────────────────────────────

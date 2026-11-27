@@ -68,6 +68,24 @@ describe("workflows added by the ACMM onboarding", () => {
   });
 });
 
+describe("labeler.yml", () => {
+  const text = read("labeler.yml");
+
+  it("skips fork pull requests instead of failing on their read-only token", () => {
+    const job = text.match(/^ {2}label:\n[\s\S]*$/m)?.[0] ?? "";
+    assert.match(
+      job,
+      /if:\s*github\.event\.pull_request\.head\.repo\.full_name == github\.repository/,
+      "the label job needs a same-repository guard",
+    );
+  });
+
+  it("stays advisory and on pull_request", () => {
+    assert.match(text, /continue-on-error: true/);
+    assert.doesNotMatch(code(text), /pull_request_target/);
+  });
+});
+
 describe("test.yml ci rollup", () => {
   const text = read("test.yml");
   const block = text.match(/^ {2}ci:\n[\s\S]*$/m)?.[0] ?? "";

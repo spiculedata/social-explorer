@@ -7,7 +7,8 @@ import { loadProjectAccessInfo } from '#lib/server/auth/accessRepo.ts';
 import { isEmail } from '#lib/server/auth/userInput.ts';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { projectsDb } from '#lib/services/projectsDb.ts';
+import { readJsonObject } from '#lib/server/apiResponse.ts';
+import { projectsDb, type Project } from '#lib/services/projectsDb.ts';
 
 /**
  * GET /api/projects
@@ -39,6 +40,19 @@ export const GET: RequestHandler = async ({ url, locals }) => {
  */
 const MAX_TEAM_MEMBERS = 100;
 
+/** The fields the write handlers read from a request body; unknown values are validated before use. */
+interface ProjectBody {
+  id?: number;
+  name?: string;
+  description?: string;
+  project_type?: string;
+  team_members?: unknown;
+  [field: string]: unknown; // PUT copies whichever fields are present
+}
+
+/** Project bodies are small forms; anything past this is refused before it is parsed. */
+const MAX_BODY_BYTES = 64 * 1024;
+
 /** Team members as clean lower-case emails, each once, or null when the list is not a list of emails. */
 function cleanTeam(value: unknown): string[] | null {
   if (value === undefined || value === null) return [];
@@ -54,7 +68,14 @@ function cleanTeam(value: unknown): string[] | null {
 
 export const POST: RequestHandler = async ({ request, locals }) => {
   try {
-    const data = await request.json();
+    const parsed = await readJsonObject(request, MAX_BODY_BYTES);
+    if ('failure' in parsed) return parsed.failure;
+    const data = parsed.body as ProjectBody;
+
+    if (!data.name) {
+      return json({ success: false, error: 'name is required' }, { status: 400 });
+    }
+
     const team = cleanTeam(data.team_members);
     if (team === null) return json({ success: false, error: 'team_members must be a list of up to 100 email addresses' }, { status: 400 });
 
@@ -84,7 +105,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
  */
 export const PUT: RequestHandler = async ({ request, locals }) => {
   try {
-    const data = await request.json();
+    const parsed = await readJsonObject(request, MAX_BODY_BYTES);
+    if ('failure' in parsed) return parsed.failure;
+    const data = parsed.body as ProjectBody;
     const { id, ...updates } = data;
 
     if (!id) {
@@ -93,7 +116,7 @@ export const PUT: RequestHandler = async ({ request, locals }) => {
     const refused = await refuseIfNoAccess(locals.user, { projects: [id] });
     if (refused) return refused;
 
-    const project = await projectsDb.updateProject(id, updates);
+    const project = await projectsDb.updateProject(id, updates as Partial<Project>);
 
     if (!project) {
       return json({ success: false, error: 'Project not found' }, { status: 404 });

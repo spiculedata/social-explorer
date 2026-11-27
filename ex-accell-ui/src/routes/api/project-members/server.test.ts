@@ -116,3 +116,19 @@ describe('DELETE /api/project-members', () => {
     }
   });
 });
+
+describe('POST /api/project-members body size', () => {
+  it('refuses an oversized body with 413 and adds nothing', async () => {
+    const response = await post(creator, JSON.stringify({ project_id: 7, email: 'bob@example.com' }) + ' '.repeat(64 * 1024));
+
+    expect(response.status).toBe(413);
+    expect(db.addProjectMember).not.toHaveBeenCalled();
+  });
+
+  it('still answers 400 for a body that is not JSON', async () => {
+    const response = await post(creator, 'not json');
+
+    expect(response.status).toBe(400);
+    expect(db.addProjectMember).not.toHaveBeenCalled();
+  });
+});

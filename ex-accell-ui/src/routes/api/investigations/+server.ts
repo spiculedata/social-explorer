@@ -7,6 +7,7 @@ import { filterByWorkspaceAccess, refuseIfNoAccess } from '#lib/server/auth/acce
 import { canModifyInvestigation } from '#lib/server/investigationAccess.ts';
 import { investigationListQuery } from '#lib/server/investigationQuery.ts';
 import { json } from '@sveltejs/kit';
+import { readJsonObject } from '#lib/server/apiResponse.ts';
 import { validateDayRange } from '#lib/utils/calendarDay.ts';
 import type { RequestHandler } from './$types';
 import { postgresPool } from '#lib/services/postgres.ts';
@@ -93,11 +94,32 @@ export const GET: RequestHandler = async ({ url, locals }) => {
  * POST /api/investigations
  * Create a new investigation
  */
+
+/** Investigation bodies are small forms; anything past this is refused before it is parsed. */
+const MAX_BODY_BYTES = 64 * 1024;
+
+/** The fields the write handlers read from a request body. Values stay unknown until validated. */
+interface InvestigationBody {
+  id?: unknown;
+  name?: unknown;
+  description?: unknown;
+  date_start?: string;
+  date_end?: string;
+  keywords?: unknown;
+  sources?: unknown;
+  workspace_id?: unknown;
+  query_config?: { keywords?: unknown; dateStart?: string; dateEnd?: string; sources?: unknown };
+  annotations?: unknown;
+  [field: string]: unknown; // PATCH copies whichever of the allowed fields are present
+}
+
 export const POST: RequestHandler = async ({ request, locals }) => {
   try {
     await ensureTable();
 
-    const data = await request.json();
+    const parsed = await readJsonObject(request, MAX_BODY_BYTES);
+    if ('failure' in parsed) return parsed.failure;
+    const data = parsed.body as InvestigationBody;
 
     if (!data.name) {
       return json({ success: false, error: 'name is required' }, { status: 400 });
@@ -113,16 +135,17 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     // workspace_id is optional, but when present it must name an existing workspace
     let workspaceId: number | null = null;
     if (data.workspace_id !== undefined && data.workspace_id !== null) {
-      if (!Number.isInteger(data.workspace_id) || data.workspace_id < 1) {
+      const requested = data.workspace_id as number;
+      if (!Number.isInteger(requested) || requested < 1) {
         return json({ success: false, error: 'workspace_id must be a positive integer' }, { status: 400 });
       }
-      const found = await postgresPool.query('SELECT id FROM workspaces WHERE id = $1', [data.workspace_id]);
+      const found = await postgresPool.query('SELECT id FROM workspaces WHERE id = $1', [requested]);
       if (!found.length) {
         return json({ success: false, error: 'Workspace not found' }, { status: 404 });
       }
-      const refused = await refuseIfNoAccess(locals.user, { workspaces: [data.workspace_id] });
+      const refused = await refuseIfNoAccess(locals.user, { workspaces: [requested] });
       if (refused) return refused;
-      workspaceId = data.workspace_id;
+      workspaceId = requested;
     }
 
     // The New Investigation form sends flat fields; everything downstream reads this shape
@@ -190,7 +213,9 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
   try {
     await ensureTable();
 
-    const data = await request.json();
+    const parsed = await readJsonObject(request, MAX_BODY_BYTES);
+    if ('failure' in parsed) return parsed.failure;
+    const data = parsed.body as InvestigationBody;
 
     if (!data.id) {
       return json({ success: false, error: 'Investigation ID required' }, { status: 400 });

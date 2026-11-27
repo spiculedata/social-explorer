@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { executeQuery } from './executeQuery';
+import { clampInt } from './limits.ts';
 import type { AnalyticsContext, AnalyticsHandler } from './types';
 
 async function gdeltNarrativeSummary({ url }: AnalyticsContext): Promise<Response> {
@@ -95,11 +96,13 @@ Write a professional intelligence briefing that:
 
 Be factual and analytical. Do not speculate beyond what the data suggests.`;
 
-    // Call Ollama
+    // Call Ollama; a stuck model must not hold the request open for ever
     const ollamaHost = process.env.OLLAMA_HOST || 'http://ollama:11434';
+    const ollamaTimeoutMs = clampInt(process.env.OLLAMA_TIMEOUT_MS, 120000, 1000, 600000);
     const ollamaResponse = await fetch(`${ollamaHost}/api/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(ollamaTimeoutMs),
       body: JSON.stringify({
         model: 'gemma3:4b',
         prompt,
@@ -132,6 +135,9 @@ Be factual and analytical. Do not speculate beyond what the data suggests.`;
       }
     });
   } catch (error: any) {
+    if (error?.name === 'TimeoutError') {
+      return json({ success: false, error: 'LLM unavailable: narrative generation timed out' }, { status: 502 });
+    }
     console.error('GDELT narrative summary failed:', error);
     return json({ success: false, error: error.message || 'Failed to generate narrative' }, { status: 500 });
   }

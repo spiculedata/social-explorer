@@ -1,4 +1,5 @@
 import { json } from '@sveltejs/kit';
+import { clampInt } from '#lib/server/analytics/limits.ts';
 import { executeQuery } from './executeQuery';
 import { queryErrorResponse } from '#lib/server/queryErrors.ts';
 import type { AnalyticsContext, AnalyticsHandler } from './types';
@@ -48,7 +49,7 @@ async function gdeltByCountry({ url }: AnalyticsContext): Promise<Response> {
   try {
     const dateStart = url.searchParams.get('dateStart');
     const dateEnd = url.searchParams.get('dateEnd');
-    const limit = parseInt(url.searchParams.get('limit') || '20');
+    const limit = clampInt(url.searchParams.get('limit'), 20, 1, 200);
     const conditions: string[] = [];
     const params: any[] = [];
     let paramIndex = 1;
@@ -184,7 +185,7 @@ async function gdeltTopActors({ url }: AnalyticsContext): Promise<Response> {
   try {
     const dateStart = url.searchParams.get('dateStart');
     const dateEnd = url.searchParams.get('dateEnd');
-    const limit = parseInt(url.searchParams.get('limit') || '20');
+    const limit = clampInt(url.searchParams.get('limit'), 20, 1, 200);
     const conditions: string[] = [];
     const params: any[] = [];
     let paramIndex = 1;

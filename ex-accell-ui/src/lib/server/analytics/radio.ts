@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { executeQuery } from './executeQuery';
+import { clampInt } from '#lib/server/analytics/limits.ts';
 import { queryErrorResponse } from '#lib/server/queryErrors.ts';
 import type { AnalyticsContext, AnalyticsHandler } from './types';
 
@@ -101,8 +102,8 @@ async function radioPolitical(_ctx: AnalyticsContext): Promise<Response> {
 
 async function radioTranscripts({ url }: AnalyticsContext): Promise<Response> {
   try {
-    const limit = parseInt(url.searchParams.get('limit') || '50');
-    const offset = parseInt(url.searchParams.get('offset') || '0');
+    const limit = clampInt(url.searchParams.get('limit'), 50, 1, 200);
+    const offset = clampInt(url.searchParams.get('offset'), 0, 0, 100000);
     const search = url.searchParams.get('search');
     const political = url.searchParams.get('political');
 

@@ -6,9 +6,13 @@ import { forgetProjectAccess } from '#lib/server/auth/accessCheck.ts';
 import { refuseIfNoAccess } from '#lib/server/auth/accessGuard.ts';
 import { loadProjectAccessInfo } from '#lib/server/auth/accessRepo.ts';
 import { isEmail } from '#lib/server/auth/userInput.ts';
+import { readJsonObject } from '#lib/server/apiResponse.ts';
 import { projectsDb } from '#lib/services/projectsDb.ts';
 
 const failure = (error: string, status: number) => json({ success: false, data: null, error }, { status });
+
+/** Membership bodies are one id and one email; anything past this is refused before it is parsed. */
+const MAX_BODY_BYTES = 16 * 1024;
 
 /** The project id as a positive whole number, or null when it is missing or not a plain one. */
 function projectIdOf(value: unknown): number | null {
@@ -55,12 +59,9 @@ async function authoriseManager(user: { email: string; role: string } | null | u
 
 /** POST /api/project-members {project_id, email}: adds a member. */
 export const POST: RequestHandler = async ({ request, locals }) => {
-  let body: Record<string, unknown>;
-  try {
-    body = ((await request.json()) ?? {}) as Record<string, unknown>;
-  } catch {
-    return failure('Send a JSON body', 400);
-  }
+  const parsed = await readJsonObject(request, MAX_BODY_BYTES);
+  if ('failure' in parsed) return parsed.failure;
+  const body = parsed.body;
   const projectId = projectIdOf(body.project_id);
   if (projectId === null) return failure('project_id must be a whole number', 400);
   if (!isEmail(typeof body.email === 'string' ? body.email.trim() : body.email)) return failure('Enter a valid email address', 400);

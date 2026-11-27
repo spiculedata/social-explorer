@@ -148,3 +148,34 @@ describe('project API failures', () => {
     expect(JSON.stringify(await updated.json())).not.toContain('10.0.0.5');
   });
 });
+
+describe('POST/PUT /api/projects body size', () => {
+  beforeEach(() => {
+    createProject.mockReset().mockResolvedValue({ id: 1 });
+    updateProject.mockReset().mockResolvedValue({ id: 1 });
+    guard.refuseIfNoAccess.mockReset().mockResolvedValue(null);
+  });
+
+  const oversized = (method: 'POST' | 'PUT', body: string) => {
+    const handler = method === 'POST' ? POST : PUT;
+    return handler({ request: new Request('http://localhost/api/projects', { method, body }), locals: { user: { email: 'ada@example.com', role: 'user' } } } as any);
+  };
+
+  it('refuses an oversized body with 413 instead of parsing it', async () => {
+    for (const method of ['POST', 'PUT'] as const) {
+      const response = await oversized(method, JSON.stringify({ name: 'x' }) + ' '.repeat(200 * 1024));
+      expect(response.status).toBe(413);
+    }
+    expect(createProject).not.toHaveBeenCalled();
+    expect(updateProject).not.toHaveBeenCalled();
+  });
+
+  it('answers 400 for a body that is not JSON', async () => {
+    expect((await oversized('POST', 'not json')).status).toBe(400);
+  });
+
+  it('requires a name now that the body is read as an object', async () => {
+    expect((await oversized('POST', JSON.stringify({ description: 'no name' }))).status).toBe(400);
+    expect(createProject).not.toHaveBeenCalled();
+  });
+});

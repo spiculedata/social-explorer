@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { executeQuery } from './executeQuery';
+import { clampInt, dateSpanError, keywordPatterns } from '#lib/server/analytics/limits.ts';
 import { queryErrorResponse } from '#lib/server/queryErrors.ts';
 import type { AnalyticsContext, AnalyticsHandler } from './types';
 
@@ -12,7 +13,12 @@ async function investigationTimeline({ url }: AnalyticsContext): Promise<Respons
     return json({ success: false, error: 'keywords, date_start, and date_end are required' }, { status: 400 });
   }
 
-  const keywordsArray = keywords.split(',').map((k: string) => '%' + k.trim() + '%');
+  const spanProblem = dateSpanError(dateStart, dateEnd);
+  if (spanProblem) {
+    return json({ success: false, error: spanProblem }, { status: 400 });
+  }
+
+  const keywordsArray = keywordPatterns(keywords);
 
   try {
     // A source whose table does not exist yet contributes empty columns instead of failing the whole timeline
@@ -77,13 +83,18 @@ async function investigationGdeltEvents({ url }: AnalyticsContext): Promise<Resp
   const keywords = url.searchParams.get('keywords') || '';
   const dateStart = url.searchParams.get('date_start');
   const dateEnd = url.searchParams.get('date_end');
-  const limit = parseInt(url.searchParams.get('limit') || '100');
+  const limit = clampInt(url.searchParams.get('limit'), 100, 1, 500);
 
   if (!keywords || !dateStart || !dateEnd) {
     return json({ success: false, error: 'keywords, date_start, and date_end are required' }, { status: 400 });
   }
 
-  const keywordsArray = keywords.split(',').map((k: string) => '%' + k.trim() + '%');
+  const spanProblem = dateSpanError(dateStart, dateEnd);
+  if (spanProblem) {
+    return json({ success: false, error: spanProblem }, { status: 400 });
+  }
+
+  const keywordsArray = keywordPatterns(keywords);
 
   try {
     const data = await executeQuery(`
@@ -113,13 +124,18 @@ async function investigationRadioSegments({ url }: AnalyticsContext): Promise<Re
   const keywords = url.searchParams.get('keywords') || '';
   const dateStart = url.searchParams.get('date_start');
   const dateEnd = url.searchParams.get('date_end');
-  const limit = parseInt(url.searchParams.get('limit') || '50');
+  const limit = clampInt(url.searchParams.get('limit'), 50, 1, 500);
 
   if (!keywords || !dateStart || !dateEnd) {
     return json({ success: false, error: 'keywords, date_start, and date_end are required' }, { status: 400 });
   }
 
-  const keywordsArray = keywords.split(',').map((k: string) => '%' + k.trim() + '%');
+  const spanProblem = dateSpanError(dateStart, dateEnd);
+  if (spanProblem) {
+    return json({ success: false, error: spanProblem }, { status: 400 });
+  }
+
+  const keywordsArray = keywordPatterns(keywords);
 
   try {
     const data = await executeQuery(`
@@ -143,13 +159,18 @@ async function investigationSocialPosts({ url }: AnalyticsContext): Promise<Resp
   const keywords = url.searchParams.get('keywords') || '';
   const dateStart = url.searchParams.get('date_start');
   const dateEnd = url.searchParams.get('date_end');
-  const limit = parseInt(url.searchParams.get('limit') || '100');
+  const limit = clampInt(url.searchParams.get('limit'), 100, 1, 500);
 
   if (!keywords || !dateStart || !dateEnd) {
     return json({ success: false, error: 'keywords, date_start, and date_end are required' }, { status: 400 });
   }
 
-  const keywordsArray = keywords.split(',').map((k: string) => '%' + k.trim() + '%');
+  const spanProblem = dateSpanError(dateStart, dateEnd);
+  if (spanProblem) {
+    return json({ success: false, error: spanProblem }, { status: 400 });
+  }
+
+  const keywordsArray = keywordPatterns(keywords);
 
   try {
     const data = await executeQuery(`
@@ -179,7 +200,12 @@ async function investigationKeywordOverlap({ url }: AnalyticsContext): Promise<R
     return json({ success: false, error: 'keywords, date_start, and date_end are required' }, { status: 400 });
   }
 
-  const keywordsArray = keywords.split(',').map((k: string) => '%' + k.trim() + '%');
+  const spanProblem = dateSpanError(dateStart, dateEnd);
+  if (spanProblem) {
+    return json({ success: false, error: spanProblem }, { status: 400 });
+  }
+
+  const keywordsArray = keywordPatterns(keywords);
 
   try {
     const data = await executeQuery(`
@@ -236,13 +262,18 @@ async function investigationLocations({ url }: AnalyticsContext): Promise<Respon
   const keywords = url.searchParams.get('keywords') || '';
   const dateStart = url.searchParams.get('date_start');
   const dateEnd = url.searchParams.get('date_end');
-  const limit = parseInt(url.searchParams.get('limit') || '50');
+  const limit = clampInt(url.searchParams.get('limit'), 50, 1, 500);
 
   if (!keywords || !dateStart || !dateEnd) {
     return json({ success: false, error: 'keywords, date_start, and date_end are required' }, { status: 400 });
   }
 
-  const keywordsArray = keywords.split(',').map((k: string) => '%' + k.trim() + '%');
+  const spanProblem = dateSpanError(dateStart, dateEnd);
+  if (spanProblem) {
+    return json({ success: false, error: spanProblem }, { status: 400 });
+  }
+
+  const keywordsArray = keywordPatterns(keywords);
 
   try {
     const data = await executeQuery(`
@@ -273,13 +304,18 @@ async function investigationActors({ url }: AnalyticsContext): Promise<Response>
   const keywords = url.searchParams.get('keywords') || '';
   const dateStart = url.searchParams.get('date_start');
   const dateEnd = url.searchParams.get('date_end');
-  const limit = parseInt(url.searchParams.get('limit') || '30');
+  const limit = clampInt(url.searchParams.get('limit'), 30, 1, 500);
 
   if (!keywords || !dateStart || !dateEnd) {
     return json({ success: false, error: 'keywords, date_start, and date_end are required' }, { status: 400 });
   }
 
-  const keywordsArray = keywords.split(',').map((k: string) => '%' + k.trim() + '%');
+  const spanProblem = dateSpanError(dateStart, dateEnd);
+  if (spanProblem) {
+    return json({ success: false, error: spanProblem }, { status: 400 });
+  }
+
+  const keywordsArray = keywordPatterns(keywords);
 
   try {
     const data = await executeQuery(`

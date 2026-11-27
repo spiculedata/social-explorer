@@ -13,6 +13,7 @@ interface PostgresConfig {
   max?: number; // Maximum number of clients in pool
   idleTimeoutMillis?: number; // How long a client is allowed to remain idle
   connectionTimeoutMillis?: number; // How long to wait for connection
+  statementTimeoutMs?: number; // Server-side statement timeout; 0 disables
 }
 
 interface QueryOptions {
@@ -38,6 +39,16 @@ function parseDatabaseUrl(url: string): Partial<PostgresConfig> {
   }
 }
 
+/**
+ * Reads POSTGRES_STATEMENT_TIMEOUT_MS. The default bounds runaway analytics queries to two minutes;
+ * 0 disables the timeout, and a nonsense value falls back to the default.
+ */
+function readStatementTimeoutMs(explicit?: number): number {
+  if (explicit !== undefined) return Math.max(explicit, 0);
+  const parsed = parseInt(process.env.POSTGRES_STATEMENT_TIMEOUT_MS || '', 10);
+  return Number.isNaN(parsed) || parsed < 0 ? 120000 : parsed;
+}
+
 class PostgresConnectionPool {
   private pool: Pool | null = null;
   private config: PostgresConfig;
@@ -56,7 +67,8 @@ class PostgresConnectionPool {
       password: config?.password || urlConfig.password || process.env.POSTGRES_PASSWORD || '',
       max: config?.max || parseInt(process.env.POSTGRES_POOL_MAX || '20'),
       idleTimeoutMillis: config?.idleTimeoutMillis || 30000,
-      connectionTimeoutMillis: config?.connectionTimeoutMillis || 5000
+      connectionTimeoutMillis: config?.connectionTimeoutMillis || 5000,
+      statementTimeoutMs: config?.statementTimeoutMs
     };
 
     console.log('PostgreSQL Pool Config:', {
@@ -86,7 +98,9 @@ class PostgresConnectionPool {
         password: this.config.password,
         max: this.config.max,
         idleTimeoutMillis: this.config.idleTimeoutMillis,
-        connectionTimeoutMillis: this.config.connectionTimeoutMillis
+        connectionTimeoutMillis: this.config.connectionTimeoutMillis,
+        // Bounded from the first statement on every connection; POSTGRES_STATEMENT_TIMEOUT_MS tunes it
+        statement_timeout: readStatementTimeoutMs(this.config.statementTimeoutMs)
       });
 
       // Test connection and enable pg_duckdb
