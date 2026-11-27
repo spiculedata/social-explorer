@@ -24,7 +24,7 @@ const SVELTEKIT_ERROR = /(?<![.\w])error\(\s*\d{3}/g;
 
 // A non-logging line that reads `err.message`: the text is about to reach the client or the response shape.
 // Includes unified-analytics/query, which sends a Postgres syntax error (SQLSTATE 42601) to the admin who wrote the SQL, on purpose.
-const LEAKED_MESSAGE_BASELINE = 7;
+const LEAKED_MESSAGE_BASELINE = 6;
 const LEAKED_MESSAGE = /\b(?:err|error|e)\??\.message/;
 const LOGGING_LINE = /\b(?:console|log|logger)\.\w+\(/;
 // `x instanceof SomethingError` (not plain Error) names one of our typed errors; `.message ===` and `.test(err.message)` are comparisons, not sends

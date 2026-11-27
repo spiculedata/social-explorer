@@ -167,12 +167,18 @@
 
   let refreshingViews = false;
   let refreshMessage = '';
+  // The refresh endpoint is admin-only; the server answers 403 for anyone else, so only admins see the button
+  let isAdmin = false;
 
   async function refreshMaterializedViews() {
     refreshingViews = true;
     refreshMessage = '';
     try {
-      const res = await fetch('/api/unified-analytics?type=gdelt-refresh-views');
+      const res = await fetch('/api/gdelt/refresh-views', { method: 'POST' });
+      if (res.status === 403) {
+        refreshMessage = 'Only admins can refresh the views';
+        return;
+      }
       const data = await res.json();
       if (data.success) {
         refreshMessage = 'Views refreshed. Reloading data...';
@@ -195,7 +201,15 @@
     return s;
   }
 
-  onMount(fetchData);
+  onMount(async () => {
+    try {
+      const me = await (await fetch('/api/auth/me')).json();
+      isAdmin = me?.data?.user?.role === 'admin';
+    } catch {
+      isAdmin = false;
+    }
+    await fetchData();
+  });
 </script>
 
 <svelte:head>
@@ -263,24 +277,26 @@
               Data: {formatSqlDate(summary.date_min)} to {formatSqlDate(summary.date_max)}
             </span>
           {/if}
-          <button
-            on:click={refreshMaterializedViews}
-            disabled={refreshingViews}
-            class="inline-flex items-center text-xs px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors disabled:opacity-50"
-          >
-            {#if refreshingViews}
-              <svg class="animate-spin w-3 h-3 mr-1.5" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Refreshing...
-            {:else}
-              <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-              </svg>
-              Refresh Views
-            {/if}
-          </button>
+          {#if isAdmin}
+            <button
+              on:click={refreshMaterializedViews}
+              disabled={refreshingViews}
+              class="inline-flex items-center text-xs px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors disabled:opacity-50"
+            >
+              {#if refreshingViews}
+                <svg class="animate-spin w-3 h-3 mr-1.5" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Refreshing...
+              {:else}
+                <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                Refresh Views
+              {/if}
+            </button>
+          {/if}
         </div>
       </div>
       {#if refreshMessage}

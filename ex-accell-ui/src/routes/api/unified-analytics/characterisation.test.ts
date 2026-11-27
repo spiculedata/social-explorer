@@ -31,7 +31,7 @@ const ALL_TYPES = [
   'gdelt-country-detail', 'gdelt-conflicts', 'gdelt-search', 'gdelt-narrative-summary',
   'engagement-stats', 'engagement-platforms', 'engagement-content-types', 'engagement-trends',
   'engagement-top-posts', 'engagement-timing', 'engagement-unknown',
-  'trigrams', 'hashtag-analysis', 'gdelt-refresh-views', 'workflow-datasets',
+  'trigrams', 'hashtag-analysis', 'workflow-datasets',
   'radio-overview', 'radio-sentiment', 'radio-by-station', 'radio-trends', 'radio-topics', 'radio-political',
   'radio-transcripts', 'radio-wordcloud',
   'investigation-timeline', 'investigation-gdelt-events', 'investigation-radio-segments',

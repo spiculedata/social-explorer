@@ -107,6 +107,15 @@ describe('decideAccess: admin-only bypass attempts', () => {
   it('still allows ordinary analytics reads for members', () => {
     expect(req('/api/unified-analytics', 'GET', member).action).toBe('allow');
   });
+
+  it('keeps the GDELT materialized view refresh to admins, on every method', () => {
+    for (const method of ['GET', 'POST']) {
+      for (const user of [member, viewer]) {
+        expect(req('/api/gdelt/refresh-views', method, user).action).toBe('forbidden');
+      }
+      expect(req('/api/gdelt/refresh-views', method, admin).action).toBe('allow');
+    }
+  });
 });
 
 describe('sign out everywhere', () => {

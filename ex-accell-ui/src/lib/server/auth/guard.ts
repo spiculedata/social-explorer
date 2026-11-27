@@ -29,7 +29,10 @@ const ADMIN_ONLY_PATTERNS = [
   /^\/api\/jupyter(\/|$)/,
   /^\/api\/workflows\/[^/]+\/execute(\/|$)/,
   // Raw SQL runs with the app's full database rights. `seed` no longer exists; it stays listed as defence in depth.
-  /^\/api\/unified-analytics\/(query|seed)(\/|$)/
+  /^\/api\/unified-analytics\/(query|seed)(\/|$)/,
+  // Refreshing the GDELT materialized views takes exclusive locks on the GDELT tables for the
+  // length of a full rescan, so it is state-changing work for admins only, served by POST alone.
+  /^\/api\/gdelt\/refresh-views(\/|$)/
 ];
 
 /**

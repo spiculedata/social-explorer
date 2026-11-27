@@ -410,31 +410,6 @@ async function gdeltSearch({ url }: AnalyticsContext): Promise<Response> {
   }
 }
 
-async function gdeltRefreshViews(_ctx: AnalyticsContext): Promise<Response> {
-  try {
-    const views = [
-      'gdelt_summary_monthly',
-      'gdelt_country_monthly',
-      'gdelt_eventtype_monthly',
-      'gdelt_actors_monthly',
-      'gdelt_daily_stats'
-    ];
-    const results: string[] = [];
-    for (const view of views) {
-      try {
-        await executeQuery(`REFRESH MATERIALIZED VIEW ${view}`);
-        results.push(`${view}: refreshed`);
-      } catch (e: any) {
-        results.push(`${view}: ${e.message || 'failed'}`);
-      }
-    }
-    return json({ success: true, data: results, message: 'Materialized views refreshed' });
-  } catch (error) {
-    console.error('GDELT refresh views failed:', error);
-    return json({ success: false, error: 'Failed to refresh materialized views' }, { status: 500 });
-  }
-}
-
 export const gdeltHandlers: Record<string, AnalyticsHandler> = {
   'gdelt-summary': gdeltSummary,
   'gdelt-by-country': gdeltByCountry,
@@ -443,6 +418,5 @@ export const gdeltHandlers: Record<string, AnalyticsHandler> = {
   'gdelt-top-actors': gdeltTopActors,
   'gdelt-country-detail': gdeltCountryDetail,
   'gdelt-conflicts': gdeltConflicts,
-  'gdelt-search': gdeltSearch,
-  'gdelt-refresh-views': gdeltRefreshViews
+  'gdelt-search': gdeltSearch
 };
