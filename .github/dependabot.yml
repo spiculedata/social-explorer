@@ -6,6 +6,9 @@ updates:
       interval: weekly
     commit-message:
       prefix: "ci"
+  # Web app dependencies. vitest and @vitest/* share one group across all update types
+  # (majors included): @vitest/coverage-v8 pins an exact vitest version, so a bump of one
+  # alone fails `npm ci` with ERESOLVE (seen on #320).
   - package-ecosystem: npm
     directory: /ex-accell-ui
     schedule:
@@ -13,6 +16,11 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore"
+    groups:
+      vitest-and-plugins:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
   - package-ecosystem: docker
     directory: /ex-accell-ui
     schedule:
@@ -32,12 +40,11 @@ updates:
       docs-minor-and-patch:
         update-types: [minor, patch]
 
-  # Python: ETL pipelines, Jupyter image, WavePulse service, the UI's notebook
-  # environment (pyproject.toml/poetry.lock) and the root requirements-local.txt.
+  # Python: ETL pipelines (/etl), the Jupyter image (/jupyter), the WavePulse service
+  # (/wavepulse) and the UI's notebook environment (/ex-accell-ui: pyproject.toml/poetry.lock).
   # One grouped PR per directory for minor and patch bumps; majors stay separate.
   - package-ecosystem: pip
     directories:
-      - /
       - /etl
       - /jupyter
       - /wavepulse
@@ -49,6 +56,28 @@ updates:
       prefix: "chore"
     groups:
       python-minor-and-patch:
+        update-types: [minor, patch]
+
+  # The root requirements-local.txt only. Dependabot's pip scan searches a directory's
+  # subdirectories recursively, so listing / alongside the directories above found the same
+  # manifests twice and opened a second PR per bump — five duplicate pairs in the 2026-11-22
+  # round (open-clip-torch, paddlepaddle and umap-learn in /etl; pyyaml and flask-cors in
+  # /wavepulse). exclude-paths keeps this entry to the root manifest so a bump produces one PR
+  # per directory that declares it.
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore"
+    exclude-paths:
+      - "etl/**"
+      - "jupyter/**"
+      - "wavepulse/**"
+      - "ex-accell-ui/**"
+    groups:
+      python-root-minor-and-patch:
         update-types: [minor, patch]
 
   # Base images of the other Dockerfiles. The Python version is held per image to the newest one
