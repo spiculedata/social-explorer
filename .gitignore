@@ -3,6 +3,14 @@
 .env.*
 !.env.example
 
+# Secrets and key material
+*.pem
+*.key
+secrets.json
+
+# Runtime bind-mounted data (databases, uploads, crawls, IPFS blocks; see DATA_DIR in .env.example)
+/data/
+
 # OS
 .DS_Store
 Thumbs.db
