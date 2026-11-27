@@ -43,7 +43,7 @@ DB_CONFIG = {
     'port': os.getenv('PGPORT', '5432'),
     'dbname': os.getenv('PGDATABASE', 'analytics'),
     'user': os.getenv('PGUSER', 'postgres'),
-    'password': os.getenv('PGPASSWORD', 'changeme'),
+    'password': os.environ['PGPASSWORD'],  # required: compose always sets it; no insecure default
 }
 
 BATCH_SIZE = 100

@@ -34,8 +34,9 @@ Copy `.env.example` to `.env` and set at least:
 |----------|-------|
 | `SESSION_SECRET` | Required. 32 or more random characters (`openssl rand -hex 32`) |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Creates the first admin while the user table is empty. Password: 12+ characters |
-| `POSTGRES_PASSWORD` | Change from the example value |
-| `COOKIE_SECURE` | Set to `true` whenever the site is served over HTTPS |
+| `POSTGRES_PASSWORD` | Required. Docker compose refuses to start without it |
+| `REDIS_PASSWORD` | Required. Used by Redis and by its Dapr state store and pub/sub clients |
+| `COOKIE_SECURE` | Defaults to `true`. Set to `false` only for a plain-HTTP try-out on localhost |
 | `DATA_DIR` | Where bind-mounted data lives (default `/data` when unset) |
 
 See [Configuration](/guide/configuration) for every variable the application reads.
@@ -72,8 +73,10 @@ The UI container runs the same way: unprivileged uid and gid 1000, not root. Com
 including when upgrading from the earlier root image. If you run the image without compose, `chown -R 1000:1000`
 both folders yourself; otherwise the app cannot write its IPFS node state or data packages.
 
-Do not publish the Postgres, Redis, Ollama or Jupyter ports to the internet. The compose file maps
-them to the host for convenience; bind them to `127.0.0.1` or remove the mappings on a server.
+Postgres, Redis, the Dapr placement, Ollama, WavePulse and Jupyter are published on `127.0.0.1`
+only. The services reach each other over the compose network, so the host bindings exist for
+local debugging. Do not move them to other interfaces: if something outside the stack needs one
+of these services, put a TLS proxy in front of it instead of widening the port mapping.
 
 ## Backups
 

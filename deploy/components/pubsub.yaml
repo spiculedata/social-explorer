@@ -9,7 +9,9 @@ spec:
   - name: redisHost
     value: redis:6379
   - name: redisPassword
-    value: ""
+    secretKeyRef:
+      name: localsecret
+      key: redisPassword
   - name: enableTLS
     value: false
 scopes:

@@ -8,8 +8,11 @@ name: labeler
 #   - the action is pinned to a commit SHA, not a mutable tag;
 #   - the token gets contents:read and pull-requests:write and nothing else.
 #
-# Advisory: continue-on-error means a missing label or a read-only fork token
-# never turns a good PR red. Nothing requires this check.
+# Fork pull requests are skipped entirely (the head repository must be this one):
+# the fork token is read-only, so labels it writes would fail anyway and the job
+# previously showed as a red check on every fork PR. Same-repository PRs still
+# get labelled; a missing label still never turns a good PR red.
+# Nothing requires this check.
 
 on:
   pull_request:
@@ -21,6 +24,9 @@ permissions:
 
 jobs:
   label:
+    # Skip fork PRs: their GITHUB_TOKEN is read-only, so labelling would fail
+    # and the check shows red even with continue-on-error.
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:

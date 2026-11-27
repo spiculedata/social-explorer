@@ -24,8 +24,9 @@ If you run Social Explorer yourself:
 - **Create the first admin** with `ADMIN_EMAIL` / `ADMIN_PASSWORD` (12+ characters), then remove
   the password from your environment.
 - **Serve over HTTPS** and keep `COOKIE_SECURE=true` (the default in production).
-- **Change the default database password** (`changeme` in `docker-compose.yml`) and do not expose
-  Postgres, Redis or the Dapr ports to untrusted networks.
+- **Set `POSTGRES_PASSWORD` and `REDIS_PASSWORD`** — docker compose refuses to start without them.
+  The compose file publishes Postgres, Redis, the Dapr placement, Ollama and WavePulse ports on
+  `127.0.0.1` only; do not bind them to other interfaces.
 - Code-execution endpoints (workflow deploy/execute, Jupyter) are restricted to the `admin` role.
   Treat admin accounts as having shell-level access to the server.
 - Never commit `.env` files, API keys or Telegram/YouTube credentials. CI runs

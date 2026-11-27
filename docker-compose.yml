@@ -7,10 +7,10 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (openssl rand -hex 32)}
       POSTGRES_DB: ${POSTGRES_DB:-analytics}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - ${DATA_DIR:-/data}/pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -23,12 +23,15 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env (openssl rand -hex 16)}
+    command: ["sh", "-c", "exec redis-server --requirepass \"$$REDIS_PASSWORD\""]
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redisdata:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -38,7 +41,7 @@ services:
     image: daprio/dapr:1.14.4
     command: ["./placement", "-port", "50006", "-log-level", "warn"]
     ports:
-      - "50006:50006"
+      - "127.0.0.1:50006:50006"
     restart: unless-stopped
 
   # ─── SvelteKit UI ─────────────────────────────────────────────────────────────
@@ -53,10 +56,10 @@ services:
     environment:
       PORT: "3000"
       HOST: "0.0.0.0"
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-analytics}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (openssl rand -hex 32)}@postgres:5432/${POSTGRES_DB:-analytics}
       # Auth: generate SESSION_SECRET with `openssl rand -hex 32`
       SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET (openssl rand -hex 32)}
-      COOKIE_SECURE: ${COOKIE_SECURE:-false}  # set true when serving over HTTPS
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}  # set false only for a plain-HTTP local try-out
       ADDRESS_HEADER: ${ADDRESS_HEADER:-}  # e.g. X-Forwarded-For, only behind a trusted proxy
       XFF_DEPTH: ${XFF_DEPTH:-}
       # JupyterLab runs as its own service; the app hands the browser this URL and token (admins only)
@@ -121,19 +124,38 @@ services:
     ]
     volumes:
       - ./deploy/components:/components:ro
+      - dapr-secrets:/var/run/dapr/secrets:ro
     network_mode: "service:ui"
     depends_on:
-      - ui
-      - dapr-placement
-      - redis
+      dapr-secrets-init:
+        condition: service_completed_successfully
+      ui:
+        condition: service_started
+      dapr-placement:
+        condition: service_started
+      redis:
+        condition: service_healthy
     restart: unless-stopped
+
+  # Writes REDIS_PASSWORD into a JSON file read by the Dapr local-file secret store
+  # (deploy/components/secretstore.yaml). One-shot, like jupyter-init. REDIS_PASSWORD must
+  # be hex (openssl rand -hex 16): it is substituted into a shell command verbatim.
+  dapr-secrets-init:
+    image: redis:7-alpine
+    user: "0:0"
+    entrypoint: ["sh", "-c", "printf '{\"redisPassword\":\"%s\"}\\n' \"$$REDIS_PASSWORD\" > /dapr-secrets/redis-secrets.json"]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env (openssl rand -hex 16)}
+    volumes:
+      - dapr-secrets:/dapr-secrets
+    restart: "no"
 
   # ─── Ollama (Local LLM) ──────────────────────────────────────────────────────
   ollama:
     image: ollama/ollama:latest
     restart: unless-stopped
     ports:
-      - "11434:11434"
+      - "127.0.0.1:11434:11434"
     volumes:
       - ${DATA_DIR:-/data}/ollama:/root/.ollama
     environment:
@@ -160,12 +182,12 @@ services:
       JUPYTER_TOKEN: ${JUPYTER_TOKEN:-}  # set in .env; the Jupyter container refuses to start without it
       # Set to the URL you open the app on, e.g. behind a TLS proxy (a trailing slash is ignored)
       JUPYTER_ALLOW_ORIGIN: ${JUPYTER_ALLOW_ORIGIN:-http://localhost:3000}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-analytics}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (openssl rand -hex 32)}@postgres:5432/${POSTGRES_DB:-analytics}
       PGHOST: postgres
       PGPORT: "5432"
       PGDATABASE: ${POSTGRES_DB:-analytics}
       PGUSER: ${POSTGRES_USER:-postgres}
-      PGPASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (openssl rand -hex 32)}
       OLLAMA_HOST: http://ollama:11434
     volumes:
       - ${DATA_DIR:-/data}/notebooks:/app/notebooks
@@ -193,14 +215,14 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "8890:8890"
+      - "127.0.0.1:8890:8890"
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-analytics}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (openssl rand -hex 32)}@postgres:5432/${POSTGRES_DB:-analytics}
       PGHOST: postgres
       PGPORT: "5432"
       PGDATABASE: ${POSTGRES_DB:-analytics}
       PGUSER: ${POSTGRES_USER:-postgres}
-      PGPASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (openssl rand -hex 32)}
       DEVICE: cpu
       COMPUTE_TYPE: float32
       TRANSCRIPTION_BACKEND: ${TRANSCRIPTION_BACKEND:-auto}
@@ -245,12 +267,12 @@ services:
       context: ./etl
       dockerfile: Dockerfile
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-analytics}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (openssl rand -hex 32)}@postgres:5432/${POSTGRES_DB:-analytics}
       PGHOST: postgres
       PGPORT: "5432"
       PGDATABASE: ${POSTGRES_DB:-analytics}
       PGUSER: ${POSTGRES_USER:-postgres}
-      PGPASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (openssl rand -hex 32)}
     volumes:
       - ${DATA_DIR:-/data}/gdelt_raw:/app/data/gdelt_raw
     depends_on:
@@ -272,7 +294,7 @@ services:
       PGPORT: "5432"
       PGDATABASE: ${POSTGRES_DB:-analytics}
       PGUSER: ${POSTGRES_USER:-postgres}
-      PGPASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (openssl rand -hex 32)}
     depends_on:
       postgres:
         condition: service_healthy
@@ -308,3 +330,4 @@ services:
 
 volumes:
   redisdata:
+  dapr-secrets:
