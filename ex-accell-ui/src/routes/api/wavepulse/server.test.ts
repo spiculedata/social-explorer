@@ -11,9 +11,18 @@ const post = (body: unknown) =>
 beforeEach(() => {
   fetchMock.mockReset();
   vi.stubGlobal('fetch', fetchMock);
+  vi.stubEnv('WAVEPULSE_API_TOKEN', 'secret-123');
 });
 
 describe('GET /api/wavepulse', () => {
+  it('sends the shared secret header on every proxied request', async () => {
+    fetchMock.mockReturnValue(upstream({ status: 'running' }));
+
+    await get('');
+
+    expect(fetchMock.mock.calls[0][1].headers['X-WavePulse-Token']).toBe('secret-123');
+  });
+
   it('defaults to status and keeps the service fields at the top level and in data', async () => {
     fetchMock.mockReturnValue(upstream({ status: 'running', streams: 2 }));
 

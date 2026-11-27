@@ -33,6 +33,7 @@ Copy `.env.example` to `.env` and set at least:
 | Variable | Notes |
 |----------|-------|
 | `SESSION_SECRET` | Required. 32 or more random characters (`openssl rand -hex 32`) |
+| `WAVEPULSE_API_TOKEN` | Required when running the radio service. Shared secret the UI proxy sends to WavePulse's control API (`openssl rand -hex 32`) |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Creates the first admin while the user table is empty. Password: 12+ characters |
 | `POSTGRES_PASSWORD` | Change from the example value |
 | `COOKIE_SECURE` | Set to `true` whenever the site is served over HTTPS |

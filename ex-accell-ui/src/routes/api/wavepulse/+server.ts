@@ -27,7 +27,11 @@ function userFacingReason(reported: unknown): string | null {
 /** Calls WavePulse and returns its JSON object, or the envelope failure to send. */
 async function proxyToWavePulse(path: string, method = 'GET', body?: unknown): Promise<{ payload: Record<string, unknown> } | { failure: Response }> {
   try {
-    const options: RequestInit = { method, headers: { 'Content-Type': 'application/json' } };
+    // WavePulse's control API requires this shared secret on every non-health route
+    const options: RequestInit = {
+      method,
+      headers: { 'Content-Type': 'application/json', 'X-WavePulse-Token': process.env.WAVEPULSE_API_TOKEN || '' }
+    };
     if (body) options.body = JSON.stringify(body);
 
     const response = await fetch(`${WAVEPULSE_URL}${path}`, options);

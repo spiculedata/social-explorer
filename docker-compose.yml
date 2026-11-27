@@ -66,6 +66,9 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       DAPR_HTTP_PORT: "3500"
       OLLAMA_HOST: http://ollama:11434
+      # WavePulse control API (compose network) and the shared secret the proxy must send
+      WAVEPULSE_URL: http://wavepulse:8890
+      WAVEPULSE_API_TOKEN: ${WAVEPULSE_API_TOKEN:?Set WAVEPULSE_API_TOKEN (openssl rand -hex 32)}
       # Peer-to-peer data sharing (IPFS) is opt-in: anything published is public and copies others fetch cannot be recalled.
       # Set IPFS_ENABLED=true in .env after reading docs-site/guide/data-sharing.md
       IPFS_ENABLED: ${IPFS_ENABLED:-false}
@@ -186,14 +189,32 @@ services:
       - ${DATA_DIR:-/data}/notebooks:/app/notebooks
 
   # ─── WavePulse Radio Service ──────────────────────────────────────────────────
+  # Docker creates a missing ${DATA_DIR}/wavepulse as root, but the wavepulse image
+  # runs as uid 1000. This one-shot step hands that folder to that user, then exits.
+  # (Same pattern as ui-init and jupyter-init.)
+  wavepulse-init:
+    image: ${REGISTRY:-local}/wavepulse:${TAG:-latest}
+    user: "0:0"
+    entrypoint: ["chown", "-R", "1000:1000", "/app/data"]
+    restart: "no"
+    volumes:
+      - ${DATA_DIR:-/data}/wavepulse:/app/data
+
   wavepulse:
     image: ${REGISTRY:-local}/wavepulse:${TAG:-latest}
     build:
       context: ./wavepulse
       dockerfile: Dockerfile
     restart: unless-stopped
+    depends_on:
+      wavepulse-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    # Only the host's loopback may reach the control API; the UI talks to it on
+    # the compose network as http://wavepulse:8890.
     ports:
-      - "8890:8890"
+      - "127.0.0.1:8890:8890"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-analytics}
       PGHOST: postgres
@@ -208,12 +229,11 @@ services:
       SCW_GPU_INSTANCE_ID: ${SCW_GPU_INSTANCE_ID:-}
       HF_TOKEN: ${HF_TOKEN:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      # Shared secret the UI proxy must send on every control request
+      WAVEPULSE_API_TOKEN: ${WAVEPULSE_API_TOKEN:?Set WAVEPULSE_API_TOKEN (openssl rand -hex 32)}
       WAVEPULSE_PORT: "8890"
     volumes:
       - ${DATA_DIR:-/data}/wavepulse:/app/data
-    depends_on:
-      postgres:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8890/health"]
       interval: 30s

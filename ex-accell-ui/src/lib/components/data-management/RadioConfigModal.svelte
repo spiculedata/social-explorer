@@ -95,19 +95,13 @@
         </div>
       </div>
 
-      <!-- API Keys (optional) -->
+      <!-- API keys are set in the WavePulse service environment, not through this form -->
       <div>
-        <label class="text-sm font-medium text-gray-700 mb-3 block">API Keys (Optional)</label>
-        <div class="space-y-3">
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">HuggingFace Token (for speaker diarization)</label>
-            <input bind:value={radioConfig.huggingFaceToken} type="password" placeholder="hf_..." class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-          </div>
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">Gemini API Key (for content classification)</label>
-            <input bind:value={radioConfig.geminiApiKey} type="password" placeholder="AI..." class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-          </div>
-        </div>
+        <label class="text-sm font-medium text-gray-700 mb-3 block">API Keys</label>
+        <p class="text-xs text-gray-500">
+          Tokens for Hugging Face (speaker diarization) and Google Gemini (content classification) are set in the
+          WavePulse service environment (<code>HF_TOKEN</code>, <code>GEMINI_API_KEY</code>); they are not entered here.
+        </p>
       </div>
 
       <!-- Status Info -->

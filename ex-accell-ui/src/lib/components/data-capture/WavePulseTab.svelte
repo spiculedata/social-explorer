@@ -77,31 +77,10 @@ import type { WavePulseConfig } from '#lib/utils/dataCapture/types.ts';
           </h3>
           
           <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Hugging Face Token
-                <span class="text-gray-500">(Required for speaker diarization)</span>
-              </label>
-              <input 
-                bind:value={wavePulseConfig.huggingFaceToken}
-                type="password" 
-                placeholder="hf_..."
-                class="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <p class="text-xs text-gray-500 mt-1">Get your token at <a href="https://huggingface.co/settings/tokens" target="_blank" class="text-blue-600 hover:underline">huggingface.co/settings/tokens</a></p>
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Google Gemini API Key
-                <span class="text-gray-500">(Required for content classification)</span>
-              </label>
-              <input 
-                bind:value={wavePulseConfig.geminiApiKey}
-                type="password" 
-                placeholder="AIza..."
-                class="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <p class="text-xs text-gray-500 mt-1">Get your key at <a href="https://ai.google.dev/aistudio" target="_blank" class="text-blue-600 hover:underline">ai.google.dev/aistudio</a></p>
-            </div>
+            <p class="text-sm text-gray-600">
+              Tokens for Hugging Face (speaker diarization) and Google Gemini (content classification) are set in the
+              WavePulse service environment (<code>HF_TOKEN</code>, <code>GEMINI_API_KEY</code>); they are not entered here.
+            </p>
           </div>
         </div>
 

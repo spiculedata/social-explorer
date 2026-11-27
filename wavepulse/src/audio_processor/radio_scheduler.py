@@ -17,6 +17,8 @@ from pytz import timezone
 from loguru import logger
 from typing import List, Dict
 
+from path_safety import assert_safe_name, UnsafeNameError
+
 
 def get_duration(start_time: str, end_time: str) -> int:
     """
@@ -156,6 +158,13 @@ def process_schedule_file(radio_schedule_file: str, data_dir: str) -> list[dict]
         for station in station_stream_info:
             for start_time, end_time in station["time"]:
                 if start_time == time_slot:
+                    # state and radio_name become part of every recording file
+                    # name; refuse anything that could escape the audio directory
+                    try:
+                        assert_safe_name(station["state"], "state")
+                        assert_safe_name(station["radio_name"], "radio_name")
+                    except UnsafeNameError as error:
+                        raise ValueError(f"Unsafe station name in schedule: {error}") from error
                     stations_at_time.append(
                         {
                             "url": station["url"],

@@ -25,6 +25,13 @@ from requests.exceptions import RequestException
 from typing import List, Dict, Optional
 from urllib.parse import urljoin
 
+import safe_http
+from path_safety import assert_path_within, assert_safe_name, UnsafeNameError
+
+# Ceiling on how much one recording segment may write, so a misbehaving or
+# hostile stream cannot exhaust the disk (audio is far below this in practice).
+MAX_SEGMENT_BYTES = 64 * 1024 * 1024
+
 
 def record_segment(
     url: str, output_file: str, segment_duration: int, retries: int, wait_time: int
@@ -68,9 +75,14 @@ def record_segment(
                             segment_url = urljoin(url, segment.uri)
                             # logger.info(f"Downloading segment: {segment_url}")
 
-                            # Download and write the segment
-                            response = requests.get(segment_url, timeout=10)
-                            f.write(response.content)
+                            # Download and write the segment. safe_get refuses
+                            # internal addresses on every hop; read_capped stops
+                            # a segment from writing past the byte ceiling.
+                            response = safe_http.safe_get(segment_url, timeout=10)
+                            try:
+                                f.write(safe_http.read_capped(response, MAX_SEGMENT_BYTES))
+                            finally:
+                                response.close()
 
                             # Wait for the playlist refresh interval
                             time.sleep(playlist.target_duration or 5)
@@ -78,14 +90,27 @@ def record_segment(
                             # Skip shared config check in worker processes to avoid daemon issues
 
             else:
-                response = requests.get(url, stream=True, timeout=10)
-                with open(output_file, "wb") as f:
-                    start_time = time.time()
-                    while time.time() - start_time < segment_duration:
-                        chunk = response.iter_content(chunk_size=512)
-                        if chunk:
-                            f.write(next(chunk))
-                        # Skip shared config check in worker processes to avoid daemon issues
+                response = safe_http.safe_get(url, stream=True, timeout=10)
+                try:
+                    with open(output_file, "wb") as f:
+                        start_time = time.time()
+                        written = 0
+                        while time.time() - start_time < segment_duration:
+                            try:
+                                piece = next(response.iter_content(chunk_size=512))
+                            except StopIteration:
+                                break
+                            if piece:
+                                written += len(piece)
+                                if written > MAX_SEGMENT_BYTES:
+                                    logger.error(
+                                        f"Stream {url} exceeded the segment byte cap; stopping"
+                                    )
+                                    return False
+                                f.write(piece)
+                            # Skip shared config check in worker processes to avoid daemon issues
+                finally:
+                    response.close()
                 logger.info(f"Successfully recorded {url} to {output_file}")
             return True
 
@@ -129,6 +154,15 @@ def copy_to_buffer(
         f"Successfully copied file {file_name} to temp folder: {curr_audio_buffer_dir}"
     )
     return
+
+
+def _recording_path(audio_dir: str, file_name: str) -> Optional[str]:
+    """The output path inside audio_dir, or None (logged) if it would escape."""
+    try:
+        return str(assert_path_within(audio_dir, file_name))
+    except UnsafeNameError as error:
+        logger.error(f"Refusing to write outside the recordings directory: {error}")
+        return None
 
 
 def record_live_stream(
@@ -179,6 +213,14 @@ def record_live_stream(
         )
     )
 
+    # The station name (state + radio name from the schedule) becomes part of
+    # every output file name: refuse anything that could escape audio_dir.
+    try:
+        assert_safe_name(radio_name, "radio_name")
+    except UnsafeNameError as error:
+        logger.error(f"Refusing unsafe recording name: {error}")
+        return None
+
     # Calculate the number of 30-minute segments
     num_segments = total_duration // segment_duration
     remaining_duration = total_duration % segment_duration
@@ -188,7 +230,9 @@ def record_live_stream(
         string_datetime = current_time.strftime("%Y_%m_%d_%H_%M")
         file_name = f"{radio_name}_{string_datetime}.mp3"
 
-        output_file = os.path.join(audio_dir, file_name)
+        output_file = _recording_path(audio_dir, file_name)
+        if output_file is None:
+            return None
 
         if not record_segment(url, output_file, segment_duration, retries, wait_time):
             return None  # Return None if segment recording failed
@@ -206,7 +250,9 @@ def record_live_stream(
         string_datetime = current_time.strftime("%Y_%m_%d_%H_%M")
         file_name = f"{radio_name}_{string_datetime}.mp3"
 
-        output_file = os.path.join(audio_dir, file_name)
+        output_file = _recording_path(audio_dir, file_name)
+        if output_file is None:
+            return None
 
         if not record_segment(url, output_file, remaining_duration, retries, wait_time):
             return None  # Return None if segment recording failed
