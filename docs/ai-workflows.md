@@ -14,7 +14,8 @@ under is [`docs/security/SECURITY-AI.md`](security/SECURITY-AI.md).
 
 - **`claude.yml` vs `ai-fix.yml`.** Same action and same secret, different jobs. `claude.yml` is
   interactive and read-only: a maintainer asks a question or for a review and gets a comment. `ai-fix.yml`
-  is the autonomous writer: label-gated, write token, tool allowlist, one branch, one pull request. They do
+  is the autonomous writer: label-gated, read-only agent token with the push and PR steps in a
+separate job, tool allowlist, one branch, one pull request. They do
   not conflict. The one thing to watch is that an issue containing `@claude` from a maintainer starts
   `claude.yml` on `opened`, and the same issue labelled `ai-fix-requested` starts `ai-fix.yml`; they can run
   side by side.
@@ -33,13 +34,27 @@ under is [`docs/security/SECURITY-AI.md`](security/SECURITY-AI.md).
 - **Public repository, untrusted text.** Issues can be filed by anyone. The prompt tells the agent that the
   issue is data, not instructions, and not to open attachments or copy collected content into files.
   Only a maintainer's label starts a run, so an anonymous issue cannot.
+- **The agent holds no write token.** The tool allow-list is not a sandbox: the agent can write
+  a file that a check command then runs (`node --test`, `pytest`, `npm run lint`), and that code
+  is outside every allow-list entry. So the agent runs in a `fix` job whose token is the default
+  workflow one limited to `contents: read` — passed to the action as `github_token`, so no
+  OIDC/App-token exchange happens and no write-capable token exists in the agent's environment —
+  with `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` keeping it (and other environment values) out of the
+  agent's shell subprocesses. The agent commits locally and emits a patch artifact; it has no
+  push tool. An `apply` job holds the write token and runs only fixed, non-agent steps: apply
+  the patch, push `ai-fix/issue-<n>`, open the pull request, comment on the issue.
+- **The issue is a snapshot, not a live read.** The agent reads a file written from the issue
+  body when the label arrived. Comments added after the label never reach it, and `gh issue
+  view` is not in the allow-list.
 - **Tools are an allowlist**: edit files, the repository's check commands (web lint, unit tests, build,
-  type check, the Jupyter and ETL pytest suites, the Node script tests), `git add/commit`, pushing its own
-  `ai-fix/*` branch, and opening a PR or comment. No curl, no arbitrary shell, force-pushes and pushes to
-  `main` denied, `gh pr merge` and `gh pr review` not allowed.
-- **Scope limits.** A deny list keeps the agent out of `.github/`, `.claude/`, `docs/security/`,
-  `AGENTS.md`, `CLAUDE.md`, `SECURITY.md`, `docker-compose.yml`, `deploy/`, the migrations, the access
-  guard and sessions (`hooks.server.ts`, `src/lib/server/auth/`) and data sharing; the prompt tells it to
+  type check, the Jupyter and ETL pytest suites, the Node script tests) and local `git add/commit`.
+  No push tool, no `gh` tool, no curl, no arbitrary shell; `gh pr create`, `gh pr merge`, `gh pr
+  review`, `gh issue view` and `gh issue comment` are not in the allow-list at all.
+- **Scope limits.** A deny list keeps the agent out of `.github/`, `.claude/`, `.agents/`,
+  `scripts/`, `docs/security/`, `AGENTS.md`, `CLAUDE.md`, `SECURITY.md`, `docker-compose.yml`,
+  `deploy/`, the migrations, the access guard and sessions (`hooks.server.ts`,
+  `src/lib/server/auth/`) and data sharing, and from editing any `package.json` or lockfile (an
+  edited npm script is exactly the code a check command would run); the prompt tells it to
   comment for a human instead. `.github/risk-tiers.yml` classifies any such change as `critical` if it
   happens anyway. The deny patterns are defence in depth that has not been observed to be enforced by the
   action.
@@ -49,7 +64,9 @@ under is [`docs/security/SECURITY-AI.md`](security/SECURITY-AI.md).
 - **No fork exposure.** It triggers on `issues: labeled`, not on pull requests, and never uses
   `pull_request_target`. A fork pull request cannot start it.
 - **Pinned.** `anthropics/claude-code-action` is pinned to commit
-  `1d6de8cb0c237e7c15e9e1bdf973826ebae490cc` (v1.0.248); every other action is pinned to a commit SHA too.
+  `1d6de8cb0c237e7c15e9e1bdf973826ebae490cc` (v1.0.248); every other action is pinned to a commit SHA too,
+  including the artifact actions that carry the agent's patch to the apply job
+  (`upload-artifact` v7.0.1, `download-artifact` v8.0.2).
 - **A human still decides.** Everything arrives as a pull request; `ci` must pass and a reviewer must merge.
 
 ## Things to know before relying on it
@@ -57,7 +74,9 @@ under is [`docs/security/SECURITY-AI.md`](security/SECURITY-AI.md).
 - It sends repository source and issue text to Anthropic. The repository is public, so the source is not
   secret, but the issue text of a real incident may be; the owner should be comfortable with that.
 - A pull request opened with the default token does not start its own `pull_request` workflows by itself (GitHub
-  holds them as `action_required`); a maintainer starts CI on those. Nothing approves runs.
+  holds them as `action_required`); a maintainer starts CI on those. This is now guaranteed by
+  the design above: the `apply` job opens the pull request with `GITHUB_TOKEN`, so the runs are
+  always held. Nothing approves runs.
 - The agent steps have not run here: the workflow's YAML and gating logic were checked, and the label and
   secret conditions read, but nothing was exercised on GitHub.
 - The agent can be wrong. The label saves typing, not review.

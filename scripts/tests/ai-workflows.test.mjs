@@ -65,6 +65,62 @@ describe("ai-fix.yml and auto-review.yml", () => {
     assert.match(text, /^ {2}issues:\n {4}types: \[labeled\]/m);
   });
 
+  describe("ai-fix.yml splits the agent from every write token", () => {
+    const text = read("ai-fix.yml");
+    const agentJob = text.slice(text.indexOf("  fix:"), text.indexOf("  apply:"));
+    const applyJob = text.slice(text.indexOf("  apply:"));
+
+    it("the agent job holds no write-capable permission and no OIDC exchange", () => {
+      assert.match(agentJob, /^ {6}contents: read$/m);
+      for (const denied of ["contents: write", "pull-requests: write", "issues: write", "id-token: write"]) {
+        assert.doesNotMatch(agentJob, new RegExp(`^ {6}${denied.replace(/[-:]/g, "\\$&")}$`, "m"), `the agent job grants ${denied}`);
+      }
+    });
+
+    it("the agent runs on the default workflow token, so no App token is minted or exported", () => {
+      assert.match(agentJob, /github_token: \$\{\{ github\.token \}\}/);
+    });
+
+    it("the agent's subprocess environment is scrubbed", () => {
+      assert.match(agentJob, /CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: '1'/);
+    });
+
+    it("the agent has no push, comment, merge or live-issue tool", () => {
+      const allowed = text.match(/--allowedTools "[^"]*"/)[0];
+      for (const tool of ["git push", "gh pr create", "gh pr merge", "gh issue comment", "gh issue view"]) {
+        assert.ok(!allowed.includes(`Bash(${tool}`), `allowedTools must not contain ${tool}`);
+      }
+      assert.ok(allowed.includes("Bash(git add"), "the agent still commits locally");
+    });
+
+    it("the issue reaches the agent as a snapshot, not a live read", () => {
+      assert.match(agentJob, /Snapshot the issue/);
+      assert.doesNotMatch(text, /gh issue view \$\{\{/);
+    });
+
+    it("dependency manifests, lockfiles, scripts and agent settings are denied to the editor", () => {
+      const denied = text.match(/--disallowedTools "[^"]*"/)[0];
+      for (const path of ["Edit(**/package.json)", "Edit(**/package-lock.json)", "Edit(/scripts/**)", "Edit(/.agents/**)"]) {
+        assert.ok(denied.includes(path), `disallowedTools must contain ${path}`);
+      }
+    });
+
+    it("only the apply job holds the write token, and its steps are fixed shell, not the agent", () => {
+      assert.match(applyJob, /^ {6}contents: write$/m);
+      assert.match(applyJob, /^ {6}pull-requests: write$/m);
+      assert.match(applyJob, /^ {6}issues: write$/m);
+      assert.doesNotMatch(applyJob, /claude-code-action/);
+      assert.match(applyJob, /download-artifact/);
+      assert.match(applyJob, /git apply --index/);
+      assert.match(applyJob, /gh pr create/);
+    });
+
+    it("the patch travels through an artifact action pinned to a commit SHA", () => {
+      assert.match(text, /actions\/upload-artifact@[0-9a-f]{40} #/);
+      assert.match(text, /actions\/download-artifact@[0-9a-f]{40} #/);
+    });
+  });
+
   it("ai-fix checks out the default branch only (an issue event, never a pull request head)", () => {
     const text = code(read("ai-fix.yml"));
     assert.doesNotMatch(text, /pull_request/);

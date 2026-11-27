@@ -235,8 +235,14 @@ machine and the known gaps, is [`docs/security/SECURITY-AI.md`](docs/security/SE
   `vars.BOT_APP_ID` and `secrets.BOT_APP_PRIVATE_KEY` when they exist, so the PR is App-authored
   and its `pull_request` workflows run immediately. Without them it falls back to `GITHUB_TOKEN`,
   and GitHub holds that PR's runs as `action_required` until a maintainer approves them in the
-  Actions tab. No workflow approves held runs. Workflows that push LLM-written code
-  (`ai-fix.yml`) deliberately stay on `GITHUB_TOKEN`: a human starts CI on those.
+  Actions tab. No workflow approves held runs.
+- LLM-written code (`ai-fix.yml`): the agent runs in a job whose token is read-only
+  (`contents: read`, passed to the action as `github_token`, environment scrubbed for its shell
+  subprocesses) and whose tools cannot push, comment or read the live issue — it emits a patch
+  artifact and commits locally. A second job holds the write token, applies the patch in fixed
+  steps, pushes `ai-fix/issue-<n>` and opens the pull request on `GITHUB_TOKEN`, so GitHub holds
+  that PR's `pull_request` runs as `action_required` until a maintainer starts them in the
+  Actions tab. No workflow approves held runs.
 - Never use `gh workflow run` to produce a check for a pull request: a dispatched run does not
   satisfy a ruleset for that PR.
 

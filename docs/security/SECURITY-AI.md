@@ -117,6 +117,23 @@ It runs `anthropics/claude-code-action` pinned to a commit SHA with the
 untrusted input that this workflow passes to a model with Bash tools limited by the action's
 defaults.
 
+**`ai-fix.yml`** (checked on `main` 2026-11-26) is the autonomous writer: a maintainer's
+`ai-fix-requested` label starts two jobs, and the agent never holds a token that can push,
+comment or merge. The tool allow-list is not a sandbox — the agent can write a file that a check
+command (`node --test`, `pytest`, `npm run lint`) then runs, outside every allow-list entry — so
+the containment is the token, not the list. The `fix` job runs with the default workflow token
+limited to `contents: read`, passed to the action as `github_token` so no OIDC/App-token
+exchange happens, with `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` keeping the token and other
+environment values out of the agent's shell subprocesses; its tools cannot push, comment, merge
+or read the issue live (the issue body arrives as a snapshot taken at label time), and it
+commits locally and emits a patch artifact. The `apply` job holds the write token and runs only
+fixed shell steps: apply the patch, push `ai-fix/issue-<n>`, open the pull request and post the
+report. The pull request is authored by `GITHUB_TOKEN`, so GitHub holds its `pull_request`
+workflow runs as `action_required` until a maintainer starts them. What still needs a human
+decision on the platform side: the branch ruleset on `main` requires 0 approving reviews, so a
+`ci`-green pull request could merge with no human review if auto-merge were enabled on it —
+require at least one approval.
+
 ## 5. Prompts and untrusted content
 
 Issue bodies, PR titles and descriptions, comments, dependency release notes, scraped posts and
