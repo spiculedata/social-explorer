@@ -1,0 +1,11 @@
+{
+  "issue": 381,
+  "title": "image moderation review: reviewer and status are taken from the request body",
+  "kind": "command",
+  "criteria": [
+    { "id": "C1", "given": "a moderation-review request whose body carries a reviewed_by value", "then": "the stored reviewer is the session user's email and the body value is ignored; the route source never reads reviewed_by from the request body" },
+    { "id": "C2", "given": "a moderation-review request whose review_status is not in the allow-list", "then": "the endpoint answers 400 without touching the database" }
+  ],
+  "command": ["node", "check.mjs"],
+  "timeoutSeconds": 600
+}

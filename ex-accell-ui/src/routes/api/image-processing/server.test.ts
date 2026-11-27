@@ -4,6 +4,12 @@ const query = vi.hoisted(() => vi.fn());
 
 vi.mock('#lib/services/postgres.ts', () => ({ postgresPool: { query } }));
 vi.mock('#lib/utils/logger.ts', () => ({ createLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }) }));
+vi.mock('#lib/server/safeFetch.ts', () => ({
+  fetchPublic: vi.fn().mockRejectedValue(new Error('offline in tests')),
+  readCapped: vi.fn(),
+  TooLargeError: class TooLargeError extends Error {},
+  UnsafeUrlError: class UnsafeUrlError extends Error {}
+}));
 
 import { GET, POST } from './+server';
 
@@ -54,8 +60,11 @@ describe('GET /api/image-processing when the image tables are not provisioned', 
   });
 });
 
-const send = (body: unknown) =>
-  POST({ request: new Request('http://localhost/api/image-processing', { method: 'POST', body: typeof body === 'string' ? body : JSON.stringify(body) }) } as unknown as Parameters<typeof POST>[0]);
+const send = (body: unknown, user: unknown = { email: 'moderator@example.test' }) =>
+  POST({
+    request: new Request('http://localhost/api/image-processing', { method: 'POST', body: typeof body === 'string' ? body : JSON.stringify(body) }),
+    locals: { user }
+  } as unknown as Parameters<typeof POST>[0]);
 
 describe('GET /api/image-processing?action=models', () => {
   it('returns the tiers in data and the legacy key', async () => {
@@ -82,14 +91,42 @@ describe('POST /api/image-processing', () => {
     expect(await response.json()).toMatchObject({ success: false, error: 'Unknown action: explode' });
   });
 
-  it('updates a moderation review', async () => {
+  it('updates a moderation review with the session user as the reviewer', async () => {
     query.mockResolvedValue([]);
 
-    const response = await send({ action: 'moderation-review', image_id: 'i1', review_status: 'approved' });
+    const response = await send({ action: 'moderation-review', image_id: 'i1', review_status: 'confirmed' });
 
     expect(response.status).toBe(200);
-    expect(query).toHaveBeenCalledWith(expect.stringContaining('UPDATE image_moderation'), ['approved', 'user', 'i1']);
+    expect(query).toHaveBeenCalledWith(expect.stringContaining('UPDATE image_moderation'), ['confirmed', 'moderator@example.test', 'i1']);
     expect((await response.json()).success).toBe(true);
+  });
+
+  it('ignores a body supplied reviewed_by and records the session user instead', async () => {
+    query.mockResolvedValue([]);
+
+    const response = await send({
+      action: 'moderation-review',
+      image_id: 'i1',
+      review_status: 'confirmed',
+      reviewed_by: 'someone-else@example.test'
+    });
+
+    expect(response.status).toBe(200);
+    expect(query).toHaveBeenCalledWith(expect.stringContaining('UPDATE image_moderation'), ['confirmed', 'moderator@example.test', 'i1']);
+  });
+
+  it('rejects an unknown review_status with 400', async () => {
+    const response = await send({ action: 'moderation-review', image_id: 'i1', review_status: 'approved' });
+
+    expect(response.status).toBe(400);
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  it('refuses a review without a session user', async () => {
+    const response = await send({ action: 'moderation-review', image_id: 'i1', review_status: 'confirmed' }, null);
+
+    expect(response.status).toBe(401);
+    expect(query).not.toHaveBeenCalled();
   });
 
   it('requires image_id and review_status for a moderation review', async () => {
@@ -100,9 +137,24 @@ describe('POST /api/image-processing', () => {
   it('returns a generic 500 without the database message when the review update fails', async () => {
     query.mockRejectedValue(new Error('password authentication failed for user postgres'));
 
-    const response = await send({ action: 'moderation-review', image_id: 'i1', review_status: 'approved' });
+    const response = await send({ action: 'moderation-review', image_id: 'i1', review_status: 'confirmed' });
 
     expect(response.status).toBe(500);
     expect(JSON.stringify(await response.json())).not.toContain('password');
+  });
+
+  it.each(['not-a-number', '0', '-3', '1.5', true])('rejects a post_id of %j with 400 before fetching anything', async (bad) => {
+    const response = await send({ action: 'analyze', image_url: 'https://example.test/a.png', post_id: bad });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ success: false, error: 'post_id must be a positive integer' });
+  });
+
+  it.each([undefined, null, '', 12, '12'])('accepts a post_id of %j and gets past validation', async (fine) => {
+    // safeFetch is mocked to fail, so a request that reaches the download has passed validation.
+    const response = await send({ action: 'analyze', image_url: 'https://example.test/a.png', post_id: fine });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ success: false, error: 'The image could not be downloaded. Check the address, and that the site allows downloads.' });
   });
 });

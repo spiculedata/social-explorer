@@ -284,7 +284,18 @@ const DOWNLOAD_TIMEOUT_MS = 30_000;
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const MAX_REQUEST_BODY_BYTES = 64 * 1024;
 
-export const POST: RequestHandler = async ({ request }) => {
+/** Review outcomes a moderator may record; anything else is rejected rather than stored verbatim. */
+const REVIEW_STATUSES = new Set(['safe', 'confirmed', 'flagged', 'reviewed']);
+
+/** A stored post reference must be a positive integer or absent: it lands in a database column, not free text. */
+function parsePostId(raw: unknown): number | null | string {
+  if (raw === undefined || raw === null || raw === '') return null;
+  const parsed = typeof raw === 'number' ? raw : Number(String(raw).trim());
+  if (!Number.isInteger(parsed) || parsed <= 0) return `post_id must be a positive integer`;
+  return parsed;
+}
+
+export const POST: RequestHandler = async ({ request, locals }) => {
   const parsed = await readJsonObject(request, MAX_REQUEST_BODY_BYTES);
   if ('failure' in parsed) return parsed.failure;
   const body = parsed.body as Record<string, any>;
@@ -296,6 +307,9 @@ export const POST: RequestHandler = async ({ request }) => {
       const imageUrl = body.image_url;
       const urlProblem = imageUrlProblem(imageUrl);
       if (urlProblem) return json({ success: false, error: urlProblem }, { status: 400 });
+
+      const postId = parsePostId(body.post_id);
+      if (typeof postId === 'string') return json({ success: false, error: postId }, { status: 400 });
 
       const ollamaHost = process.env.OLLAMA_HOST || 'http://ollama:11434';
 
@@ -388,7 +402,7 @@ export const POST: RequestHandler = async ({ request }) => {
           const inserted = await postgresPool.query(
             `INSERT INTO image_analysis (post_id, image_url, image_hash, analyzed_at)
              VALUES ($1, $2, $3, NOW()) RETURNING id`,
-            [body.post_id || null, imageUrl, imgHash]
+            [postId, imageUrl, imgHash]
           );
           imageId = inserted[0].id;
         }
@@ -474,13 +488,19 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // ── Update moderation review ─────────────────────────────────────────
+    // The reviewer is the session user, never a request field: a body-sourced reviewer would let
+    // anyone forge the audit trail. `review_status` is allow-listed for the same reason.
     if (action === 'moderation-review') {
-      const { image_id, review_status, reviewed_by } = body;
+      const { image_id, review_status } = body;
       if (!image_id || !review_status) return json({ success: false, error: 'image_id and review_status required' }, { status: 400 });
+      if (!REVIEW_STATUSES.has(review_status)) return json({ success: false, error: 'Unknown review status' }, { status: 400 });
+
+      const reviewedBy = locals.user?.email;
+      if (!reviewedBy) return json({ success: false, error: 'Sign in to review moderation results' }, { status: 401 });
 
       await postgresPool.query(
         'UPDATE image_moderation SET review_status = $1, reviewed_by = $2 WHERE image_id = $3',
-        [review_status, reviewed_by || 'user', image_id]
+        [review_status, reviewedBy, image_id]
       );
       return json({ success: true });
     }
