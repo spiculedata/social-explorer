@@ -153,4 +153,35 @@ describe('DELETE /api/job-state', () => {
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({ success: false, data: null, error: 'Internal server error while deleting job state' });
   });
+
+  it.each([['x/../../secrets/secretstore/bulk'], ['x/..'], ['x%2f']])('refuses a jobId of %s with 400 before deleting', async (jobId) => {
+    const response = await del(`?jobId=${encodeURIComponent(jobId)}`);
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ success: false, data: null, error: expect.any(String) });
+    expect(store.deleteJobState).not.toHaveBeenCalled();
+  });
+});
+
+describe('path-traversal jobIds are refused on every method of /api/job-state', () => {
+  it.each([['x/../../secrets/secretstore/bulk'], ['x/..'], ['x%2f']])('GET refuses %s with 400', async (jobId) => {
+    const response = await get(`?jobId=${encodeURIComponent(jobId)}`);
+
+    expect(response.status).toBe(400);
+    expect(store.getJobState).not.toHaveBeenCalled();
+  });
+
+  it.each([['x/../../secrets/secretstore/bulk'], ['x/..'], ['x%2f']])('POST refuses %s with 400', async (jobId) => {
+    const response = await send(POST, { action: 'start', jobId });
+
+    expect(response.status).toBe(400);
+    expect(store.updateJobStatus).not.toHaveBeenCalled();
+  });
+
+  it.each([['x/../../secrets/secretstore/bulk'], ['x/..'], ['x%2f']])('PUT refuses %s with 400', async (jobId) => {
+    const response = await send(PUT, { jobId, status: 'running' });
+
+    expect(response.status).toBe(400);
+    expect(store.updateJobStatus).not.toHaveBeenCalled();
+  });
 });

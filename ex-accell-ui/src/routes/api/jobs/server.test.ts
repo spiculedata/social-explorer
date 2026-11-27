@@ -64,6 +64,14 @@ describe('POST /api/jobs', () => {
     }
   );
 
+  it.each([['x/../../secrets/secretstore/bulk'], ['x/..'], ['x%2f']])('refuses a name of %s with 400 before scheduling', async (name) => {
+    const response = await post({ ...valid, name });
+
+    expect(response.status).toBe(400);
+    expect(store.createJobState).not.toHaveBeenCalled();
+    expect(invoke).not.toHaveBeenCalled();
+  });
+
   it('reports Dapr being down as 503 with the start hint but no internal address', async () => {
     store.saveJobState.mockRejectedValue(dapr503());
 
@@ -138,6 +146,13 @@ describe('GET /api/jobs', () => {
 
     expect(body).toMatchObject({ success: true, jobStates: [{ id: 'j1' }], combined: [{ id: 'j1' }], serviceStatus: { stateAvailable: true } });
     expect(body.data.jobStates).toEqual(body.jobStates);
+  });
+
+  it.each([['x/../../secrets/secretstore/bulk'], ['x/..'], ['x%2f']])('GET refuses a name of %s with 400 before any lookup', async (name) => {
+    const response = await get(`?state=true&name=${encodeURIComponent(name)}`);
+
+    expect(response.status).toBe(400);
+    expect(store.getJobState).not.toHaveBeenCalled();
   });
 
   it('is a 503 only when both Dapr and the state store are down, without internal text', async () => {
@@ -216,14 +231,15 @@ describe('DELETE /api/jobs', () => {
 
   it('deletes by name: removes the Dapr job (a 404 counts) and finds the state id by name', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404 }));
+    store.getAllJobStates.mockResolvedValue([]);
 
-    const body = await (await del('?name=crawl%201')).json();
+    const body = await (await del('?name=crawl-1')).json();
 
-    expect((fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0][0]).toContain('/jobs/crawl%201');
+    expect((fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0][0]).toContain('/jobs/crawl-1');
     expect(body).toMatchObject({ success: true, deletedFromDapr: true, deletedFromState: false });
 
-    store.getAllJobStates.mockResolvedValue([{ id: 'j9', name: 'crawl 1' }]);
-    await del('?name=crawl%201');
+    store.getAllJobStates.mockResolvedValue([{ id: 'j9', name: 'crawl-1' }]);
+    await del('?name=crawl-1');
     expect(store.deleteJobState).toHaveBeenCalledWith('j9');
   });
 
@@ -234,5 +250,20 @@ describe('DELETE /api/jobs', () => {
 
     expect(response.status).toBe(503);
     expect(JSON.stringify(await response.json())).not.toContain('10.0.0.5');
+  });
+
+  it.each([['x/../../secrets/secretstore/bulk'], ['x/..'], ['x%2f']])('refuses a jobId of %s with 400 before any deletion', async (jobId) => {
+    const response = await del(`?jobId=${encodeURIComponent(jobId)}`);
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ success: false, data: null, error: expect.any(String) });
+    expect(store.deleteJobState).not.toHaveBeenCalled();
+  });
+
+  it.each([['x/../../secrets/secretstore/bulk'], ['x/..'], ['x%2f']])('refuses a name of %s with 400 before any deletion', async (name) => {
+    const response = await del(`?name=${encodeURIComponent(name)}`);
+
+    expect(response.status).toBe(400);
+    expect(store.deleteJobState).not.toHaveBeenCalled();
   });
 });

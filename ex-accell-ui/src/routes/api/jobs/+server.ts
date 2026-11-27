@@ -2,6 +2,7 @@ import type { RequestHandler } from './$types';
 import { apiFail, apiOk, apiServerError, readJsonObject } from '#lib/server/apiResponse.ts';
 import { jobStateStore } from '#lib/services/jobStateStore.ts';
 import { createLogger } from '#lib/utils/logger.ts';
+import { assertSafeIdentifier } from '#lib/utils/pathSafety.ts';
 import { DaprClient, CommunicationProtocolEnum, HttpMethod } from '@dapr/dapr';
 
 const log = createLogger('jobs-api');
@@ -132,6 +133,15 @@ function buildJobData(jobRequest: JobScheduleRequest, jobId: string, jobTypeName
 	};
 }
 
+/** Reads a job name/id parameter, rejecting anything that could travel as a sidecar URL path (400). */
+function assertParam(value: string, field: string): string | Response {
+	try {
+		return assertSafeIdentifier(value, field);
+	} catch {
+		return apiFail(`Invalid ${field}: must be 1-128 characters of letters, digits, '-' or '_', starting with a letter or digit`, 400);
+	}
+}
+
 export const POST: RequestHandler = async ({ request }) => {
 	const parsed = await readJsonObject(request, MAX_JOB_BODY_BYTES);
 	if ('failure' in parsed) return parsed.failure;
@@ -142,10 +152,13 @@ export const POST: RequestHandler = async ({ request }) => {
 		return apiFail('name and dueTime must be text and data an object', 400);
 	}
 	if (!DUE_TIME.test(jobRequest.dueTime)) return apiFail('dueTime must be "now", a duration such as "30s", "5m" or "2h", or minutes such as "5"', 400);
+	// The name becomes the state-store jobId, so it must not be able to travel as a sidecar URL path
+	const safeName = assertParam(jobRequest.name, 'name');
+	if (safeName instanceof Response) return safeName;
 
 	try {
 		// The crawler validates the platform and URLs, which gives more accurate errors than checking here
-		const jobId = `${jobRequest.name}-${Date.now()}`;
+		const jobId = `${safeName}-${Date.now()}`;
 		const scheduledFor = scheduledForTime(jobRequest.dueTime);
 		log.info('Scheduling job', { name: jobRequest.name, platform: jobRequest.data.platform, dueTime: jobRequest.dueTime });
 
@@ -202,12 +215,18 @@ export const POST: RequestHandler = async ({ request }) => {
 export const GET: RequestHandler = async ({ url }) => {
 	try {
 		const jobName = url.searchParams.get('name');
+		let safeJobName: string | null = null;
+		if (jobName) {
+			const checked = assertParam(jobName, 'name');
+			if (checked instanceof Response) return checked;
+			safeJobName = checked;
+		}
 		const stateOnly = url.searchParams.get('state') === 'true';
 
 		// State only: the job state records, from the state store
 		if (stateOnly) {
-			if (!jobName) return apiOk(await jobStateStore.getAllJobStates());
-			const jobState = await jobStateStore.getJobState(jobName);
+			if (!safeJobName) return apiOk(await jobStateStore.getAllJobStates());
+			const jobState = await jobStateStore.getJobState(safeJobName);
 			if (!jobState) return apiFail('Job not found', 404);
 			return apiOk(jobState);
 		}
@@ -217,8 +236,8 @@ export const GET: RequestHandler = async ({ url }) => {
 
 		// Dapr's view of the jobs is best effort
 		try {
-			if (jobName) {
-				daprJobs = await getDaprClient().invoker.invoke(TELEGRAM_SCRAPER_APP_ID, 'getJob', HttpMethod.POST, { jobName });
+			if (safeJobName) {
+				daprJobs = await getDaprClient().invoker.invoke(TELEGRAM_SCRAPER_APP_ID, 'getJob', HttpMethod.POST, { jobName: safeJobName });
 			} else {
 				const response = await fetch('http://localhost:3500/v1.0-alpha1/jobs');
 				if (response.ok) daprJobs = await response.json();
@@ -256,15 +275,27 @@ export const DELETE: RequestHandler = async ({ url }) => {
 	const jobName = url.searchParams.get('name');
 	const jobId = url.searchParams.get('jobId');
 	if (!jobName && !jobId) return apiFail('Job name or jobId is required for deletion', 400);
+	let safeJobName: string | null = null;
+	if (jobName) {
+		const checked = assertParam(jobName, 'name');
+		if (checked instanceof Response) return checked;
+		safeJobName = checked;
+	}
+	let safeJobId: string | null = null;
+	if (jobId) {
+		const checked = assertParam(jobId, 'jobId');
+		if (checked instanceof Response) return checked;
+		safeJobId = checked;
+	}
 
 	try {
 		let deletedFromDapr = false;
 		let stateDeleted = false;
 
 		// Delete from the Dapr Jobs API; a Dapr that is down does not fail the whole operation
-		if (jobName) {
+		if (safeJobName) {
 			try {
-				const response = await fetch(`http://localhost:3500/v1.0-alpha1/jobs/${encodeURIComponent(jobName)}`, { method: 'DELETE' });
+				const response = await fetch(`http://localhost:3500/v1.0-alpha1/jobs/${encodeURIComponent(safeJobName)}`, { method: 'DELETE' });
 				if (response.ok || response.status === 404) deletedFromDapr = true;
 				else log.warn('Dapr jobs API delete failed', { status: response.status });
 			} catch (daprError) {
@@ -273,11 +304,11 @@ export const DELETE: RequestHandler = async ({ url }) => {
 		}
 
 		try {
-			if (jobId) {
-				await jobStateStore.deleteJobState(jobId);
+			if (safeJobId) {
+				await jobStateStore.deleteJobState(safeJobId);
 				stateDeleted = true;
-			} else if (jobName) {
-				const jobState = (await jobStateStore.getAllJobStates()).find((state) => state.name === jobName);
+			} else if (safeJobName) {
+				const jobState = (await jobStateStore.getAllJobStates()).find((state) => state.name === safeJobName);
 				if (jobState) {
 					await jobStateStore.deleteJobState(jobState.id);
 					stateDeleted = true;
@@ -288,7 +319,7 @@ export const DELETE: RequestHandler = async ({ url }) => {
 			log.warn('Could not delete job state', { detail: stateError instanceof Error ? stateError.message : String(stateError) });
 		}
 
-		const label = jobName || jobId;
+		const label = safeJobName || safeJobId;
 		const message =
 			deletedFromDapr || stateDeleted ? `Job ${label} deleted successfully` : `Job ${label} deletion completed (services may be unavailable)`;
 		const payload = { message, deletedFromDapr, deletedFromState: stateDeleted };

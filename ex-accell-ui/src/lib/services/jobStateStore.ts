@@ -55,6 +55,11 @@ export class JobStateStore {
 		this.baseUrl = `http://localhost:${DAPR_HTTP_PORT}/v1.0/state/${STATE_STORE_NAME}`;
 	}
 
+	/** The state-store key for a job, percent-encoded so it stays one path segment on the sidecar. */
+	private encodedJobKey(jobId: string): string {
+		return encodeURIComponent(`job:${jobId}`);
+	}
+
 	/**
 	 * Check if Dapr state store is available and provide helpful error
 	 */
@@ -222,7 +227,7 @@ export class JobStateStore {
 		try {
 			await this.checkDaprConnection();
 			
-			const response = await fetch(`${this.baseUrl}/job:${jobId}`, {
+			const response = await fetch(`${this.baseUrl}/${this.encodedJobKey(jobId)}`, {
 				method: 'GET',
 			});
 
@@ -382,7 +387,7 @@ export class JobStateStore {
 			await this.checkDaprConnection();
 			
 			// Delete the job state
-			const response = await fetch(`${this.baseUrl}/job:${jobId}`, {
+			const response = await fetch(`${this.baseUrl}/${this.encodedJobKey(jobId)}`, {
 				method: 'DELETE',
 			});
 

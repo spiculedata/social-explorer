@@ -1,6 +1,7 @@
 import type { RequestHandler } from './$types';
 import { apiFail, apiOk, apiServerError, readJsonObject } from '#lib/server/apiResponse.ts';
 import { jobStateStore, type JobState } from '#lib/services/jobStateStore.ts';
+import { assertSafeIdentifier } from '#lib/utils/pathSafety.ts';
 
 /**
  * Job State API - Dedicated endpoint for managing job state updates
@@ -65,16 +66,28 @@ async function applyAction(action: string, jobId: string, data: Data): Promise<b
 	}
 }
 
+/** Reads the jobId parameter, rejecting anything that could travel as a sidecar URL path (400). */
+function assertJobId(raw: unknown): string | Response {
+	if (typeof raw !== 'string') return apiFail('jobId must be text', 400);
+	try {
+		return assertSafeIdentifier(raw, 'jobId');
+	} catch {
+		return apiFail("Invalid jobId: must be 1-128 characters of letters, digits, '-' or '_', starting with a letter or digit", 400);
+	}
+}
+
 export const POST: RequestHandler = async ({ request }) => {
 	const parsed = await readJsonObject(request, MAX_STATE_BODY_BYTES);
 	if ('failure' in parsed) return parsed.failure;
 	const { action, jobId, ...data } = parsed.body;
 	if (!action || !jobId) return apiFail('action and jobId are required', 400);
-	if (typeof action !== 'string' || typeof jobId !== 'string') return apiFail('action and jobId must be text', 400);
+	if (typeof action !== 'string') return apiFail('action and jobId must be text', 400);
+	const safeJobId = assertJobId(jobId);
+	if (safeJobId instanceof Response) return safeJobId;
 
 	try {
-		if (!(await applyAction(action, jobId, data))) return apiFail(`Unknown action: ${action}`, 400);
-		return apiOk({ action, jobId }, { action, jobId });
+		if (!(await applyAction(action, safeJobId, data))) return apiFail(`Unknown action: ${action}`, 400);
+		return apiOk({ action, jobId: safeJobId }, { action, jobId: safeJobId });
 	} catch (err) {
 		return storeFailure('POST /api/job-state', err, 'Internal server error while updating job state');
 	}
@@ -84,10 +97,16 @@ export const GET: RequestHandler = async ({ url }) => {
 	const jobId = url.searchParams.get('jobId');
 	const status = url.searchParams.get('status');
 	if (status && !JOB_STATUSES.includes(status)) return apiFail(`status must be one of: ${JOB_STATUSES.join(', ')}`, 400);
+	let safeJobId: string | null = null;
+	if (jobId) {
+		const checked = assertJobId(jobId);
+		if (checked instanceof Response) return checked;
+		safeJobId = checked;
+	}
 
 	try {
-		if (jobId) {
-			const jobState = await jobStateStore.getJobState(jobId);
+		if (safeJobId) {
+			const jobState = await jobStateStore.getJobState(safeJobId);
 			if (!jobState) return apiFail('Job not found', 404);
 			return apiOk(jobState);
 		}
@@ -103,13 +122,15 @@ export const PUT: RequestHandler = async ({ request }) => {
 	if ('failure' in parsed) return parsed.failure;
 	const { jobId, status, ...additionalData } = parsed.body;
 	if (!jobId || !status) return apiFail('jobId and status are required', 400);
-	if (typeof jobId !== 'string' || typeof status !== 'string' || !JOB_STATUSES.includes(status)) {
+	if (typeof status !== 'string' || !JOB_STATUSES.includes(status)) {
 		return apiFail(`jobId must be text and status one of: ${JOB_STATUSES.join(', ')}`, 400);
 	}
+	const safeJobId = assertJobId(jobId);
+	if (safeJobId instanceof Response) return safeJobId;
 
 	try {
-		await jobStateStore.updateJobStatus(jobId, status as JobState['status'], additionalData);
-		return apiOk({ jobId, status }, { jobId, status });
+		await jobStateStore.updateJobStatus(safeJobId, status as JobState['status'], additionalData);
+		return apiOk({ jobId: safeJobId, status }, { jobId: safeJobId, status });
 	} catch (err) {
 		return storeFailure('PUT /api/job-state', err, 'Internal server error while updating job state');
 	}
@@ -118,10 +139,12 @@ export const PUT: RequestHandler = async ({ request }) => {
 export const DELETE: RequestHandler = async ({ url }) => {
 	const jobId = url.searchParams.get('jobId');
 	if (!jobId) return apiFail('jobId is required for deletion', 400);
+	const safeJobId = assertJobId(jobId);
+	if (safeJobId instanceof Response) return safeJobId;
 
 	try {
-		await jobStateStore.deleteJobState(jobId);
-		return apiOk(null, { message: `Job state ${jobId} deleted successfully` });
+		await jobStateStore.deleteJobState(safeJobId);
+		return apiOk(null, { message: `Job state ${safeJobId} deleted successfully` });
 	} catch (err) {
 		return storeFailure('DELETE /api/job-state', err, 'Internal server error while deleting job state');
 	}

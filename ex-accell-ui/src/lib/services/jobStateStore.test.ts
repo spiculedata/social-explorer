@@ -62,3 +62,22 @@ describe('getAllJobStates', () => {
     expect(jobs.map((job) => job.id)).toEqual(['b', 'a']);
   });
 });
+
+describe('sidecar URL containment', () => {
+  it('keeps a job key with traversal characters inside /v1.0/state/statestore/', async () => {
+    const fetchMock = vi.fn();
+    fetchMock.mockResolvedValue(res(404));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await jobStateStore.getJobState('x/../../../secrets/secretstore/bulk');
+    await jobStateStore.deleteJobState('x/../../../secrets/secretstore/bulk');
+
+    const urls = fetchMock.mock.calls.map((call) => new URL(String(call[0])));
+    expect(urls.length).toBeGreaterThanOrEqual(4); // health probe + key fetch, twice
+    for (const url of urls) {
+      expect(url.pathname.startsWith('/v1.0/state/statestore/')).toBe(true);
+    }
+    expect(urls[1].pathname).toBe('/v1.0/state/statestore/job%3Ax%2F..%2F..%2F..%2Fsecrets%2Fsecretstore%2Fbulk');
+    expect(urls[3].pathname).toBe(urls[1].pathname);
+  });
+});
