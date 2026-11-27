@@ -127,6 +127,19 @@ describe('buildRunNowPayload', () => {
       skipMedia: false
     });
   });
+
+  it('does not carry a stored urlFile into the run-now payload', () => {
+    const job = {
+      id: 'j1',
+      name: 'job',
+      status: 'scheduled',
+      platform: 'telegram',
+      jobData: { droid: 'd', urls: ['u'], urlFile: '/proc/self/environ' }
+    };
+    const payload = buildRunNowPayload(job, 'j1', 1);
+    expect(payload.data).not.toHaveProperty('urlFile');
+    expect(JSON.stringify(payload)).not.toContain('/proc/self/environ');
+  });
 });
 
 describe('pickServerErrorMessage', () => {

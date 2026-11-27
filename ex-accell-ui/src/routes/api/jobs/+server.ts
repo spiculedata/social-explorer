@@ -68,7 +68,6 @@ interface JobScheduleRequest {
 		droid: string;
 		task: string;
 		urls?: string[];
-		urlFile?: string;
 		platform: 'telegram' | 'youtube';
 		crawlId?: string;
 		// Core parameters
@@ -125,7 +124,6 @@ function buildJobData(jobRequest: JobScheduleRequest, jobId: string, jobTypeName
 		...(data.platform === 'telegram' && {
 			tdlibDatabaseUrls: data.tdlibDatabaseUrls || []
 		}),
-		urlFile: data.urlFile,
 		maxPages: data.maxPages,
 		skipMedia: data.skipMedia,
 		timeAgo: data.timeAgo
@@ -142,6 +140,10 @@ export const POST: RequestHandler = async ({ request }) => {
 		return apiFail('name and dueTime must be text and data an object', 400);
 	}
 	if (!DUE_TIME.test(jobRequest.dueTime)) return apiFail('dueTime must be "now", a duration such as "30s", "5m" or "2h", or minutes such as "5"', 400);
+	// The crawler would read a local file named in urlFile into its logs and state; the app only
+	// sends seed URLs as data.urls, so a payload that names a file is refused here and never
+	// reaches the crawler, the job state or the logs.
+	if ((jobRequest.data as Record<string, unknown>).urlFile) return apiFail('urlFile is not accepted: send the seed URLs in data.urls instead', 400);
 
 	try {
 		// The crawler validates the platform and URLs, which gives more accurate errors than checking here

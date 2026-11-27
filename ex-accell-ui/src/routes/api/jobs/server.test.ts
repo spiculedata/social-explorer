@@ -64,6 +64,16 @@ describe('POST /api/jobs', () => {
     }
   );
 
+  it('refuses a urlFile with a 400 before anything is stored or scheduled', async () => {
+    const response = await post({ ...valid, data: { ...valid.data, urlFile: '/proc/self/environ' } });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ success: false, data: null, error: expect.stringContaining('urlFile') });
+    expect(store.saveJobState).not.toHaveBeenCalled();
+    expect(store.createJobState).not.toHaveBeenCalled();
+    expect(invoke).not.toHaveBeenCalled();
+  });
+
   it('reports Dapr being down as 503 with the start hint but no internal address', async () => {
     store.saveJobState.mockRejectedValue(dapr503());
 

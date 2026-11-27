@@ -15,7 +15,6 @@ export interface JobState {
 		droid: string;
 		task: string;
 		urls?: string[];
-		urlFile?: string;
 		crawlId?: string;
 		maxDepth?: number;
 		concurrency?: number;

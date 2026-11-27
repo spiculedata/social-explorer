@@ -5,7 +5,6 @@ export interface JobScheduleRequest {
 		droid: string;
 		task: string;
 		urls?: string[];
-		urlFile?: string;
 		platform: 'telegram' | 'youtube';
 		crawlId?: string;
 		maxDepth?: number;
