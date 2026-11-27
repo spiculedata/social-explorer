@@ -163,13 +163,16 @@ jobs:
       - name: Test
         run: node --test "scripts/tests/*.test.mjs"
 
-  # ETL URL safety tests (etl/test_safe_http.py). These guard the network boundary
-  # in etl/safe_http.py (private addresses, redirects, response limits, DNS) and were
-  # previously run only nightly or as an advisory check, so the required `ci` job
-  # could pass while they failed. Part of the `ci` rollup: a failure or skip here
-  # fails the gate.
+  # ETL tests. Two files, both part of the `ci` rollup (a failure or skip here fails
+  # the gate):
+  # - etl/test_safe_http.py guards the network boundary in etl/safe_http.py (private
+  #   addresses, redirects, response limits, DNS). It was previously run only nightly
+  #   or as an advisory check, so the required `ci` job could pass while it failed.
+  # - etl/test_gdelt_downloader.py guards the GDELT downloader's boundary: https-only
+  #   master list on the GDELT host with TLS verification on, no foreign-host URLs,
+  #   and every downloaded file checked against the master list's size and MD5.
   etl-tests:
-    name: ETL URL safety (pytest)
+    name: ETL tests (pytest)
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
@@ -180,9 +183,9 @@ jobs:
       - name: Install ETL test dependencies
         run: python3 -m venv .venv && .venv/bin/pip install --quiet pytest requests
 
-      - name: Run ETL URL safety tests
+      - name: Run ETL tests
         working-directory: etl
-        run: ../.venv/bin/python -m pytest -q test_safe_http.py
+        run: ../.venv/bin/python -m pytest -q test_safe_http.py test_gdelt_downloader.py
 
   # Single stable check name for the merge convention, the review rubric and the hive's auto-red
   # watcher. The `protect main` ruleset is meant to require this check by name. It rolls up the jobs
