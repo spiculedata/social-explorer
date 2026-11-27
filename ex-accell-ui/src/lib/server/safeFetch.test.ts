@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
+import { createServer, type Server } from 'node:http';
+import { Agent, fetch as undiciFetch } from 'undici';
 import { TooLargeError, UnsafeUrlError, fetchPublic, guardedLookup, isPublicIp, readCapped } from './safeFetch';
 
 describe('isPublicIp', () => {
@@ -136,5 +138,75 @@ describe('readCapped', () => {
 
   it('returns an empty buffer for a response with no body', async () => {
     expect((await readCapped(new Response(null, { status: 200 }), 100)).byteLength).toBe(0);
+  });
+});
+
+/** A local http server on an ephemeral port that counts the requests it actually received. */
+const listeningOn = async (handler: (req: import('node:http').IncomingMessage, res: import('node:http').ServerResponse) => void) => {
+  let requests = 0;
+  const server: Server = createServer((req, res) => {
+    requests += 1;
+    handler(req, res);
+  });
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const port = (server.address() as import('node:net').AddressInfo).port;
+  return { port, received: () => requests, close: () => new Promise<void>((resolve) => server.close(() => resolve())) };
+};
+
+const causeOf = (error: unknown): unknown => (error instanceof TypeError ? error.cause : undefined);
+
+// The tests above inject fetchImpl, so nothing exercises the real undici pieces behind guardedFetch. These do: a real
+// Agent wired with guardedLookup exactly as safeFetch.ts wires it, against a local server, with injected resolvers only
+// (no internet), so a behaviour change in undici (the connect lookup hook, redirect handling) fails a test here.
+describe('the real undici agent behind guardedFetch', () => {
+  it('rejects a loopback target at connect time and the server sees no request, while an unguarded fetch reaches the same server', async () => {
+    const server = await listeningOn((_req, res) => res.end('reached'));
+    const agent = new Agent({ connect: { lookup: guardedLookup as never } });
+
+    const error = await undiciFetch(`http://localhost:${server.port}/`, { dispatcher: agent }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(TypeError); // undici wraps the connect failure
+    expect(causeOf(error)).toBeInstanceOf(UnsafeUrlError);
+    expect(server.received()).toBe(0);
+
+    const control = await undiciFetch(`http://127.0.0.1:${server.port}/`, { dispatcher: new Agent() });
+    expect(control.status).toBe(200);
+    expect(server.received()).toBe(1);
+    await server.close();
+  });
+
+  it('rejects DNS rebinding: the pre-check approves a public answer, but the connect-time lookup answers 127.0.0.1', async () => {
+    const server = await listeningOn((_req, res) => res.end('reached'));
+    const lookupAtConnect = (host: string, opts: object, cb: (e: Error | null, addresses?: unknown) => void) => cb(null, [{ address: '127.0.0.1', family: 4 }]);
+    const agent = new Agent({ connect: { lookup: ((hostname, options, callback) => guardedLookup(hostname, options, callback, lookupAtConnect as never)) as never } });
+    const fetchImpl = ((url: RequestInfo | URL, init?: RequestInit) => undiciFetch(url as never, { ...(init as object), dispatcher: agent })) as unknown as typeof fetch;
+    const lookup = async () => [{ address: '93.184.216.34', family: 4 }]; // the pre-check sees a public address
+
+    const error = await fetchPublic(`http://rebind.example:${server.port}/`, {}, { lookup, fetchImpl }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(TypeError); // undici wraps the connect failure
+    expect(causeOf(error)).toBeInstanceOf(UnsafeUrlError);
+    expect(server.received()).toBe(0);
+    await server.close();
+  });
+
+  it('returns the 302 with a readable Location through a real agent with redirect: manual, so the per-hop re-check keeps control', async () => {
+    const server = await listeningOn((req, res) => {
+      if (req.url === '/a.png') {
+        res.writeHead(302, { location: '/b.png' });
+        res.end();
+      } else {
+        res.writeHead(200);
+        res.end('landed');
+      }
+    });
+    const agent = new Agent();
+
+    const manual = await undiciFetch(`http://127.0.0.1:${server.port}/a.png`, { dispatcher: agent, redirect: 'manual' });
+    expect(manual.status).toBe(302);
+    expect(manual.headers.get('location')).toBe('/b.png');
+
+    // Without redirect: manual undici follows the hop itself, so the option is what keeps the re-check in control
+    const automatic = await undiciFetch(`http://127.0.0.1:${server.port}/a.png`, { dispatcher: agent });
+    expect(automatic.status).toBe(200);
+    await server.close();
   });
 });
