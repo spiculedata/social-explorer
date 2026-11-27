@@ -2,27 +2,32 @@
 // load-bearing (Python indentation) and pinned by snapshot tests.
 
 import { generateWorkflowName, toPythonMethodName } from './pythonDaprNaming';
+import { assertStepSafeForCodegen, pythonStringLiteral } from './pythonDaprSafety';
 import { generatePythonStepImplementation } from './pythonDaprStepTemplates';
 import type { WorkflowDefinition, WorkflowStep } from './pythonDaprWorkflowTypes';
+
+/** Python identifier for a step's activity function, derived from the step name (or id). */
+function pythonStepActivityName(step: WorkflowStep): string {
+  const base = toPythonMethodName(step.name) || toPythonMethodName(step.id) || 'step';
+  return `${base}_activity`;
+}
 
 /**
  * Generate Python workflow script using pure Dapr Python SDK
  */
 export function generatePythonWorkflowScript(workflow: WorkflowDefinition): string {
+  // Workflow fields are user input: every field is validated against an allow-list here or emitted
+  // as a Python string literal, so no value can close a docstring or break out into Python code.
+  workflow.steps.forEach((step, index) => assertStepSafeForCodegen(step, index));
+
   const steps = workflow.steps.filter(step =>
     step.type !== 'dataset_input' && step.type !== 'dataset_output'
   );
 
   const workflowName = generateWorkflowName(workflow);
 
-    return `#!/usr/bin/env python3
-"""
-Generated Python Dapr Workflow: ${workflow.name}
-Description: ${workflow.description}
-Generated at: ${new Date().toISOString()}
-
-Pure Python Dapr SDK implementation based on official examples
-"""
+  return `#!/usr/bin/env python3
+"""Generated Python Dapr workflow script (pure Dapr Python SDK)."""
 
 import asyncio
 import json
@@ -64,6 +69,11 @@ except LookupError:
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Workflow metadata. These are Python string literals rendered with JSON escaping, never raw text:
+# a workflow name or description cannot close the literal and inject code.
+WORKFLOW_NAME = ${pythonStringLiteral(workflow.name)}
+WORKFLOW_DESCRIPTION = ${pythonStringLiteral(workflow.description)}
 
 # Global data storage for workflow
 workflow_data = {}
@@ -113,54 +123,6 @@ def load_data_activity(ctx: WorkflowActivityContext, input_data: Dict[str, Any])
 # All activities and workflow are defined within main() using decorators
 
 # ============================================================================
-# MAIN WORKFLOW SETUP
-# ============================================================================
-    """Main workflow function using Dapr Python SDK"""
-    try:
-        logger.info(f"Starting Dapr workflow: ${workflow.name}")
-        logger.info(f"Workflow instance ID: {ctx.instance_id}")
-        logger.info(f"Input data: {input_data}")
-        
-        # Step 1: Load data
-        logger.info("Executing activity: load_data")
-        load_result = yield ctx.call_activity(load_data_activity, input=input_data)
-        
-        if not load_result.get('success'):
-            raise Exception(f"Failed to load data: {load_result.get('error')}")
-        
-        results = {'load_data': load_result}
-        
-        # Execute workflow steps in order
-${generateDaprWorkflowStepCalls(steps)}
-        
-        # Generate final results
-        final_results = {
-            'success': True,
-            'workflow_name': '${workflow.name}',
-            'instance_id': ctx.instance_id,
-            'results': results,
-            'processed_records': load_result.get('records_loaded', 0),
-            'completed_at': datetime.now().isoformat(),
-            'execution_summary': {
-                'steps_completed': len(results),
-                'workflow_pattern': 'python_dapr_sdk'
-            }
-        }
-        
-        logger.info("Workflow execution completed successfully")
-        return final_results
-        
-    except Exception as e:
-        logger.error(f"Workflow execution failed: {str(e)}")
-        logger.error(traceback.format_exc())
-        return {
-            'success': False,
-            'error': str(e),
-            'traceback': traceback.format_exc(),
-            'completed_at': datetime.now().isoformat()
-        }
-
-# ============================================================================
 # DAPR WORKFLOW SETUP - Following Official Python SDK Examples
 # ============================================================================
 
@@ -173,7 +135,7 @@ wfr = WorkflowRuntime()
 def ${workflowName}(ctx: DaprWorkflowContext, input_data: dict):
     """Main workflow function using Dapr Python SDK"""
     try:
-        logger.info(f"Starting Dapr workflow: ${workflow.name}")
+        logger.info("Starting Dapr workflow: %s", WORKFLOW_NAME)
         logger.info(f"Workflow instance ID: {ctx.instance_id}")
         logger.info(f"Input data: {input_data}")
         
@@ -192,7 +154,7 @@ ${generateDaprWorkflowStepCalls(steps)}
         # Generate final results
         final_results = {
             'success': True,
-            'workflow_name': '${workflow.name}',
+            'workflow_name': WORKFLOW_NAME,
             'instance_id': ctx.instance_id,
             'results': results,
             'processed_records': load_result.get('records_loaded', 0),
@@ -309,15 +271,15 @@ if __name__ == "__main__":
  */
 function generateDaprWorkflowStepCalls(steps: WorkflowStep[]): string {
     return steps.map((step, index) => {
-      const activityName = `${toPythonMethodName(step.name)}_activity`;
-      return `        # Step ${index + 1}: ${step.name}
-        logger.info("Executing step: ${step.name}")
-        step_result = yield ctx.call_activity('${activityName}', input=input_data)
+      const activityName = pythonStepActivityName(step);
+      return `        # Step ${index + 1}
+        logger.info("Executing step: %s", ${pythonStringLiteral(step.name)})
+        step_result = yield ctx.call_activity(${pythonStringLiteral(activityName)}, input=input_data)
         
         if not step_result.get('success'):
-            raise Exception(f"Step ${step.name} failed: {step_result.get('error')}")
+            raise Exception("Step %s failed: %s" % (${pythonStringLiteral(step.name)}, step_result.get('error')))
         
-        results['${step.id}'] = step_result`;
+        results[${pythonStringLiteral(step.id)}] = step_result`;
     }).join('\n\n');
 }
 
@@ -326,14 +288,14 @@ function generateDaprWorkflowStepCalls(steps: WorkflowStep[]): string {
  */
 function generateDaprDecoratedActivityMethods(steps: WorkflowStep[]): string {
     return steps.map(step => {
-      const activityName = `${toPythonMethodName(step.name)}_activity`;
+      const activityName = pythonStepActivityName(step);
       const implementation = generatePythonStepImplementation(step);
       
-      return `@wfr.activity(name='${activityName}')
+      return `@wfr.activity(name=${pythonStringLiteral(activityName)})
 def ${activityName}(ctx: WorkflowActivityContext, input_data: dict):
-    """${step.description || step.name} activity"""
+    """Activity for one workflow step."""
     try:
-        logger.info(f"Executing activity: ${step.name}")
+        logger.info("Executing activity: %s", ${pythonStringLiteral(step.name)})
         
         # Get workflow data from global storage
         workflow_df = workflow_data.get('current')
@@ -348,11 +310,11 @@ def ${activityName}(ctx: WorkflowActivityContext, input_data: dict):
         return result
         
     except Exception as e:
-        logger.error(f"Activity ${step.name} failed: {str(e)}")
+        logger.error("Activity %s failed: %s", ${pythonStringLiteral(step.name)}, str(e))
         return {
             'success': False,
             'error': str(e),
-            'step_name': '${step.name}'
+            'step_name': ${pythonStringLiteral(step.name)}
         }`;
     }).join('\n\n');
 }

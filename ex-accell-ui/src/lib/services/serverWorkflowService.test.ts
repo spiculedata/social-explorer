@@ -14,8 +14,8 @@ const definition = {
   name: 'Demo',
   description: 'demo workflow',
   steps: [
-    { id: 's1', type: 'load-data', name: 'Load', description: '', icon: '', color: '', inputs: [], outputs: [], config: { datasetId: 'social_posts' }, position: { x: 0, y: 0 }, status: 'idle' },
-    { id: 's2', type: 'sentiment-analysis', name: 'Sentiment', description: '', icon: '', color: '', inputs: [], outputs: [], config: {}, position: { x: 1, y: 0 }, status: 'idle' }
+    { id: 's1', type: 'handle_missing', name: 'Load', description: '', icon: '', color: '', inputs: [], outputs: [], config: { datasetId: 'social_posts' }, position: { x: 0, y: 0 }, status: 'idle' },
+    { id: 's2', type: 'sentiment_analysis', name: 'Sentiment', description: '', icon: '', color: '', inputs: [], outputs: [], config: {}, position: { x: 1, y: 0 }, status: 'idle' }
   ],
   connections: [{ id: 'c1', from: 's1', fromPort: 0, to: 's2', toPort: 0 }]
 };

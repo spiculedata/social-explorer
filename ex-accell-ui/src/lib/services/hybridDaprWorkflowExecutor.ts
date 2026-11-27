@@ -5,6 +5,7 @@ import { DaprClient, CommunicationProtocolEnum, WorkflowRuntimeStatus } from '@d
 import { spawn } from 'child_process';
 import { join } from 'path';
 import { assertSafeIdentifier } from '#lib/utils/pathSafety.ts';
+import { jupyterEnvironment } from '#lib/server/jupyterManager.ts';
 import type { PublishedWorkflow, WorkflowExecution } from './serverWorkflowService';
 import { pythonDaprWorkflowGenerator, type PythonDaprWorkflow } from './pythonDaprWorkflowGenerator';
 
@@ -27,6 +28,19 @@ export interface HybridWorkflowDeployment {
   daprAppId: string;
   daprHttpPort: number;
   daprGrpcPort: number;
+}
+
+/**
+ * Environment for the spawned workflow Python process: the same restricted allow-list Jupyter
+ * kernels get, plus the Dapr connection overrides. The app's secrets (SESSION_SECRET,
+ * ADMIN_PASSWORD, HF_TOKEN, ...) are dropped instead of inherited by a process that runs
+ * workflow-authored code.
+ */
+export function workflowPythonEnvironment(
+  source: Record<string, string | undefined>,
+  overrides: Record<string, string>
+): Record<string, string> {
+  return jupyterEnvironment(source, overrides);
 }
 
 export class HybridDaprWorkflowExecutor {
@@ -268,16 +282,15 @@ export class HybridDaprWorkflowExecutor {
         message: `Configuring Python to connect to working Dapr sidecar - HTTP: ${workingDaprPort}, gRPC: ${workingGrpcPort}`
       });
 
-      // Prepare clean environment for Python process
-      const pythonEnv = {
-        ...process.env,
+      // Prepare the restricted environment for the Python process
+      const pythonEnv = workflowPythonEnvironment(process.env, {
         PYTHONPATH: generatedWorkflow.virtualEnvPath,
         DAPR_HTTP_ENDPOINT: `http://localhost:${workingDaprPort}`,
         DAPR_GRPC_ENDPOINT: `http://localhost:${workingGrpcPort}`,
         // Override any existing Dapr environment variables
         DAPR_HTTP_PORT: workingDaprPort.toString(),
         DAPR_GRPC_PORT: workingGrpcPort.toString()
-      };
+      });
 
       execution.logs.push({
         timestamp: new Date().toISOString(),

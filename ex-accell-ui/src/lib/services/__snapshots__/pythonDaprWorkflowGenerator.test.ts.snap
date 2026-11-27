@@ -2,13 +2,7 @@
 
 exports[`pythonDaprWorkflowGenerator.generatePythonDaprWorkflow (generated output) > pins the full script, requirements and metadata for a mixed workflow 1`] = `
 "#!/usr/bin/env python3
-"""
-Generated Python Dapr Workflow: Full Pipeline!
-Description: A test workflow
-Generated at: 2026-01-02T03:04:05.000Z
-
-Pure Python Dapr SDK implementation based on official examples
-"""
+"""Generated Python Dapr workflow script (pure Dapr Python SDK)."""
 
 import asyncio
 import json
@@ -50,6 +44,11 @@ except LookupError:
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Workflow metadata. These are Python string literals rendered with JSON escaping, never raw text:
+# a workflow name or description cannot close the literal and inject code.
+WORKFLOW_NAME = "Full Pipeline!"
+WORKFLOW_DESCRIPTION = "A test workflow"
 
 # Global data storage for workflow
 workflow_data = {}
@@ -99,106 +98,6 @@ def load_data_activity(ctx: WorkflowActivityContext, input_data: Dict[str, Any])
 # All activities and workflow are defined within main() using decorators
 
 # ============================================================================
-# MAIN WORKFLOW SETUP
-# ============================================================================
-    """Main workflow function using Dapr Python SDK"""
-    try:
-        logger.info(f"Starting Dapr workflow: Full Pipeline!")
-        logger.info(f"Workflow instance ID: {ctx.instance_id}")
-        logger.info(f"Input data: {input_data}")
-        
-        # Step 1: Load data
-        logger.info("Executing activity: load_data")
-        load_result = yield ctx.call_activity(load_data_activity, input=input_data)
-        
-        if not load_result.get('success'):
-            raise Exception(f"Failed to load data: {load_result.get('error')}")
-        
-        results = {'load_data': load_result}
-        
-        # Execute workflow steps in order
-        # Step 1: Clean Text
-        logger.info("Executing step: Clean Text")
-        step_result = yield ctx.call_activity('clean_text_activity', input=input_data)
-        
-        if not step_result.get('success'):
-            raise Exception(f"Step Clean Text failed: {step_result.get('error')}")
-        
-        results['a'] = step_result
-
-        # Step 2: 2nd Sentiment
-        logger.info("Executing step: 2nd Sentiment")
-        step_result = yield ctx.call_activity('2nd_sentiment_activity', input=input_data)
-        
-        if not step_result.get('success'):
-            raise Exception(f"Step 2nd Sentiment failed: {step_result.get('error')}")
-        
-        results['b'] = step_result
-
-        # Step 3: Topics
-        logger.info("Executing step: Topics")
-        step_result = yield ctx.call_activity('topics_activity', input=input_data)
-        
-        if not step_result.get('success'):
-            raise Exception(f"Step Topics failed: {step_result.get('error')}")
-        
-        results['c'] = step_result
-
-        # Step 4: Cluster
-        logger.info("Executing step: Cluster")
-        step_result = yield ctx.call_activity('cluster_activity', input=input_data)
-        
-        if not step_result.get('success'):
-            raise Exception(f"Step Cluster failed: {step_result.get('error')}")
-        
-        results['d'] = step_result
-
-        # Step 5: Dedupe
-        logger.info("Executing step: Dedupe")
-        step_result = yield ctx.call_activity('dedupe_activity', input=input_data)
-        
-        if not step_result.get('success'):
-            raise Exception(f"Step Dedupe failed: {step_result.get('error')}")
-        
-        results['e'] = step_result
-
-        # Step 6: Weird step
-        logger.info("Executing step: Weird step")
-        step_result = yield ctx.call_activity('weird_step_activity', input=input_data)
-        
-        if not step_result.get('success'):
-            raise Exception(f"Step Weird step failed: {step_result.get('error')}")
-        
-        results['f'] = step_result
-        
-        # Generate final results
-        final_results = {
-            'success': True,
-            'workflow_name': 'Full Pipeline!',
-            'instance_id': ctx.instance_id,
-            'results': results,
-            'processed_records': load_result.get('records_loaded', 0),
-            'completed_at': datetime.now().isoformat(),
-            'execution_summary': {
-                'steps_completed': len(results),
-                'workflow_pattern': 'python_dapr_sdk'
-            }
-        }
-        
-        logger.info("Workflow execution completed successfully")
-        return final_results
-        
-    except Exception as e:
-        logger.error(f"Workflow execution failed: {str(e)}")
-        logger.error(traceback.format_exc())
-        return {
-            'success': False,
-            'error': str(e),
-            'traceback': traceback.format_exc(),
-            'completed_at': datetime.now().isoformat()
-        }
-
-# ============================================================================
 # DAPR WORKFLOW SETUP - Following Official Python SDK Examples
 # ============================================================================
 
@@ -211,7 +110,7 @@ wfr = WorkflowRuntime()
 def fullPipeline(ctx: DaprWorkflowContext, input_data: dict):
     """Main workflow function using Dapr Python SDK"""
     try:
-        logger.info(f"Starting Dapr workflow: Full Pipeline!")
+        logger.info("Starting Dapr workflow: %s", WORKFLOW_NAME)
         logger.info(f"Workflow instance ID: {ctx.instance_id}")
         logger.info(f"Input data: {input_data}")
         
@@ -225,64 +124,64 @@ def fullPipeline(ctx: DaprWorkflowContext, input_data: dict):
         results = {'load_data': load_result}
         
         # Execute workflow steps in order
-        # Step 1: Clean Text
-        logger.info("Executing step: Clean Text")
-        step_result = yield ctx.call_activity('clean_text_activity', input=input_data)
+        # Step 1
+        logger.info("Executing step: %s", "Clean Text")
+        step_result = yield ctx.call_activity("clean_text_activity", input=input_data)
         
         if not step_result.get('success'):
-            raise Exception(f"Step Clean Text failed: {step_result.get('error')}")
+            raise Exception("Step %s failed: %s" % ("Clean Text", step_result.get('error')))
         
-        results['a'] = step_result
+        results["a"] = step_result
 
-        # Step 2: 2nd Sentiment
-        logger.info("Executing step: 2nd Sentiment")
-        step_result = yield ctx.call_activity('2nd_sentiment_activity', input=input_data)
+        # Step 2
+        logger.info("Executing step: %s", "2nd Sentiment")
+        step_result = yield ctx.call_activity("_2nd_sentiment_activity", input=input_data)
         
         if not step_result.get('success'):
-            raise Exception(f"Step 2nd Sentiment failed: {step_result.get('error')}")
+            raise Exception("Step %s failed: %s" % ("2nd Sentiment", step_result.get('error')))
         
-        results['b'] = step_result
+        results["b"] = step_result
 
-        # Step 3: Topics
-        logger.info("Executing step: Topics")
-        step_result = yield ctx.call_activity('topics_activity', input=input_data)
+        # Step 3
+        logger.info("Executing step: %s", "Topics")
+        step_result = yield ctx.call_activity("topics_activity", input=input_data)
         
         if not step_result.get('success'):
-            raise Exception(f"Step Topics failed: {step_result.get('error')}")
+            raise Exception("Step %s failed: %s" % ("Topics", step_result.get('error')))
         
-        results['c'] = step_result
+        results["c"] = step_result
 
-        # Step 4: Cluster
-        logger.info("Executing step: Cluster")
-        step_result = yield ctx.call_activity('cluster_activity', input=input_data)
+        # Step 4
+        logger.info("Executing step: %s", "Cluster")
+        step_result = yield ctx.call_activity("cluster_activity", input=input_data)
         
         if not step_result.get('success'):
-            raise Exception(f"Step Cluster failed: {step_result.get('error')}")
+            raise Exception("Step %s failed: %s" % ("Cluster", step_result.get('error')))
         
-        results['d'] = step_result
+        results["d"] = step_result
 
-        # Step 5: Dedupe
-        logger.info("Executing step: Dedupe")
-        step_result = yield ctx.call_activity('dedupe_activity', input=input_data)
+        # Step 5
+        logger.info("Executing step: %s", "Dedupe")
+        step_result = yield ctx.call_activity("dedupe_activity", input=input_data)
         
         if not step_result.get('success'):
-            raise Exception(f"Step Dedupe failed: {step_result.get('error')}")
+            raise Exception("Step %s failed: %s" % ("Dedupe", step_result.get('error')))
         
-        results['e'] = step_result
+        results["e"] = step_result
 
-        # Step 6: Weird step
-        logger.info("Executing step: Weird step")
-        step_result = yield ctx.call_activity('weird_step_activity', input=input_data)
+        # Step 6
+        logger.info("Executing step: %s", "Weird step")
+        step_result = yield ctx.call_activity("weird_step_activity", input=input_data)
         
         if not step_result.get('success'):
-            raise Exception(f"Step Weird step failed: {step_result.get('error')}")
+            raise Exception("Step %s failed: %s" % ("Weird step", step_result.get('error')))
         
-        results['f'] = step_result
+        results["f"] = step_result
         
         # Generate final results
         final_results = {
             'success': True,
-            'workflow_name': 'Full Pipeline!',
+            'workflow_name': WORKFLOW_NAME,
             'instance_id': ctx.instance_id,
             'results': results,
             'processed_records': load_result.get('records_loaded', 0),
@@ -346,11 +245,11 @@ def load_data_activity(ctx: WorkflowActivityContext, input_data: dict):
             'error': str(e)
         }
 
-@wfr.activity(name='clean_text_activity')
+@wfr.activity(name="clean_text_activity")
 def clean_text_activity(ctx: WorkflowActivityContext, input_data: dict):
-    """Clean Text activity"""
+    """Activity for one workflow step."""
     try:
-        logger.info(f"Executing activity: Clean Text")
+        logger.info("Executing activity: %s", "Clean Text")
         
         # Get workflow data from global storage
         workflow_df = workflow_data.get('current')
@@ -388,18 +287,18 @@ def clean_text_activity(ctx: WorkflowActivityContext, input_data: dict):
         return result
         
     except Exception as e:
-        logger.error(f"Activity Clean Text failed: {str(e)}")
+        logger.error("Activity %s failed: %s", "Clean Text", str(e))
         return {
             'success': False,
             'error': str(e),
-            'step_name': 'Clean Text'
+            'step_name': "Clean Text"
         }
 
-@wfr.activity(name='2nd_sentiment_activity')
-def 2nd_sentiment_activity(ctx: WorkflowActivityContext, input_data: dict):
-    """2nd Sentiment activity"""
+@wfr.activity(name="_2nd_sentiment_activity")
+def _2nd_sentiment_activity(ctx: WorkflowActivityContext, input_data: dict):
+    """Activity for one workflow step."""
     try:
-        logger.info(f"Executing activity: 2nd Sentiment")
+        logger.info("Executing activity: %s", "2nd Sentiment")
         
         # Get workflow data from global storage
         workflow_df = workflow_data.get('current')
@@ -460,18 +359,18 @@ def 2nd_sentiment_activity(ctx: WorkflowActivityContext, input_data: dict):
         return result
         
     except Exception as e:
-        logger.error(f"Activity 2nd Sentiment failed: {str(e)}")
+        logger.error("Activity %s failed: %s", "2nd Sentiment", str(e))
         return {
             'success': False,
             'error': str(e),
-            'step_name': '2nd Sentiment'
+            'step_name': "2nd Sentiment"
         }
 
-@wfr.activity(name='topics_activity')
+@wfr.activity(name="topics_activity")
 def topics_activity(ctx: WorkflowActivityContext, input_data: dict):
-    """Topics activity"""
+    """Activity for one workflow step."""
     try:
-        logger.info(f"Executing activity: Topics")
+        logger.info("Executing activity: %s", "Topics")
         
         # Get workflow data from global storage
         workflow_df = workflow_data.get('current')
@@ -530,18 +429,18 @@ def topics_activity(ctx: WorkflowActivityContext, input_data: dict):
         return result
         
     except Exception as e:
-        logger.error(f"Activity Topics failed: {str(e)}")
+        logger.error("Activity %s failed: %s", "Topics", str(e))
         return {
             'success': False,
             'error': str(e),
-            'step_name': 'Topics'
+            'step_name': "Topics"
         }
 
-@wfr.activity(name='cluster_activity')
+@wfr.activity(name="cluster_activity")
 def cluster_activity(ctx: WorkflowActivityContext, input_data: dict):
-    """Cluster activity"""
+    """Activity for one workflow step."""
     try:
-        logger.info(f"Executing activity: Cluster")
+        logger.info("Executing activity: %s", "Cluster")
         
         # Get workflow data from global storage
         workflow_df = workflow_data.get('current')
@@ -602,18 +501,18 @@ def cluster_activity(ctx: WorkflowActivityContext, input_data: dict):
         return result
         
     except Exception as e:
-        logger.error(f"Activity Cluster failed: {str(e)}")
+        logger.error("Activity %s failed: %s", "Cluster", str(e))
         return {
             'success': False,
             'error': str(e),
-            'step_name': 'Cluster'
+            'step_name': "Cluster"
         }
 
-@wfr.activity(name='dedupe_activity')
+@wfr.activity(name="dedupe_activity")
 def dedupe_activity(ctx: WorkflowActivityContext, input_data: dict):
-    """Dedupe activity"""
+    """Activity for one workflow step."""
     try:
-        logger.info(f"Executing activity: Dedupe")
+        logger.info("Executing activity: %s", "Dedupe")
         
         # Get workflow data from global storage
         workflow_df = workflow_data.get('current')
@@ -637,8 +536,8 @@ def dedupe_activity(ctx: WorkflowActivityContext, input_data: dict):
             polars_df = workflow_df
         
         # Get configuration from step config
-        columns_config = '["text"]'
-        keep_strategy = 'first'
+        columns_config = "[\\"text\\"]"
+        keep_strategy = "first"
         
         # Parse columns configuration
         import json
@@ -687,18 +586,18 @@ def dedupe_activity(ctx: WorkflowActivityContext, input_data: dict):
         return result
         
     except Exception as e:
-        logger.error(f"Activity Dedupe failed: {str(e)}")
+        logger.error("Activity %s failed: %s", "Dedupe", str(e))
         return {
             'success': False,
             'error': str(e),
-            'step_name': 'Dedupe'
+            'step_name': "Dedupe"
         }
 
-@wfr.activity(name='weird_step_activity')
+@wfr.activity(name="weird_step_activity")
 def weird_step_activity(ctx: WorkflowActivityContext, input_data: dict):
-    """Weird step activity"""
+    """Activity for one workflow step."""
     try:
-        logger.info(f"Executing activity: Weird step")
+        logger.info("Executing activity: %s", "Weird step")
         
         # Get workflow data from global storage
         workflow_df = workflow_data.get('current')
@@ -706,17 +605,17 @@ def weird_step_activity(ctx: WorkflowActivityContext, input_data: dict):
             raise Exception("No workflow data found - load_data must be called first")
         
         # Generic step implementation
-        logger.info(f"Executing generic step: weird")
+        logger.info("Executing generic step: %s", "filter_rows")
         
         result = {
             'success': True,
-            'step_type': 'weird',
+            'step_type': "filter_rows",
             'executed': True,
             'timestamp': datetime.now().isoformat(),
             'data_shape': list(workflow_df.shape) if workflow_df is not None else [0, 0]
         }
         
-        logger.info(f"Completed generic step: weird")
+        logger.info("Completed generic step: %s", "filter_rows")
         
         # Update global workflow data
         workflow_data['current'] = workflow_df
@@ -724,11 +623,11 @@ def weird_step_activity(ctx: WorkflowActivityContext, input_data: dict):
         return result
         
     except Exception as e:
-        logger.error(f"Activity Weird step failed: {str(e)}")
+        logger.error("Activity %s failed: %s", "Weird step", str(e))
         return {
             'success': False,
             'error': str(e),
-            'step_name': 'Weird step'
+            'step_name': "Weird step"
         }
 
 def main():
@@ -779,13 +678,7 @@ if __name__ == "__main__":
 
 exports[`pythonDaprWorkflowGenerator.generatePythonDaprWorkflow (generated output) > pins the generated script for a single clustering step 1`] = `
 "#!/usr/bin/env python3
-"""
-Generated Python Dapr Workflow: Step Under Test
-Description: A test workflow
-Generated at: 2026-01-02T03:04:05.000Z
-
-Pure Python Dapr SDK implementation based on official examples
-"""
+"""Generated Python Dapr workflow script (pure Dapr Python SDK)."""
 
 import asyncio
 import json
@@ -827,6 +720,11 @@ except LookupError:
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Workflow metadata. These are Python string literals rendered with JSON escaping, never raw text:
+# a workflow name or description cannot close the literal and inject code.
+WORKFLOW_NAME = "Step Under Test"
+WORKFLOW_DESCRIPTION = "A test workflow"
 
 # Global data storage for workflow
 workflow_data = {}
@@ -876,61 +774,6 @@ def load_data_activity(ctx: WorkflowActivityContext, input_data: Dict[str, Any])
 # All activities and workflow are defined within main() using decorators
 
 # ============================================================================
-# MAIN WORKFLOW SETUP
-# ============================================================================
-    """Main workflow function using Dapr Python SDK"""
-    try:
-        logger.info(f"Starting Dapr workflow: Step Under Test")
-        logger.info(f"Workflow instance ID: {ctx.instance_id}")
-        logger.info(f"Input data: {input_data}")
-        
-        # Step 1: Load data
-        logger.info("Executing activity: load_data")
-        load_result = yield ctx.call_activity(load_data_activity, input=input_data)
-        
-        if not load_result.get('success'):
-            raise Exception(f"Failed to load data: {load_result.get('error')}")
-        
-        results = {'load_data': load_result}
-        
-        # Execute workflow steps in order
-        # Step 1: My Step 1
-        logger.info("Executing step: My Step 1")
-        step_result = yield ctx.call_activity('my_step_1_activity', input=input_data)
-        
-        if not step_result.get('success'):
-            raise Exception(f"Step My Step 1 failed: {step_result.get('error')}")
-        
-        results['s1'] = step_result
-        
-        # Generate final results
-        final_results = {
-            'success': True,
-            'workflow_name': 'Step Under Test',
-            'instance_id': ctx.instance_id,
-            'results': results,
-            'processed_records': load_result.get('records_loaded', 0),
-            'completed_at': datetime.now().isoformat(),
-            'execution_summary': {
-                'steps_completed': len(results),
-                'workflow_pattern': 'python_dapr_sdk'
-            }
-        }
-        
-        logger.info("Workflow execution completed successfully")
-        return final_results
-        
-    except Exception as e:
-        logger.error(f"Workflow execution failed: {str(e)}")
-        logger.error(traceback.format_exc())
-        return {
-            'success': False,
-            'error': str(e),
-            'traceback': traceback.format_exc(),
-            'completed_at': datetime.now().isoformat()
-        }
-
-# ============================================================================
 # DAPR WORKFLOW SETUP - Following Official Python SDK Examples
 # ============================================================================
 
@@ -943,7 +786,7 @@ wfr = WorkflowRuntime()
 def stepUnderTest(ctx: DaprWorkflowContext, input_data: dict):
     """Main workflow function using Dapr Python SDK"""
     try:
-        logger.info(f"Starting Dapr workflow: Step Under Test")
+        logger.info("Starting Dapr workflow: %s", WORKFLOW_NAME)
         logger.info(f"Workflow instance ID: {ctx.instance_id}")
         logger.info(f"Input data: {input_data}")
         
@@ -957,19 +800,19 @@ def stepUnderTest(ctx: DaprWorkflowContext, input_data: dict):
         results = {'load_data': load_result}
         
         # Execute workflow steps in order
-        # Step 1: My Step 1
-        logger.info("Executing step: My Step 1")
-        step_result = yield ctx.call_activity('my_step_1_activity', input=input_data)
+        # Step 1
+        logger.info("Executing step: %s", "My Step 1")
+        step_result = yield ctx.call_activity("my_step_1_activity", input=input_data)
         
         if not step_result.get('success'):
-            raise Exception(f"Step My Step 1 failed: {step_result.get('error')}")
+            raise Exception("Step %s failed: %s" % ("My Step 1", step_result.get('error')))
         
-        results['s1'] = step_result
+        results["s1"] = step_result
         
         # Generate final results
         final_results = {
             'success': True,
-            'workflow_name': 'Step Under Test',
+            'workflow_name': WORKFLOW_NAME,
             'instance_id': ctx.instance_id,
             'results': results,
             'processed_records': load_result.get('records_loaded', 0),
@@ -1033,11 +876,11 @@ def load_data_activity(ctx: WorkflowActivityContext, input_data: dict):
             'error': str(e)
         }
 
-@wfr.activity(name='my_step_1_activity')
+@wfr.activity(name="my_step_1_activity")
 def my_step_1_activity(ctx: WorkflowActivityContext, input_data: dict):
-    """does a thing activity"""
+    """Activity for one workflow step."""
     try:
-        logger.info(f"Executing activity: My Step 1")
+        logger.info("Executing activity: %s", "My Step 1")
         
         # Get workflow data from global storage
         workflow_df = workflow_data.get('current')
@@ -1098,11 +941,11 @@ def my_step_1_activity(ctx: WorkflowActivityContext, input_data: dict):
         return result
         
     except Exception as e:
-        logger.error(f"Activity My Step 1 failed: {str(e)}")
+        logger.error("Activity %s failed: %s", "My Step 1", str(e))
         return {
             'success': False,
             'error': str(e),
-            'step_name': 'My Step 1'
+            'step_name': "My Step 1"
         }
 
 def main():
@@ -1151,15 +994,9 @@ if __name__ == "__main__":
 "
 `;
 
-exports[`pythonDaprWorkflowGenerator.generatePythonDaprWorkflow (generated output) > pins the generated script for a single custom_unknown step 1`] = `
+exports[`pythonDaprWorkflowGenerator.generatePythonDaprWorkflow (generated output) > pins the generated script for a single handle_missing step 1`] = `
 "#!/usr/bin/env python3
-"""
-Generated Python Dapr Workflow: Step Under Test
-Description: A test workflow
-Generated at: 2026-01-02T03:04:05.000Z
-
-Pure Python Dapr SDK implementation based on official examples
-"""
+"""Generated Python Dapr workflow script (pure Dapr Python SDK)."""
 
 import asyncio
 import json
@@ -1201,6 +1038,11 @@ except LookupError:
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Workflow metadata. These are Python string literals rendered with JSON escaping, never raw text:
+# a workflow name or description cannot close the literal and inject code.
+WORKFLOW_NAME = "Step Under Test"
+WORKFLOW_DESCRIPTION = "A test workflow"
 
 # Global data storage for workflow
 workflow_data = {}
@@ -1250,61 +1092,6 @@ def load_data_activity(ctx: WorkflowActivityContext, input_data: Dict[str, Any])
 # All activities and workflow are defined within main() using decorators
 
 # ============================================================================
-# MAIN WORKFLOW SETUP
-# ============================================================================
-    """Main workflow function using Dapr Python SDK"""
-    try:
-        logger.info(f"Starting Dapr workflow: Step Under Test")
-        logger.info(f"Workflow instance ID: {ctx.instance_id}")
-        logger.info(f"Input data: {input_data}")
-        
-        # Step 1: Load data
-        logger.info("Executing activity: load_data")
-        load_result = yield ctx.call_activity(load_data_activity, input=input_data)
-        
-        if not load_result.get('success'):
-            raise Exception(f"Failed to load data: {load_result.get('error')}")
-        
-        results = {'load_data': load_result}
-        
-        # Execute workflow steps in order
-        # Step 1: My Step 1
-        logger.info("Executing step: My Step 1")
-        step_result = yield ctx.call_activity('my_step_1_activity', input=input_data)
-        
-        if not step_result.get('success'):
-            raise Exception(f"Step My Step 1 failed: {step_result.get('error')}")
-        
-        results['s1'] = step_result
-        
-        # Generate final results
-        final_results = {
-            'success': True,
-            'workflow_name': 'Step Under Test',
-            'instance_id': ctx.instance_id,
-            'results': results,
-            'processed_records': load_result.get('records_loaded', 0),
-            'completed_at': datetime.now().isoformat(),
-            'execution_summary': {
-                'steps_completed': len(results),
-                'workflow_pattern': 'python_dapr_sdk'
-            }
-        }
-        
-        logger.info("Workflow execution completed successfully")
-        return final_results
-        
-    except Exception as e:
-        logger.error(f"Workflow execution failed: {str(e)}")
-        logger.error(traceback.format_exc())
-        return {
-            'success': False,
-            'error': str(e),
-            'traceback': traceback.format_exc(),
-            'completed_at': datetime.now().isoformat()
-        }
-
-# ============================================================================
 # DAPR WORKFLOW SETUP - Following Official Python SDK Examples
 # ============================================================================
 
@@ -1317,7 +1104,7 @@ wfr = WorkflowRuntime()
 def stepUnderTest(ctx: DaprWorkflowContext, input_data: dict):
     """Main workflow function using Dapr Python SDK"""
     try:
-        logger.info(f"Starting Dapr workflow: Step Under Test")
+        logger.info("Starting Dapr workflow: %s", WORKFLOW_NAME)
         logger.info(f"Workflow instance ID: {ctx.instance_id}")
         logger.info(f"Input data: {input_data}")
         
@@ -1331,19 +1118,19 @@ def stepUnderTest(ctx: DaprWorkflowContext, input_data: dict):
         results = {'load_data': load_result}
         
         # Execute workflow steps in order
-        # Step 1: My Step 1
-        logger.info("Executing step: My Step 1")
-        step_result = yield ctx.call_activity('my_step_1_activity', input=input_data)
+        # Step 1
+        logger.info("Executing step: %s", "My Step 1")
+        step_result = yield ctx.call_activity("my_step_1_activity", input=input_data)
         
         if not step_result.get('success'):
-            raise Exception(f"Step My Step 1 failed: {step_result.get('error')}")
+            raise Exception("Step %s failed: %s" % ("My Step 1", step_result.get('error')))
         
-        results['s1'] = step_result
+        results["s1"] = step_result
         
         # Generate final results
         final_results = {
             'success': True,
-            'workflow_name': 'Step Under Test',
+            'workflow_name': WORKFLOW_NAME,
             'instance_id': ctx.instance_id,
             'results': results,
             'processed_records': load_result.get('records_loaded', 0),
@@ -1407,11 +1194,11 @@ def load_data_activity(ctx: WorkflowActivityContext, input_data: dict):
             'error': str(e)
         }
 
-@wfr.activity(name='my_step_1_activity')
+@wfr.activity(name="my_step_1_activity")
 def my_step_1_activity(ctx: WorkflowActivityContext, input_data: dict):
-    """does a thing activity"""
+    """Activity for one workflow step."""
     try:
-        logger.info(f"Executing activity: My Step 1")
+        logger.info("Executing activity: %s", "My Step 1")
         
         # Get workflow data from global storage
         workflow_df = workflow_data.get('current')
@@ -1419,17 +1206,17 @@ def my_step_1_activity(ctx: WorkflowActivityContext, input_data: dict):
             raise Exception("No workflow data found - load_data must be called first")
         
         # Generic step implementation
-        logger.info(f"Executing generic step: custom_unknown")
+        logger.info("Executing generic step: %s", "handle_missing")
         
         result = {
             'success': True,
-            'step_type': 'custom_unknown',
+            'step_type': "handle_missing",
             'executed': True,
             'timestamp': datetime.now().isoformat(),
             'data_shape': list(workflow_df.shape) if workflow_df is not None else [0, 0]
         }
         
-        logger.info(f"Completed generic step: custom_unknown")
+        logger.info("Completed generic step: %s", "handle_missing")
         
         # Update global workflow data
         workflow_data['current'] = workflow_df
@@ -1437,11 +1224,11 @@ def my_step_1_activity(ctx: WorkflowActivityContext, input_data: dict):
         return result
         
     except Exception as e:
-        logger.error(f"Activity My Step 1 failed: {str(e)}")
+        logger.error("Activity %s failed: %s", "My Step 1", str(e))
         return {
             'success': False,
             'error': str(e),
-            'step_name': 'My Step 1'
+            'step_name': "My Step 1"
         }
 
 def main():
@@ -1492,13 +1279,7 @@ if __name__ == "__main__":
 
 exports[`pythonDaprWorkflowGenerator.generatePythonDaprWorkflow (generated output) > pins the generated script for a single remove_duplicates step 1`] = `
 "#!/usr/bin/env python3
-"""
-Generated Python Dapr Workflow: Step Under Test
-Description: A test workflow
-Generated at: 2026-01-02T03:04:05.000Z
-
-Pure Python Dapr SDK implementation based on official examples
-"""
+"""Generated Python Dapr workflow script (pure Dapr Python SDK)."""
 
 import asyncio
 import json
@@ -1540,6 +1321,11 @@ except LookupError:
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Workflow metadata. These are Python string literals rendered with JSON escaping, never raw text:
+# a workflow name or description cannot close the literal and inject code.
+WORKFLOW_NAME = "Step Under Test"
+WORKFLOW_DESCRIPTION = "A test workflow"
 
 # Global data storage for workflow
 workflow_data = {}
@@ -1589,61 +1375,6 @@ def load_data_activity(ctx: WorkflowActivityContext, input_data: Dict[str, Any])
 # All activities and workflow are defined within main() using decorators
 
 # ============================================================================
-# MAIN WORKFLOW SETUP
-# ============================================================================
-    """Main workflow function using Dapr Python SDK"""
-    try:
-        logger.info(f"Starting Dapr workflow: Step Under Test")
-        logger.info(f"Workflow instance ID: {ctx.instance_id}")
-        logger.info(f"Input data: {input_data}")
-        
-        # Step 1: Load data
-        logger.info("Executing activity: load_data")
-        load_result = yield ctx.call_activity(load_data_activity, input=input_data)
-        
-        if not load_result.get('success'):
-            raise Exception(f"Failed to load data: {load_result.get('error')}")
-        
-        results = {'load_data': load_result}
-        
-        # Execute workflow steps in order
-        # Step 1: My Step 1
-        logger.info("Executing step: My Step 1")
-        step_result = yield ctx.call_activity('my_step_1_activity', input=input_data)
-        
-        if not step_result.get('success'):
-            raise Exception(f"Step My Step 1 failed: {step_result.get('error')}")
-        
-        results['s1'] = step_result
-        
-        # Generate final results
-        final_results = {
-            'success': True,
-            'workflow_name': 'Step Under Test',
-            'instance_id': ctx.instance_id,
-            'results': results,
-            'processed_records': load_result.get('records_loaded', 0),
-            'completed_at': datetime.now().isoformat(),
-            'execution_summary': {
-                'steps_completed': len(results),
-                'workflow_pattern': 'python_dapr_sdk'
-            }
-        }
-        
-        logger.info("Workflow execution completed successfully")
-        return final_results
-        
-    except Exception as e:
-        logger.error(f"Workflow execution failed: {str(e)}")
-        logger.error(traceback.format_exc())
-        return {
-            'success': False,
-            'error': str(e),
-            'traceback': traceback.format_exc(),
-            'completed_at': datetime.now().isoformat()
-        }
-
-# ============================================================================
 # DAPR WORKFLOW SETUP - Following Official Python SDK Examples
 # ============================================================================
 
@@ -1656,7 +1387,7 @@ wfr = WorkflowRuntime()
 def stepUnderTest(ctx: DaprWorkflowContext, input_data: dict):
     """Main workflow function using Dapr Python SDK"""
     try:
-        logger.info(f"Starting Dapr workflow: Step Under Test")
+        logger.info("Starting Dapr workflow: %s", WORKFLOW_NAME)
         logger.info(f"Workflow instance ID: {ctx.instance_id}")
         logger.info(f"Input data: {input_data}")
         
@@ -1670,19 +1401,19 @@ def stepUnderTest(ctx: DaprWorkflowContext, input_data: dict):
         results = {'load_data': load_result}
         
         # Execute workflow steps in order
-        # Step 1: My Step 1
-        logger.info("Executing step: My Step 1")
-        step_result = yield ctx.call_activity('my_step_1_activity', input=input_data)
+        # Step 1
+        logger.info("Executing step: %s", "My Step 1")
+        step_result = yield ctx.call_activity("my_step_1_activity", input=input_data)
         
         if not step_result.get('success'):
-            raise Exception(f"Step My Step 1 failed: {step_result.get('error')}")
+            raise Exception("Step %s failed: %s" % ("My Step 1", step_result.get('error')))
         
-        results['s1'] = step_result
+        results["s1"] = step_result
         
         # Generate final results
         final_results = {
             'success': True,
-            'workflow_name': 'Step Under Test',
+            'workflow_name': WORKFLOW_NAME,
             'instance_id': ctx.instance_id,
             'results': results,
             'processed_records': load_result.get('records_loaded', 0),
@@ -1746,11 +1477,11 @@ def load_data_activity(ctx: WorkflowActivityContext, input_data: dict):
             'error': str(e)
         }
 
-@wfr.activity(name='my_step_1_activity')
+@wfr.activity(name="my_step_1_activity")
 def my_step_1_activity(ctx: WorkflowActivityContext, input_data: dict):
-    """does a thing activity"""
+    """Activity for one workflow step."""
     try:
-        logger.info(f"Executing activity: My Step 1")
+        logger.info("Executing activity: %s", "My Step 1")
         
         # Get workflow data from global storage
         workflow_df = workflow_data.get('current')
@@ -1774,8 +1505,8 @@ def my_step_1_activity(ctx: WorkflowActivityContext, input_data: dict):
             polars_df = workflow_df
         
         # Get configuration from step config
-        columns_config = '["a","b"]'
-        keep_strategy = 'last'
+        columns_config = "[\\"a\\",\\"b\\"]"
+        keep_strategy = "last"
         
         # Parse columns configuration
         import json
@@ -1824,11 +1555,11 @@ def my_step_1_activity(ctx: WorkflowActivityContext, input_data: dict):
         return result
         
     except Exception as e:
-        logger.error(f"Activity My Step 1 failed: {str(e)}")
+        logger.error("Activity %s failed: %s", "My Step 1", str(e))
         return {
             'success': False,
             'error': str(e),
-            'step_name': 'My Step 1'
+            'step_name': "My Step 1"
         }
 
 def main():
@@ -1879,13 +1610,7 @@ if __name__ == "__main__":
 
 exports[`pythonDaprWorkflowGenerator.generatePythonDaprWorkflow (generated output) > pins the generated script for a single sentiment_analysis step 1`] = `
 "#!/usr/bin/env python3
-"""
-Generated Python Dapr Workflow: Step Under Test
-Description: A test workflow
-Generated at: 2026-01-02T03:04:05.000Z
-
-Pure Python Dapr SDK implementation based on official examples
-"""
+"""Generated Python Dapr workflow script (pure Dapr Python SDK)."""
 
 import asyncio
 import json
@@ -1927,6 +1652,11 @@ except LookupError:
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Workflow metadata. These are Python string literals rendered with JSON escaping, never raw text:
+# a workflow name or description cannot close the literal and inject code.
+WORKFLOW_NAME = "Step Under Test"
+WORKFLOW_DESCRIPTION = "A test workflow"
 
 # Global data storage for workflow
 workflow_data = {}
@@ -1976,61 +1706,6 @@ def load_data_activity(ctx: WorkflowActivityContext, input_data: Dict[str, Any])
 # All activities and workflow are defined within main() using decorators
 
 # ============================================================================
-# MAIN WORKFLOW SETUP
-# ============================================================================
-    """Main workflow function using Dapr Python SDK"""
-    try:
-        logger.info(f"Starting Dapr workflow: Step Under Test")
-        logger.info(f"Workflow instance ID: {ctx.instance_id}")
-        logger.info(f"Input data: {input_data}")
-        
-        # Step 1: Load data
-        logger.info("Executing activity: load_data")
-        load_result = yield ctx.call_activity(load_data_activity, input=input_data)
-        
-        if not load_result.get('success'):
-            raise Exception(f"Failed to load data: {load_result.get('error')}")
-        
-        results = {'load_data': load_result}
-        
-        # Execute workflow steps in order
-        # Step 1: My Step 1
-        logger.info("Executing step: My Step 1")
-        step_result = yield ctx.call_activity('my_step_1_activity', input=input_data)
-        
-        if not step_result.get('success'):
-            raise Exception(f"Step My Step 1 failed: {step_result.get('error')}")
-        
-        results['s1'] = step_result
-        
-        # Generate final results
-        final_results = {
-            'success': True,
-            'workflow_name': 'Step Under Test',
-            'instance_id': ctx.instance_id,
-            'results': results,
-            'processed_records': load_result.get('records_loaded', 0),
-            'completed_at': datetime.now().isoformat(),
-            'execution_summary': {
-                'steps_completed': len(results),
-                'workflow_pattern': 'python_dapr_sdk'
-            }
-        }
-        
-        logger.info("Workflow execution completed successfully")
-        return final_results
-        
-    except Exception as e:
-        logger.error(f"Workflow execution failed: {str(e)}")
-        logger.error(traceback.format_exc())
-        return {
-            'success': False,
-            'error': str(e),
-            'traceback': traceback.format_exc(),
-            'completed_at': datetime.now().isoformat()
-        }
-
-# ============================================================================
 # DAPR WORKFLOW SETUP - Following Official Python SDK Examples
 # ============================================================================
 
@@ -2043,7 +1718,7 @@ wfr = WorkflowRuntime()
 def stepUnderTest(ctx: DaprWorkflowContext, input_data: dict):
     """Main workflow function using Dapr Python SDK"""
     try:
-        logger.info(f"Starting Dapr workflow: Step Under Test")
+        logger.info("Starting Dapr workflow: %s", WORKFLOW_NAME)
         logger.info(f"Workflow instance ID: {ctx.instance_id}")
         logger.info(f"Input data: {input_data}")
         
@@ -2057,19 +1732,19 @@ def stepUnderTest(ctx: DaprWorkflowContext, input_data: dict):
         results = {'load_data': load_result}
         
         # Execute workflow steps in order
-        # Step 1: My Step 1
-        logger.info("Executing step: My Step 1")
-        step_result = yield ctx.call_activity('my_step_1_activity', input=input_data)
+        # Step 1
+        logger.info("Executing step: %s", "My Step 1")
+        step_result = yield ctx.call_activity("my_step_1_activity", input=input_data)
         
         if not step_result.get('success'):
-            raise Exception(f"Step My Step 1 failed: {step_result.get('error')}")
+            raise Exception("Step %s failed: %s" % ("My Step 1", step_result.get('error')))
         
-        results['s1'] = step_result
+        results["s1"] = step_result
         
         # Generate final results
         final_results = {
             'success': True,
-            'workflow_name': 'Step Under Test',
+            'workflow_name': WORKFLOW_NAME,
             'instance_id': ctx.instance_id,
             'results': results,
             'processed_records': load_result.get('records_loaded', 0),
@@ -2133,11 +1808,11 @@ def load_data_activity(ctx: WorkflowActivityContext, input_data: dict):
             'error': str(e)
         }
 
-@wfr.activity(name='my_step_1_activity')
+@wfr.activity(name="my_step_1_activity")
 def my_step_1_activity(ctx: WorkflowActivityContext, input_data: dict):
-    """does a thing activity"""
+    """Activity for one workflow step."""
     try:
-        logger.info(f"Executing activity: My Step 1")
+        logger.info("Executing activity: %s", "My Step 1")
         
         # Get workflow data from global storage
         workflow_df = workflow_data.get('current')
@@ -2198,11 +1873,11 @@ def my_step_1_activity(ctx: WorkflowActivityContext, input_data: dict):
         return result
         
     except Exception as e:
-        logger.error(f"Activity My Step 1 failed: {str(e)}")
+        logger.error("Activity %s failed: %s", "My Step 1", str(e))
         return {
             'success': False,
             'error': str(e),
-            'step_name': 'My Step 1'
+            'step_name': "My Step 1"
         }
 
 def main():
@@ -2253,13 +1928,7 @@ if __name__ == "__main__":
 
 exports[`pythonDaprWorkflowGenerator.generatePythonDaprWorkflow (generated output) > pins the generated script for a single text_preprocessing step 1`] = `
 "#!/usr/bin/env python3
-"""
-Generated Python Dapr Workflow: Step Under Test
-Description: A test workflow
-Generated at: 2026-01-02T03:04:05.000Z
-
-Pure Python Dapr SDK implementation based on official examples
-"""
+"""Generated Python Dapr workflow script (pure Dapr Python SDK)."""
 
 import asyncio
 import json
@@ -2301,6 +1970,11 @@ except LookupError:
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Workflow metadata. These are Python string literals rendered with JSON escaping, never raw text:
+# a workflow name or description cannot close the literal and inject code.
+WORKFLOW_NAME = "Step Under Test"
+WORKFLOW_DESCRIPTION = "A test workflow"
 
 # Global data storage for workflow
 workflow_data = {}
@@ -2350,61 +2024,6 @@ def load_data_activity(ctx: WorkflowActivityContext, input_data: Dict[str, Any])
 # All activities and workflow are defined within main() using decorators
 
 # ============================================================================
-# MAIN WORKFLOW SETUP
-# ============================================================================
-    """Main workflow function using Dapr Python SDK"""
-    try:
-        logger.info(f"Starting Dapr workflow: Step Under Test")
-        logger.info(f"Workflow instance ID: {ctx.instance_id}")
-        logger.info(f"Input data: {input_data}")
-        
-        # Step 1: Load data
-        logger.info("Executing activity: load_data")
-        load_result = yield ctx.call_activity(load_data_activity, input=input_data)
-        
-        if not load_result.get('success'):
-            raise Exception(f"Failed to load data: {load_result.get('error')}")
-        
-        results = {'load_data': load_result}
-        
-        # Execute workflow steps in order
-        # Step 1: My Step 1
-        logger.info("Executing step: My Step 1")
-        step_result = yield ctx.call_activity('my_step_1_activity', input=input_data)
-        
-        if not step_result.get('success'):
-            raise Exception(f"Step My Step 1 failed: {step_result.get('error')}")
-        
-        results['s1'] = step_result
-        
-        # Generate final results
-        final_results = {
-            'success': True,
-            'workflow_name': 'Step Under Test',
-            'instance_id': ctx.instance_id,
-            'results': results,
-            'processed_records': load_result.get('records_loaded', 0),
-            'completed_at': datetime.now().isoformat(),
-            'execution_summary': {
-                'steps_completed': len(results),
-                'workflow_pattern': 'python_dapr_sdk'
-            }
-        }
-        
-        logger.info("Workflow execution completed successfully")
-        return final_results
-        
-    except Exception as e:
-        logger.error(f"Workflow execution failed: {str(e)}")
-        logger.error(traceback.format_exc())
-        return {
-            'success': False,
-            'error': str(e),
-            'traceback': traceback.format_exc(),
-            'completed_at': datetime.now().isoformat()
-        }
-
-# ============================================================================
 # DAPR WORKFLOW SETUP - Following Official Python SDK Examples
 # ============================================================================
 
@@ -2417,7 +2036,7 @@ wfr = WorkflowRuntime()
 def stepUnderTest(ctx: DaprWorkflowContext, input_data: dict):
     """Main workflow function using Dapr Python SDK"""
     try:
-        logger.info(f"Starting Dapr workflow: Step Under Test")
+        logger.info("Starting Dapr workflow: %s", WORKFLOW_NAME)
         logger.info(f"Workflow instance ID: {ctx.instance_id}")
         logger.info(f"Input data: {input_data}")
         
@@ -2431,19 +2050,19 @@ def stepUnderTest(ctx: DaprWorkflowContext, input_data: dict):
         results = {'load_data': load_result}
         
         # Execute workflow steps in order
-        # Step 1: My Step 1
-        logger.info("Executing step: My Step 1")
-        step_result = yield ctx.call_activity('my_step_1_activity', input=input_data)
+        # Step 1
+        logger.info("Executing step: %s", "My Step 1")
+        step_result = yield ctx.call_activity("my_step_1_activity", input=input_data)
         
         if not step_result.get('success'):
-            raise Exception(f"Step My Step 1 failed: {step_result.get('error')}")
+            raise Exception("Step %s failed: %s" % ("My Step 1", step_result.get('error')))
         
-        results['s1'] = step_result
+        results["s1"] = step_result
         
         # Generate final results
         final_results = {
             'success': True,
-            'workflow_name': 'Step Under Test',
+            'workflow_name': WORKFLOW_NAME,
             'instance_id': ctx.instance_id,
             'results': results,
             'processed_records': load_result.get('records_loaded', 0),
@@ -2507,11 +2126,11 @@ def load_data_activity(ctx: WorkflowActivityContext, input_data: dict):
             'error': str(e)
         }
 
-@wfr.activity(name='my_step_1_activity')
+@wfr.activity(name="my_step_1_activity")
 def my_step_1_activity(ctx: WorkflowActivityContext, input_data: dict):
-    """does a thing activity"""
+    """Activity for one workflow step."""
     try:
-        logger.info(f"Executing activity: My Step 1")
+        logger.info("Executing activity: %s", "My Step 1")
         
         # Get workflow data from global storage
         workflow_df = workflow_data.get('current')
@@ -2549,11 +2168,11 @@ def my_step_1_activity(ctx: WorkflowActivityContext, input_data: dict):
         return result
         
     except Exception as e:
-        logger.error(f"Activity My Step 1 failed: {str(e)}")
+        logger.error("Activity %s failed: %s", "My Step 1", str(e))
         return {
             'success': False,
             'error': str(e),
-            'step_name': 'My Step 1'
+            'step_name': "My Step 1"
         }
 
 def main():
@@ -2604,13 +2223,7 @@ if __name__ == "__main__":
 
 exports[`pythonDaprWorkflowGenerator.generatePythonDaprWorkflow (generated output) > pins the generated script for a single topic_modeling step 1`] = `
 "#!/usr/bin/env python3
-"""
-Generated Python Dapr Workflow: Step Under Test
-Description: A test workflow
-Generated at: 2026-01-02T03:04:05.000Z
-
-Pure Python Dapr SDK implementation based on official examples
-"""
+"""Generated Python Dapr workflow script (pure Dapr Python SDK)."""
 
 import asyncio
 import json
@@ -2652,6 +2265,11 @@ except LookupError:
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Workflow metadata. These are Python string literals rendered with JSON escaping, never raw text:
+# a workflow name or description cannot close the literal and inject code.
+WORKFLOW_NAME = "Step Under Test"
+WORKFLOW_DESCRIPTION = "A test workflow"
 
 # Global data storage for workflow
 workflow_data = {}
@@ -2701,61 +2319,6 @@ def load_data_activity(ctx: WorkflowActivityContext, input_data: Dict[str, Any])
 # All activities and workflow are defined within main() using decorators
 
 # ============================================================================
-# MAIN WORKFLOW SETUP
-# ============================================================================
-    """Main workflow function using Dapr Python SDK"""
-    try:
-        logger.info(f"Starting Dapr workflow: Step Under Test")
-        logger.info(f"Workflow instance ID: {ctx.instance_id}")
-        logger.info(f"Input data: {input_data}")
-        
-        # Step 1: Load data
-        logger.info("Executing activity: load_data")
-        load_result = yield ctx.call_activity(load_data_activity, input=input_data)
-        
-        if not load_result.get('success'):
-            raise Exception(f"Failed to load data: {load_result.get('error')}")
-        
-        results = {'load_data': load_result}
-        
-        # Execute workflow steps in order
-        # Step 1: My Step 1
-        logger.info("Executing step: My Step 1")
-        step_result = yield ctx.call_activity('my_step_1_activity', input=input_data)
-        
-        if not step_result.get('success'):
-            raise Exception(f"Step My Step 1 failed: {step_result.get('error')}")
-        
-        results['s1'] = step_result
-        
-        # Generate final results
-        final_results = {
-            'success': True,
-            'workflow_name': 'Step Under Test',
-            'instance_id': ctx.instance_id,
-            'results': results,
-            'processed_records': load_result.get('records_loaded', 0),
-            'completed_at': datetime.now().isoformat(),
-            'execution_summary': {
-                'steps_completed': len(results),
-                'workflow_pattern': 'python_dapr_sdk'
-            }
-        }
-        
-        logger.info("Workflow execution completed successfully")
-        return final_results
-        
-    except Exception as e:
-        logger.error(f"Workflow execution failed: {str(e)}")
-        logger.error(traceback.format_exc())
-        return {
-            'success': False,
-            'error': str(e),
-            'traceback': traceback.format_exc(),
-            'completed_at': datetime.now().isoformat()
-        }
-
-# ============================================================================
 # DAPR WORKFLOW SETUP - Following Official Python SDK Examples
 # ============================================================================
 
@@ -2768,7 +2331,7 @@ wfr = WorkflowRuntime()
 def stepUnderTest(ctx: DaprWorkflowContext, input_data: dict):
     """Main workflow function using Dapr Python SDK"""
     try:
-        logger.info(f"Starting Dapr workflow: Step Under Test")
+        logger.info("Starting Dapr workflow: %s", WORKFLOW_NAME)
         logger.info(f"Workflow instance ID: {ctx.instance_id}")
         logger.info(f"Input data: {input_data}")
         
@@ -2782,19 +2345,19 @@ def stepUnderTest(ctx: DaprWorkflowContext, input_data: dict):
         results = {'load_data': load_result}
         
         # Execute workflow steps in order
-        # Step 1: My Step 1
-        logger.info("Executing step: My Step 1")
-        step_result = yield ctx.call_activity('my_step_1_activity', input=input_data)
+        # Step 1
+        logger.info("Executing step: %s", "My Step 1")
+        step_result = yield ctx.call_activity("my_step_1_activity", input=input_data)
         
         if not step_result.get('success'):
-            raise Exception(f"Step My Step 1 failed: {step_result.get('error')}")
+            raise Exception("Step %s failed: %s" % ("My Step 1", step_result.get('error')))
         
-        results['s1'] = step_result
+        results["s1"] = step_result
         
         # Generate final results
         final_results = {
             'success': True,
-            'workflow_name': 'Step Under Test',
+            'workflow_name': WORKFLOW_NAME,
             'instance_id': ctx.instance_id,
             'results': results,
             'processed_records': load_result.get('records_loaded', 0),
@@ -2858,11 +2421,11 @@ def load_data_activity(ctx: WorkflowActivityContext, input_data: dict):
             'error': str(e)
         }
 
-@wfr.activity(name='my_step_1_activity')
+@wfr.activity(name="my_step_1_activity")
 def my_step_1_activity(ctx: WorkflowActivityContext, input_data: dict):
-    """does a thing activity"""
+    """Activity for one workflow step."""
     try:
-        logger.info(f"Executing activity: My Step 1")
+        logger.info("Executing activity: %s", "My Step 1")
         
         # Get workflow data from global storage
         workflow_df = workflow_data.get('current')
@@ -2921,11 +2484,11 @@ def my_step_1_activity(ctx: WorkflowActivityContext, input_data: dict):
         return result
         
     except Exception as e:
-        logger.error(f"Activity My Step 1 failed: {str(e)}")
+        logger.error("Activity %s failed: %s", "My Step 1", str(e))
         return {
             'success': False,
             'error': str(e),
-            'step_name': 'My Step 1'
+            'step_name': "My Step 1"
         }
 
 def main():

@@ -1,6 +1,9 @@
 // Python source for each workflow step type. The returned strings are spliced
-// into the generated activity bodies, so their whitespace is load-bearing.
+// into the generated activity bodies, so their whitespace is load-bearing. Every workflow-provided
+// value is emitted as a Python string literal (see pythonDaprSafety); step types and keep
+// strategies are allow-listed there before any code is generated.
 
+import { pythonStringLiteral } from './pythonDaprSafety';
 import type { WorkflowStep } from './pythonDaprWorkflowTypes';
 
 /**
@@ -197,8 +200,8 @@ export function generatePythonStepImplementation(step: WorkflowStep): string {
             polars_df = workflow_df
         
         # Get configuration from step config
-        columns_config = '${JSON.stringify(step.config.columns || [])}'
-        keep_strategy = '${step.config.keep || 'first'}'
+        columns_config = ${pythonStringLiteral(JSON.stringify(step.config.columns ?? []))}
+        keep_strategy = ${pythonStringLiteral(step.config.keep ?? 'first')}
         
         # Parse columns configuration
         import json
@@ -243,16 +246,16 @@ export function generatePythonStepImplementation(step: WorkflowStep): string {
 
       default:
         return `# Generic step implementation
-        logger.info(f"Executing generic step: ${step.type}")
+        logger.info("Executing generic step: %s", ${pythonStringLiteral(step.type)})
         
         result = {
             'success': True,
-            'step_type': '${step.type}',
+            'step_type': ${pythonStringLiteral(step.type)},
             'executed': True,
             'timestamp': datetime.now().isoformat(),
             'data_shape': list(workflow_df.shape) if workflow_df is not None else [0, 0]
         }
         
-        logger.info(f"Completed generic step: ${step.type}")`;
+        logger.info("Completed generic step: %s", ${pythonStringLiteral(step.type)})`;
     }
 }
