@@ -1,4 +1,6 @@
-FROM python:3.14-slim
+# Digest-pinned base image (multi-arch index digest; bump deliberately — the jupyter.yml workflow
+# builds this image on every change).
+FROM python:3.14-slim@sha256:22eafb370920ad8b429e0aec3fff433e0669968519f5d60469d83729c138b28b
 
 # Jupyter runs notebooks, which are arbitrary code with the database credentials, so it must not be root.
 # 1000:1000 is the usual first user on a Linux host; change both numbers if your bind mount is owned by

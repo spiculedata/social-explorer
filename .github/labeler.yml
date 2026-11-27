@@ -26,6 +26,8 @@ dependencies:
           - "ex-accell-ui/pyproject.toml"
           - "ex-accell-ui/poetry.lock"
           - "**/requirements*.txt"
+          - "etl/requirements.lock"
+          - "wavepulse/requirements.lock"
           - "jupyter/requirements.lock"
 
 github_actions:

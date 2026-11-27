@@ -1,0 +1,15 @@
+# Build-context hygiene: a local build must not bake collected data or local environment files
+# into the image (issue #382). Everything else still reaches the image via COPY . .
+data/
+**/data/
+.env
+.env.*
+**/.env
+**/.env.*
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+.git/

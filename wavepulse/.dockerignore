@@ -1,0 +1,16 @@
+# Build-context hygiene: a local build must not bake recorded radio data or local environment
+# files into the image (issue #382). Only src/, assets/, api_server.py and local_classifier.py
+# are copied, but the ignore list still keeps the context small.
+data/
+**/data/
+.env
+.env.*
+**/.env
+**/.env.*
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+.git/

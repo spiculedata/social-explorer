@@ -1,0 +1,29 @@
+{
+  "issue": 382,
+  "title": "Containers run as root, tags and Python dependencies are unpinned, no .dockerignore for etl and wavepulse",
+  "kind": "command",
+  "criteria": [
+    {
+      "id": "C1",
+      "given": "the etl, wavepulse and ex-accell-ui images are built",
+      "then": "each Dockerfile's runtime stage declares a non-root USER before its CMD, and the Images workflow builds all three images (its build is the smoke check)"
+    },
+    {
+      "id": "C2",
+      "given": "the etl/ and wavepulse/ build contexts are used for a docker build",
+      "then": "each has a .dockerignore that excludes the local data/ directory and .env* files"
+    },
+    {
+      "id": "C3",
+      "given": "docker-compose.yml names a third-party registry image (not a ${REGISTRY} local build ref)",
+      "then": "the image is pinned by digest with an @sha256: reference"
+    },
+    {
+      "id": "C4",
+      "given": "the ETL and WavePulse images are built",
+      "then": "each copies a requirements.lock into the image and installs its requirements with that file as a pip constraints file, and both lock files are fully pinned (every package line is ==)"
+    }
+  ],
+  "command": ["node", "acceptance/382/check.mjs"],
+  "timeoutSeconds": 120
+}

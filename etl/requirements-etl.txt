@@ -21,4 +21,4 @@ open-clip-torch>=4.2.2
 insightface>=2.1
 onnxruntime>=1.18.0
 paddleocr>=2.7.0,<3.0.0
-paddlepaddle>=2.6.0,<3.0.0
+paddlepaddle>=3.0.0b0,<4

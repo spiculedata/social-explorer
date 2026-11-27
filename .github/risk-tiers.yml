@@ -148,6 +148,10 @@ tiers:
         why: The resolved Python dependency tree.
       - match: "**/requirements*.txt"
         why: Pinned Python dependencies of the ETL, Jupyter and radio images.
+      - match: etl/requirements.lock
+        why: The resolved ETL image dependency tree.
+      - match: wavepulse/requirements.lock
+        why: The resolved WavePulse image dependency tree.
       - match: jupyter/requirements.lock
         why: The resolved Jupyter image dependency tree.
       - match: "**/Dockerfile"

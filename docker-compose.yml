@@ -21,7 +21,9 @@ services:
 
   # ─── Redis (Dapr state store + pub/sub) ──────────────────────────────────────
   redis:
-    image: redis:7-alpine
+    # Digest of 7-alpine, verified against Docker Hub; bump it deliberately (docker compose pulls
+    # the exact digest, so `docker compose pull` never moves it under you)
+    image: redis:7-alpine@sha256:7f7d30b7fdd09467bac58198a1f166dd69789d348d4fe859cccb20e0cf287fbe
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -35,7 +37,8 @@ services:
 
   # ─── Dapr placement service ───────────────────────────────────────────────────
   dapr-placement:
-    image: daprio/dapr:1.14.4
+    # Digest of 1.14.4, verified against Docker Hub; bump it deliberately (same as postgres above)
+    image: daprio/dapr:1.14.4@sha256:54a55717f86eaad839ce833004c6c4040b5ed614eb99ace97ca2930b8b46ec16
     command: ["./placement", "-port", "50006", "-log-level", "warn"]
     ports:
       - "50006:50006"
@@ -108,7 +111,8 @@ services:
 
   # Dapr sidecar for UI — shares network namespace with ui container
   ui-dapr:
-    image: daprio/daprd:1.14.4
+    # Digest of 1.14.4, verified against Docker Hub; bump it deliberately (same as postgres above)
+    image: daprio/daprd:1.14.4@sha256:0cee5f3a2f89aa92a0f59883c17c0ec797c3de79b2a7f4c509917517898c117e
     command: [
       "./daprd",
       "--app-id", "ex-accell-ui",
@@ -130,7 +134,9 @@ services:
 
   # ─── Ollama (Local LLM) ──────────────────────────────────────────────────────
   ollama:
-    image: ollama/ollama:latest
+    # `latest` is not reproducible; the digest pins what this compose file was last used with. Bump
+    # it deliberately with `docker buildx imagetools inspect ollama/ollama:latest` (same as postgres).
+    image: ollama/ollama:latest@sha256:1cabd20e1762a7a8444bf4a7110b346d923cd77ab6c97c984434140638c913ec
     restart: unless-stopped
     ports:
       - "11434:11434"
@@ -214,11 +220,23 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      wavepulse-init:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8890/health"]
       interval: 30s
       timeout: 5s
       retries: 3
+
+  # Docker creates a missing ${DATA_DIR}/wavepulse as root, but WavePulse runs as uid 1000. This
+  # one-shot step hands the folder to that user, then exits. (Same pattern as jupyter-init above.)
+  wavepulse-init:
+    image: ${REGISTRY:-local}/wavepulse:${TAG:-latest}
+    user: "0:0"
+    entrypoint: ["chown", "-R", "1000:1000", "/app/data"]
+    restart: "no"
+    volumes:
+      - ${DATA_DIR:-/data}/wavepulse:/app/data
 
   # ─── Social Crawler (Telegram/YouTube/Bluesky) ───────────────────────────────
   crawler:
@@ -256,9 +274,21 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      etl-init:
+        condition: service_completed_successfully
     profiles:
       - etl  # only starts when: docker compose --profile etl up
     restart: "no"
+
+  # Docker creates a missing ${DATA_DIR}/gdelt_raw as root, but the ETL image runs as uid 1000.
+  # This one-shot step hands the folder to that user, then exits. (Same pattern as jupyter-init.)
+  etl-init:
+    image: ${REGISTRY:-local}/etl:${TAG:-latest}
+    user: "0:0"
+    entrypoint: ["chown", "-R", "1000:1000", "/app/data/gdelt_raw"]
+    restart: "no"
+    volumes:
+      - ${DATA_DIR:-/data}/gdelt_raw:/app/data/gdelt_raw
 
   # ─── Image Processing Worker ─────────────────────────────────────────────────
   image-worker:
@@ -289,7 +319,7 @@ services:
   #   restart: unless-stopped
   #
   # telegram-scraper-dapr:
-  #   image: daprio/daprd:1.14.4
+  #   image: daprio/daprd:1.14.4@sha256:0cee5f3a2f89aa92a0f59883c17c0ec797c3de79b2a7f4c509917517898c117e
   #   command: [
   #     "./daprd",
   #     "--app-id", "telegram-scraper",
