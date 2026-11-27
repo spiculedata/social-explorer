@@ -17,10 +17,11 @@ import logging
 import os
 import sys
 from datetime import datetime
-from pathlib import Path
 
 import psycopg2
+from psycopg2 import sql
 from db_config import get_connection_context
+from sql_utils import qualified, safe_filename, safe_output_path, slug_filename
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -82,7 +83,7 @@ def infer_schema_from_table(table_name: str, schema_name: str = 'public') -> dic
                 FROM pg_index i
                 JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)
                 WHERE i.indrelid = %s::regclass AND i.indisprimary
-            """, [f"{schema_name}.{table_name}"])
+            """, ['.'.join([schema_name, table_name])])
             pk_cols = [row[0] for row in cur.fetchall()]
 
     schema = {'fields': fields}
@@ -96,7 +97,8 @@ def get_row_count(table_name: str, schema_name: str = 'public') -> int:
     """Get row count for a table."""
     with get_connection_context() as conn:
         with conn.cursor() as cur:
-            cur.execute(f"SELECT COUNT(*) FROM {schema_name}.{table_name}")
+            cur.execute(sql.SQL("SELECT COUNT(*) FROM {}").format(
+                qualified(schema_name, table_name)))
             return cur.fetchone()[0]
 
 
@@ -104,7 +106,8 @@ def extract_preview(table_name: str, schema_name: str = 'public', limit: int = 1
     """Extract preview rows from a table."""
     with get_connection_context() as conn:
         with conn.cursor() as cur:
-            cur.execute(f"SELECT * FROM {schema_name}.{table_name} LIMIT %s", [limit])
+            cur.execute(sql.SQL("SELECT * FROM {} LIMIT %s").format(
+                qualified(schema_name, table_name)), [limit])
             columns = [desc[0] for desc in cur.description]
             rows = []
             for row in cur.fetchall():
@@ -136,6 +139,12 @@ def generate_datapackage(
     if not title:
         title = f"Social Explorer - {table_name}"
 
+    # Slug the free-text dataset name and confine the output path: catalogue
+    # names come from imports (they can carry the package's own title), so a
+    # name with '../' must not write outside the packages directory. Table and
+    # schema names themselves are composed as quoted identifiers downstream,
+    # never formatted into SQL.
+    dataset_slug = slug_filename(dataset_name)
     logger.info(f"Generating datapackage for {schema_name}.{table_name}")
 
     # Infer schema
@@ -148,10 +157,11 @@ def generate_datapackage(
     logger.info(f"Preview: {len(preview)} rows extracted")
 
     # Write preview CSV
-    output_path = Path(output_dir) / dataset_name
+    output_path = safe_output_path(output_dir, dataset_name)
     output_path.mkdir(parents=True, exist_ok=True)
 
-    preview_csv_path = output_path / f"{table_name}-preview.csv"
+    table_stem = safe_filename(table_name)
+    preview_csv_path = output_path / (table_stem + '-preview.csv')
     if preview:
         with open(preview_csv_path, 'w', newline='') as f:
             writer = csv.DictWriter(f, fieldnames=[field['name'] for field in table_schema['fields']])
@@ -161,7 +171,7 @@ def generate_datapackage(
 
     # Build datapackage.json
     datapackage = {
-        'name': dataset_name,
+        'name': dataset_slug,
         'title': title,
         'description': description or f"Dataset from Social Explorer platform ({row_count:,} records)",
         'version': '1.0.0',
@@ -182,7 +192,7 @@ def generate_datapackage(
         'resources': [
             {
                 'name': table_name,
-                'path': f'{table_name}.csv',
+                'path': table_stem + '.csv',
                 'format': 'csv',
                 'mediatype': 'text/csv',
                 'encoding': 'utf-8',
@@ -192,7 +202,7 @@ def generate_datapackage(
             },
             {
                 'name': f'{table_name}-preview',
-                'path': f'{table_name}-preview.csv',
+                'path': f'{table_stem}-preview.csv',
                 'format': 'csv',
                 'mediatype': 'text/csv',
                 'encoding': 'utf-8',
@@ -251,7 +261,7 @@ def generate_from_dataset_catalog(dataset_id: int = None, dataset_name: str = No
     return generate_datapackage(
         table_name=table_name,
         schema_name=schema_name,
-        dataset_name=dataset.get('name', '').lower().replace(' ', '-'),
+        dataset_name=dataset.get('name', ''),
         title=dataset.get('name'),
         description=dataset.get('description'),
         preview_rows=preview_rows,

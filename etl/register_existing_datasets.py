@@ -13,16 +13,18 @@ Usage:
 """
 
 import psycopg2
+from psycopg2 import sql
 from datetime import datetime
 from dataset_registry import register_dataset, list_datasets
 from db_config import get_connection_context
+from sql_utils import qualified
 
 def get_table_stats(schema: str, table: str) -> dict:
     """Get basic statistics for a table"""
     with get_connection_context() as conn:
         with conn.cursor() as cur:
-            # Get row count
-            cur.execute(f"SELECT COUNT(*) FROM {schema}.{table}")
+            # Get row count (schema/table composed as quoted identifiers)
+            cur.execute(sql.SQL("SELECT COUNT(*) FROM {}").format(qualified(schema, table)))
             count = cur.fetchone()[0]
 
             return {

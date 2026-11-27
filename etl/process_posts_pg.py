@@ -1,5 +1,6 @@
 import polars as pl
 import psycopg2
+from psycopg2 import sql
 from psycopg2.extras import execute_values
 import json
 import glob
@@ -7,6 +8,13 @@ import os
 from datetime import datetime
 
 from db_config import get_connection_context
+from sql_utils import (
+    create_table_composed,
+    duckdb_ident,
+    insert_composed,
+    normalize_columns,
+    qualified,
+)
 
 def flatten_dict(d, prefix='', separator='_'):
     """Recursively flatten a nested dictionary"""
@@ -29,6 +37,19 @@ def get_latest_posts_directory():
     if not dirs:
         return None
     return max(dirs, key=os.path.getctime)
+
+
+def build_create_table_sql(columns):
+    """CREATE TABLE bronze.posts_raw (...) composed from quoted identifiers."""
+    return create_table_composed(
+        qualified('bronze', 'posts_raw'),
+        [(col, 'TEXT') for col in columns],
+    )
+
+
+def build_insert_sql(columns):
+    """INSERT INTO bronze.posts_raw (...) VALUES %s composed from quoted identifiers."""
+    return insert_composed(qualified('bronze', 'posts_raw'), columns)
 
 
 def process_posts_to_postgresql():
@@ -112,24 +133,11 @@ def process_posts_to_postgresql():
 
     print("Saving to PostgreSQL bronze table...")
 
-    # Handle duplicate column names (PostgreSQL 63-char limit can cause truncation)
-    # Also convert to lowercase for PostgreSQL compatibility
+    # Sanitize column names to PostgreSQL's identifier charset ([a-z0-9_], 63 chars):
+    # they come from JSON keys in downloaded data, so anything outside the charset
+    # is replaced and the result cannot change the SQL statements below.
     print("Deduplicating and lowercasing column names...")
-    column_counts = {}
-    new_columns = []
-    for col in combined_df.columns:
-        # Convert to lowercase and truncate to PostgreSQL's limit
-        truncated = col.lower()[:63]
-        if truncated in column_counts:
-            column_counts[truncated] += 1
-            new_col = f"{truncated[:59]}_{column_counts[truncated]}"
-        else:
-            column_counts[truncated] = 0
-            new_col = truncated
-        new_columns.append(new_col)
-
-    # Rename columns in DataFrame
-    combined_df.columns = new_columns
+    combined_df.columns = normalize_columns(combined_df.columns)
 
     with get_connection_context() as conn:
         with conn.cursor() as cur:
@@ -140,28 +148,16 @@ def process_posts_to_postgresql():
             cur.execute("DROP TABLE IF EXISTS bronze.posts_raw")
 
             # Build CREATE TABLE statement dynamically based on DataFrame columns
-            column_defs = []
-            for col in combined_df.columns:
-                column_defs.append(f'"{col}" TEXT')
-
-            create_table_sql = f"""
-            CREATE TABLE bronze.posts_raw (
-                {', '.join(column_defs)}
-            )
-            """
-            cur.execute(create_table_sql)
+            cur.execute(build_create_table_sql(combined_df.columns))
 
             # Insert data in batches
             batch_size = 1000
             data = [tuple(row) for row in combined_df.iter_rows()]
             columns = combined_df.columns
+            insert_sql = build_insert_sql(columns)
 
             for i in range(0, len(data), batch_size):
                 batch = data[i:i + batch_size]
-                insert_sql = f"""
-                INSERT INTO bronze.posts_raw ({','.join([f'"{col}"' for col in columns])})
-                VALUES %s
-                """
                 execute_values(cur, insert_sql, batch)
 
                 if i % 5000 == 0 and i > 0:
@@ -430,22 +426,25 @@ def migrate_from_duckdb(duckdb_path: str = "./duckdatabase"):
 
     for schema in schemas_to_check:
         try:
-            # Check if schema exists
-            tables_query = duck_conn.execute(f"""
-                SELECT table_name
-                FROM information_schema.tables
-                WHERE table_schema = '{schema}'
-            """).fetchall()
+            # Check if schema exists in DuckDB (schema names come from this fixed list)
+            tables_query = duck_conn.execute(
+                "SELECT table_name FROM information_schema.tables WHERE table_schema = "
+                + duckdb_ident(schema)
+            ).fetchall()
 
             if not tables_query:
                 print(f"No tables found in {schema} schema, skipping...")
                 continue
 
             for (table_name,) in tables_query:
+                # Names come from DuckDB's own catalog; quote them for DuckDB and
+                # compose them as identifiers for PostgreSQL.
                 full_table = f"{schema}.{table_name}"
+                duck_table = duckdb_ident(schema) + '.' + duckdb_ident(table_name)
+                pg_table = qualified(schema, table_name)
                 try:
                     # Get row count
-                    result = duck_conn.execute(f"SELECT COUNT(*) FROM {full_table}").fetchone()
+                    result = duck_conn.execute("SELECT COUNT(*) FROM " + duck_table).fetchone()
                     row_count = result[0] if result else 0
 
                     if row_count == 0:
@@ -455,40 +454,31 @@ def migrate_from_duckdb(duckdb_path: str = "./duckdatabase"):
                     print(f"Migrating {row_count} rows from {full_table}...")
 
                     # Read entire table from DuckDB
-                    df = duck_conn.execute(f"SELECT * FROM {full_table}").pl()
+                    df = duck_conn.execute("SELECT * FROM " + duck_table).pl()
 
                     # Create schema in PostgreSQL if needed
                     with get_connection_context() as pg_conn:
                         with pg_conn.cursor() as cur:
-                            cur.execute(f"CREATE SCHEMA IF NOT EXISTS {schema}")
+                            cur.execute(sql.SQL("CREATE SCHEMA IF NOT EXISTS {}").format(sql.Identifier(schema)))
 
                             # Drop existing table
-                            cur.execute(f"DROP TABLE IF EXISTS {full_table} CASCADE")
+                            cur.execute(sql.SQL("DROP TABLE IF EXISTS {} CASCADE").format(pg_table))
 
                             # Build CREATE TABLE statement
-                            column_defs = []
-                            for col, dtype in zip(df.columns, df.dtypes):
-                                pg_type = _polars_to_pg_type(dtype)
-                                column_defs.append(f'"{col}" {pg_type}')
-
-                            create_table_sql = f"""
-                            CREATE TABLE {full_table} (
-                                {', '.join(column_defs)}
-                            )
-                            """
-                            cur.execute(create_table_sql)
+                            cur.execute(create_table_composed(
+                                pg_table,
+                                [(col, _polars_to_pg_type(dtype))
+                                 for col, dtype in zip(df.columns, df.dtypes)],
+                            ))
 
                             # Insert data in batches
                             batch_size = 1000
                             data = [tuple(row) for row in df.iter_rows()]
                             columns = df.columns
+                            insert_sql = insert_composed(pg_table, columns)
 
                             for i in range(0, len(data), batch_size):
                                 batch = data[i:i + batch_size]
-                                insert_sql = f"""
-                                INSERT INTO {full_table} ({','.join([f'"{col}"' for col in columns])})
-                                VALUES %s
-                                """
                                 execute_values(cur, insert_sql, batch)
 
                                 if i % 10000 == 0 and i > 0:

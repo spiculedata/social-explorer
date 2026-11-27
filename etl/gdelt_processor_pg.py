@@ -1,5 +1,6 @@
 import polars as pl
 import psycopg2
+from psycopg2 import sql
 from psycopg2.extras import execute_values
 from pathlib import Path
 import logging
@@ -7,6 +8,7 @@ from typing import Optional, Dict
 import zipfile
 
 from db_config import get_connection_context
+from sql_utils import duckdb_ident, insert_composed, qualified
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -226,10 +228,7 @@ class GDELTProcessor:
                     # Convert to list of tuples
                     data = [tuple(row) for row in batch.iter_rows()]
 
-                    insert_sql = f"""
-                    INSERT INTO gdelt_events ({','.join(column_names)})
-                    VALUES %s
-                    """
+                    insert_sql = insert_composed(qualified('public', 'gdelt_events'), column_names)
                     execute_values(cur, insert_sql, data)
 
                     if i % (batch_size * 10) == 0 and i > 0:
@@ -256,10 +255,7 @@ class GDELTProcessor:
                     batch = df.slice(i, batch_size)
                     data = [tuple(row) for row in batch.iter_rows()]
 
-                    insert_sql = f"""
-                    INSERT INTO gdelt_mentions ({','.join(column_names)})
-                    VALUES %s
-                    """
+                    insert_sql = insert_composed(qualified('public', 'gdelt_mentions'), column_names)
                     execute_values(cur, insert_sql, data)
 
                     if i % (batch_size * 10) == 0 and i > 0:
@@ -287,10 +283,7 @@ class GDELTProcessor:
                     batch = df.slice(i, batch_size)
                     data = [tuple(row) for row in batch.iter_rows()]
 
-                    insert_sql = f"""
-                    INSERT INTO gdelt_gkg ({','.join(column_names)})
-                    VALUES %s
-                    """
+                    insert_sql = insert_composed(qualified('public', 'gdelt_gkg'), column_names)
                     execute_values(cur, insert_sql, data)
 
                     if i % (batch_size * 10) == 0 and i > 0:
@@ -326,7 +319,7 @@ class GDELTProcessor:
         with get_connection_context() as conn:
             with conn.cursor() as cur:
                 for table in ['gdelt_events', 'gdelt_mentions', 'gdelt_gkg']:
-                    cur.execute(f"SELECT COUNT(*) FROM {table}")
+                    cur.execute(sql.SQL("SELECT COUNT(*) FROM {}").format(qualified('public', table)))
                     result = cur.fetchone()
                     counts[table] = result[0] if result else 0
         return counts
@@ -345,8 +338,12 @@ class GDELTProcessor:
 
         for table in tables_to_migrate:
             try:
+                # Table names come from this fixed list; quote them for DuckDB and
+                # compose them as identifiers for PostgreSQL.
+                duck_table = duckdb_ident(table)
+
                 # Check if table exists in DuckDB
-                result = duck_conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()
+                result = duck_conn.execute("SELECT COUNT(*) FROM " + duck_table).fetchone()
                 row_count = result[0] if result else 0
 
                 if row_count == 0:
@@ -364,7 +361,8 @@ class GDELTProcessor:
                         while offset < row_count:
                             # Fetch batch from DuckDB
                             df = duck_conn.execute(
-                                f"SELECT * FROM {table} LIMIT {batch_size} OFFSET {offset}"
+                                "SELECT * FROM " + duck_table
+                                + " LIMIT " + str(batch_size) + " OFFSET " + str(offset)
                             ).pl()
 
                             if len(df) == 0:
@@ -376,11 +374,8 @@ class GDELTProcessor:
                             # Convert to list of tuples
                             data = [tuple(row) for row in df.iter_rows()]
 
-                            # Insert into PostgreSQL
-                            insert_sql = f"""
-                            INSERT INTO {table} ({','.join(col_names)})
-                            VALUES %s
-                            """
+                            # Insert into PostgreSQL (columns composed as quoted identifiers)
+                            insert_sql = insert_composed(qualified('public', table), col_names)
                             execute_values(cur, insert_sql, data)
 
                             offset += batch_size
