@@ -15,6 +15,7 @@
   import ExportStatus from '#lib/components/ui/ExportStatus.svelte';
   import { browser } from '$app/env';
   import { getCategoryColor } from '#lib/utils/colorUtils.ts';
+  import { escapeHtml } from '#lib/utils/highlight.ts';
   import { waitForEcharts, initChart } from '#lib/utils/echarts.ts';
   import { ErrorAlert } from '#lib/components/ui/index.ts';
 
@@ -300,12 +301,12 @@
             if (params.data.children) {
               // Category level
               const totalPosts = params.data.children.reduce((sum: number, child: any) => sum + child.value, 0);
-              return `<strong style="color: #fff;">${params.name}</strong><br/>
+              return `<strong style="color: #fff;">${escapeHtml(params.name)}</strong><br/>
                       <span style="color: #ccc;">Total Posts: ${totalPosts.toLocaleString()}</span><br/>
                       <span style="color: #ccc;">Topics: ${params.data.children.length}</span>`;
             } else {
               // Topic level
-              return `<strong style="color: #fff;">${params.name}</strong><br/>
+              return `<strong style="color: #fff;">${escapeHtml(params.name)}</strong><br/>
                       <span style="color: #ccc;">Posts: ${params.value ? params.value.toLocaleString() : 'N/A'}</span>`;
             }
           }

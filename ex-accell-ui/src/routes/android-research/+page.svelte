@@ -16,6 +16,7 @@
     TemporalUsagePattern
   } from '#lib/services/types/androidResearchTypes.ts';
   import { acyclicTransitions, behaviouralMetrics, hasAndroidData, temporalUsageFromSessions } from '#lib/utils/androidData.ts';
+  import { escapeHtml } from '#lib/utils/highlight.ts';
   import DataUnavailable from '#lib/components/ui/DataUnavailable.svelte';
   import ErrorAlert from '#lib/components/ui/ErrorAlert.svelte';
 
@@ -211,8 +212,8 @@
       tooltip: {
         formatter: (params: { dataType: string; data: { source?: string; target?: string; value: number; name?: string } }) =>
           params.dataType === 'edge'
-            ? `${params.data.source} → ${params.data.target}<br/>Transitions: ${params.data.value}`
-            : `${params.data.name}<br/>Outgoing transitions: ${params.data.value}`
+            ? `${escapeHtml(params.data.source ?? '')} → ${escapeHtml(params.data.target ?? '')}<br/>Transitions: ${params.data.value}`
+            : `${escapeHtml(params.data.name ?? '')}<br/>Outgoing transitions: ${params.data.value}`
       },
       legend: { data: APP_CATEGORIES, top: 30 },
       series: [{
@@ -283,7 +284,7 @@
         trigger: 'item',
         triggerOn: 'mousemove',
         formatter: (params: { dataType: string; data: { source?: string; target?: string; value?: number; name?: string } }) =>
-          params.dataType === 'edge' ? `${params.data.source} → ${params.data.target}<br/>Transitions: ${params.data.value}` : `${params.data.name}`
+          params.dataType === 'edge' ? `${escapeHtml(params.data.source ?? '')} → ${escapeHtml(params.data.target ?? '')}<br/>Transitions: ${params.data.value}` : `${escapeHtml(params.data.name ?? '')}`
       },
       series: [{
         type: 'sankey',

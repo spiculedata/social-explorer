@@ -6,6 +6,7 @@
   import { ErrorAlert } from '#lib/components/ui/index.ts';
   import { formatNumber } from '#lib/utils/formatUtils.ts';
   import { waitForEcharts, initChart } from '#lib/utils/echarts.ts';
+  import { escapeHtml } from '#lib/utils/highlight.ts';
   import ModelTierSelector from '#lib/components/ui/ModelTierSelector.svelte';
   import ResponsibleUse from '#lib/components/ui/ResponsibleUse.svelte';
 
@@ -125,7 +126,7 @@
         axisPointer: { type: 'shadow' },
         formatter: (params: any) => {
           const p = params[0];
-          return `<strong>${p.name}</strong><br/>Images: ${p.value.toLocaleString()}`;
+          return `<strong>${escapeHtml(p.name)}</strong><br/>Images: ${p.value.toLocaleString()}`;
         }
       },
       grid: {

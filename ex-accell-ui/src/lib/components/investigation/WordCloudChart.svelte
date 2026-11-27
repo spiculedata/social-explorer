@@ -2,6 +2,7 @@
   import { CHART } from '#lib/utils/chartColors.ts';
 	import { onMount, createEventDispatcher, tick } from 'svelte';
 	import * as d3 from 'd3';
+	import { escapeHtml } from '#lib/utils/highlight.ts';
 
 	import type { CrossFilter } from '#lib/stores/investigationStore.ts';
 	import { layoutWordCloud, type WordCloudPlacement } from '#lib/utils/wordCloudLayout.ts';
@@ -118,7 +119,7 @@
 		if (!tooltipEl) return;
 		tooltipEl.style.display = 'block';
 		tooltipEl.innerHTML = `
-			<div class="font-semibold text-white">${d.text}</div>
+			<div class="font-semibold text-white">${escapeHtml(d.text)}</div>
 			<div class="text-slate-300 text-xs mt-0.5">Count: <span class="text-white">${d.rawSize}</span></div>
 		`;
 		moveTooltip(event);

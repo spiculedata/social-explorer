@@ -2,6 +2,7 @@
   import { CHART } from '#lib/utils/chartColors.ts';
 	import { onMount, onDestroy, createEventDispatcher } from 'svelte';
 	import * as d3 from 'd3';
+	import { escapeHtml } from '#lib/utils/highlight.ts';
 	import type { CrossFilter } from '#lib/stores/investigationStore.ts';
 
 	export let data: any[] = [];
@@ -264,7 +265,7 @@
 		if (!tooltipEl) return;
 		tooltipEl.style.display = 'block';
 		tooltipEl.innerHTML = `
-			<div class="font-semibold text-white mb-1">${d.keyword}</div>
+			<div class="font-semibold text-white mb-1">${escapeHtml(d.keyword ?? '')}</div>
 			<div class="text-slate-300 text-xs space-y-0.5">
 				<div>GDELT: <span class="text-white">${d.gdelt_count ?? 0}</span></div>
 				<div>Radio: <span class="text-white">${d.radio_count ?? 0}</span></div>

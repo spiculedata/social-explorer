@@ -7,6 +7,7 @@
   import { formatNumber } from '#lib/utils/formatUtils.ts';
   import { waitForEcharts, initChart } from '#lib/utils/echarts.ts';
   import { getCountryNameWithFallback } from '#lib/countryMapping.ts';
+  import { safeExternalUrl } from '#lib/utils/safeLink.ts';
   import DataUnavailable from '#lib/components/ui/DataUnavailable.svelte';
 
   // Helper: resolve country code to full name
@@ -341,7 +342,10 @@
                 {event.actiongeo_fullname || ''} · {event.sqldate} · {event.numarticles || 0} articles
               </div>
               {#if event.sourceurl}
-                <a href={event.sourceurl} target="_blank" class="text-xs text-blue-600 hover:underline truncate block mt-1">{event.sourceurl.substring(0, 80)}...</a>
+                {@const sourceUrl = safeExternalUrl(event.sourceurl)}
+                {#if sourceUrl}
+                  <a href={sourceUrl} target="_blank" rel="noopener noreferrer" class="text-xs text-blue-600 hover:underline truncate block mt-1">{sourceUrl.substring(0, 80)}...</a>
+                {/if}
               {/if}
             </div>
           </div>
@@ -567,7 +571,10 @@
                 <div class="font-medium text-gray-900">{event.actor1name || '?'} → {event.actor2name || '?'}</div>
                 <div class="text-gray-500">{event.actiongeo_fullname} · {event.numarticles} articles</div>
                 {#if event.sourceurl}
-                  <a href={event.sourceurl} target="_blank" class="text-blue-600 hover:underline truncate block">{event.sourceurl.substring(0, 60)}...</a>
+                  {@const sourceUrl = safeExternalUrl(event.sourceurl)}
+                  {#if sourceUrl}
+                    <a href={sourceUrl} target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline truncate block">{sourceUrl.substring(0, 60)}...</a>
+                  {/if}
                 {/if}
               </div>
             {/each}

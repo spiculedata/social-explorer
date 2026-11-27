@@ -30,7 +30,13 @@ describe('Content-Security-Policy', () => {
   it('allows what the app needs: images and map tiles, fonts, embedded Jupyter, radio audio', () => {
     expect(directives['img-src']).toEqual(expect.arrayContaining(['self', 'data:', 'blob:', 'https:']));
     expect(directives['font-src']).toEqual(expect.arrayContaining(['self', 'data:']));
-    expect(directives['frame-src']).toEqual(expect.arrayContaining(['self', 'http:', 'https:']));
     expect(directives['media-src']).toEqual(expect.arrayContaining(['self', 'https:']));
+  });
+
+  it('frames only the Jupyter server, not every http(s) origin', () => {
+    const frameSrc = directives['frame-src'] ?? [];
+    expect(frameSrc).toEqual(['self', 'http://localhost:8888']);
+    expect(frameSrc).not.toContain('http:');
+    expect(frameSrc).not.toContain('https:');
   });
 });
