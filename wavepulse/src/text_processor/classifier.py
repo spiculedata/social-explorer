@@ -30,6 +30,11 @@ def classify_transcript(transcript: str, file_name: str):
     logger.info(f"loading gemini model")
     args = get_args()
     api_key = args.gemini_api_key
+    if not api_key:
+        raise ValueError(
+            "no Gemini api key configured: pass --gemini-api-key "
+            "(the placeholder default was removed)"
+        )
     genai.configure(api_key=api_key)
 
     generation_config = {

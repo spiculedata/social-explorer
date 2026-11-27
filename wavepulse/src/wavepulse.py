@@ -141,6 +141,15 @@ def start_observatory():
     shutdown_time = datetime.strptime(args.shutdown_time, "%H:%M").time()
     restart_time = datetime.strptime(args.restart_time, "%H:%M").time()
     restart_flag = 1
+    if args.backup_audio and not (
+        args.ftp_server and args.ftp_username and args.ftp_password
+    ):
+        # Fail fast instead of discovering it at shutdown: --backup-audio only
+        # runs there, and the insecure built-in credentials were removed.
+        raise SystemExit(
+            "--backup-audio is enabled but the backup server is not configured: "
+            "set --ftp-server, --ftp-username and --ftp-password"
+        )
     try:
         for i in range(repetitions):
             flag = 1

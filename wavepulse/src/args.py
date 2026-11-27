@@ -183,8 +183,8 @@ def get_args():
     parser.add_argument(
         "--gemini-api-key",
         type=str,
-        default="api-key",
-        help="api key to be used for calling gemini api",
+        default="",
+        help="api key to be used for calling gemini api (required for classification; no default)",
     )
 
     parser.add_argument(
@@ -252,36 +252,36 @@ def get_args():
     parser.add_argument(
         "--ftp-server",
         type=str,
-        default="172.24.113.102",
-        help="ftp server (default: server)",
+        default=None,
+        help="backup FTPS server (required with --backup-audio; no default)",
     )
 
     parser.add_argument(
         "--ftp-port",
         type=str,
         default="21",
-        help="ftp port (default: server)",
+        help="backup FTPS port (default: 21)",
     )
 
     parser.add_argument(
         "--ftp-username",
         type=str,
-        default="marvin",
-        help="ftp username (default: marvin)",
+        default=None,
+        help="backup FTPS username (required with --backup-audio; no default)",
     )
 
     parser.add_argument(
         "--ftp-password",
         type=str,
-        default="42",
-        help="ftp password (default: 42)",
+        default=None,
+        help="backup FTPS password (required with --backup-audio; no default)",
     )
 
     parser.add_argument(
         "--ftp-remote-folder",
         type=str,
         default="daily_recordings",
-        help="ftp password (default: daily_recordings)",
+        help="remote folder to store recordings in (default: daily_recordings)",
     )
 
     # For fact checker
