@@ -86,6 +86,18 @@ describe('POST /api/job-state', () => {
   });
 });
 
+describe('GET /api/job-state redaction', () => {
+  it('strips the YouTube key fields from every job state it returns', async () => {
+    store.getJobState.mockResolvedValue({ id: 'j1', jobData: { youtubeApiKey: 'clear', youtubeApiKeyEnc: 'enc', maxPosts: 5 } });
+    store.getAllJobStates.mockResolvedValue([{ id: 'j2', jobData: { youtubeApiKey: 'clear', maxPosts: 5 } }]);
+    store.getJobsByStatus.mockResolvedValue([{ id: 'j3', jobData: { youtubeApiKeyEnc: 'enc' } }]);
+
+    expect((await (await get('?jobId=j1')).json()).data.jobData).toEqual({ maxPosts: 5 });
+    expect((await (await get('?status=running')).json()).data[0].jobData).toEqual({});
+    expect((await (await get()).json()).data[0].jobData).toEqual({ maxPosts: 5 });
+  });
+});
+
 describe('GET /api/job-state', () => {
   it('returns one job in data', async () => {
     expect(await (await get('?jobId=j1')).json()).toEqual({ success: true, data: { id: 'j1', status: 'running' } });

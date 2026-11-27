@@ -1,7 +1,9 @@
 import type { RequestHandler } from './$types';
 import { apiFail, apiOk, apiServerError, readJsonObject } from '#lib/server/apiResponse.ts';
 import { jobStateStore } from '#lib/services/jobStateStore.ts';
+import { deepRedactJobData, redactJobState, redactJobStates } from '#lib/services/jobStateRedaction.ts';
 import { createLogger } from '#lib/utils/logger.ts';
+import { openFromStore, sealForStore } from '#lib/server/secrets/secretBox.ts';
 import { DaprClient, CommunicationProtocolEnum, HttpMethod } from '@dapr/dapr';
 
 const log = createLogger('jobs-api');
@@ -92,6 +94,9 @@ interface JobScheduleRequest {
 		// Storage options
 		storageRoot?: string;
 		crawlLabel?: string;
+		// Set by the client's Run Now action: the UI never holds the YouTube key, so the
+		// server resolves it from the job the re-run was started from (see resolveRerunKey)
+		sourceJobId?: string;
 	};
 }
 
@@ -101,6 +106,30 @@ function scheduledForTime(dueTime: string): string {
 	const unit = /[smh]$/.test(dueTime) ? dueTime.slice(-1) : 'm';
 	const amount = parseInt(dueTime, 10);
 	return new Date(Date.now() + amount * DUE_UNIT_MS[unit]).toISOString();
+}
+
+/** The job data kept in the state store: the YouTube key is sealed for this job, never stored or echoed in clear. */
+function jobDataForState(data: JobScheduleRequest['data'], jobId: string) {
+	const { youtubeApiKey, ...rest } = data;
+	if (data.platform !== 'youtube' || !youtubeApiKey) return rest;
+	return { ...rest, youtubeApiKeyEnc: sealForStore(youtubeApiKey, jobId) };
+}
+
+/** Reads the YouTube key for a re-run from the job it was scheduled from; states saved before this change kept it in clear. */
+async function resolveRerunKey(data: JobScheduleRequest['data']): Promise<string | undefined> {
+	if (data.platform !== 'youtube' || data.youtubeApiKey || !data.sourceJobId) return undefined;
+	try {
+		const sourceData = (await jobStateStore.getJobState(data.sourceJobId))?.jobData;
+		if (!sourceData) return undefined;
+		// States saved before the key was sealed kept it in clear; reading it here keeps those re-runs working
+		const legacyKey = (sourceData as { youtubeApiKey?: string }).youtubeApiKey;
+		const key = sourceData.youtubeApiKeyEnc ? openFromStore(sourceData.youtubeApiKeyEnc, data.sourceJobId) : legacyKey;
+		if (!key) log.warn('Could not open the stored YouTube key for a re-run', { jobId: data.sourceJobId });
+		return key || undefined;
+	} catch (err) {
+		log.warn('Could not read the source job for a re-run', { detail: err instanceof Error ? err.message : String(err) });
+		return undefined;
+	}
 }
 
 function buildJobData(jobRequest: JobScheduleRequest, jobId: string, jobTypeName: string) {
@@ -149,7 +178,11 @@ export const POST: RequestHandler = async ({ request }) => {
 		const scheduledFor = scheduledForTime(jobRequest.dueTime);
 		log.info('Scheduling job', { name: jobRequest.name, platform: jobRequest.data.platform, dueTime: jobRequest.dueTime });
 
-		const jobState = jobStateStore.createJobState(jobId, jobRequest.name, scheduledFor, jobRequest.data.platform, jobRequest.data);
+		// A re-run resolves the key server-side from the job it was started from; the client never holds it
+		const rerunKey = await resolveRerunKey(jobRequest.data);
+		const dataWithKey = rerunKey ? { ...jobRequest.data, youtubeApiKey: rerunKey } : jobRequest.data;
+
+		const jobState = jobStateStore.createJobState(jobId, jobRequest.name, scheduledFor, jobRequest.data.platform, jobDataForState(dataWithKey, jobId));
 
 		// Saving the state is best effort, unless Dapr itself is down
 		let jobStateSaved = false;
@@ -162,7 +195,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 
 		const jobTypeName = getJobTypeFromPlatform(jobRequest.data.platform);
-		const jobData = buildJobData(jobRequest, jobId, jobTypeName);
+		const jobData = buildJobData({ ...jobRequest, data: dataWithKey }, jobId, jobTypeName);
 
 		try {
 			// Call the telegram-scraper's scheduleJob handler, which creates the Dapr job for the job type
@@ -191,7 +224,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		const job = { scheduled: true, jobName: jobRequest.name, method: 'dapr-sdk' };
 		const message = jobStateSaved ? 'Job scheduled successfully' : 'Job scheduled (state tracking unavailable)';
-		const savedState = jobStateSaved ? jobState : null;
+		const savedState = jobStateSaved ? redactJobState(jobState) : null;
 		return apiOk({ job, jobId, jobState: savedState, message }, { job, jobId, jobState: savedState, message });
 	} catch (err) {
 		if (isServiceUnavailable(err)) return unavailable('POST /api/jobs', err, 'Job scheduling service');
@@ -206,10 +239,10 @@ export const GET: RequestHandler = async ({ url }) => {
 
 		// State only: the job state records, from the state store
 		if (stateOnly) {
-			if (!jobName) return apiOk(await jobStateStore.getAllJobStates());
+			if (!jobName) return apiOk(redactJobStates(await jobStateStore.getAllJobStates()));
 			const jobState = await jobStateStore.getJobState(jobName);
 			if (!jobState) return apiFail('Job not found', 404);
-			return apiOk(jobState);
+			return apiOk(redactJobState(jobState));
 		}
 
 		let daprJobs: any = null;
@@ -229,7 +262,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
 		let stateFailed = false;
 		try {
-			jobStates = await jobStateStore.getAllJobStates();
+			jobStates = redactJobStates(await jobStateStore.getAllJobStates());
 		} catch (stateError) {
 			stateFailed = true;
 			// Both sources down is an outage; one down still returns what the other has
@@ -238,6 +271,9 @@ export const GET: RequestHandler = async ({ url }) => {
 			if (!daprJobs) return apiServerError('GET /api/jobs', stateError, 'Internal server error while retrieving job(s)');
 			log.warn('Could not get job states', { detail: stateError instanceof Error ? stateError.message : String(stateError) });
 		}
+
+		// Dapr's jobs carry the scheduled payload, which may include a YouTube key in clear
+		daprJobs = deepRedactJobData(daprJobs);
 
 		const combined = jobStates.map((state) => ({
 			...state,

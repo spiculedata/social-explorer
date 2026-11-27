@@ -21,6 +21,7 @@ vi.mock('@dapr/dapr', () => ({
 }));
 
 import { DELETE, GET, POST } from './+server';
+import { sealForStore } from '#lib/server/secrets/secretBox.ts';
 
 const post = (body: unknown) =>
   POST({ request: new Request('http://localhost/api/jobs', { method: 'POST', body: typeof body === 'string' ? body : JSON.stringify(body) }) } as never);
@@ -40,6 +41,59 @@ beforeEach(() => {
   store.deleteJobState.mockResolvedValue(undefined);
   invoke.mockResolvedValue({});
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => [] }));
+});
+
+describe('YouTube API key is never stored in clear or returned', () => {
+  const youtubeJob = { name: 'yt-1', dueTime: 'now', data: { platform: 'youtube', urls: ['https://youtube.com/@a'], youtubeApiKey: 'yt-plain-key' } };
+
+  it('passes the clear key to the crawler but stores and returns the job without it', async () => {
+    const response = await post(youtubeJob);
+    const body = await response.json();
+
+    expect(invoke).toHaveBeenCalledWith('telegram-scraper', 'scheduleJob', 'POST', expect.objectContaining({ platform: 'youtube', youtubeApiKey: 'yt-plain-key' }));
+    const storedData = store.createJobState.mock.calls[0][4];
+    expect(storedData).not.toHaveProperty('youtubeApiKey');
+    expect(JSON.stringify(body)).not.toContain('yt-plain-key');
+    expect(JSON.stringify(body)).not.toContain('youtubeApiKeyEnc');
+  });
+
+  it('resolves the key server-side for a re-run from the source job', async () => {
+    store.getJobState.mockResolvedValueOnce({ id: 'src-1', jobData: { youtubeApiKey: 'stored-legacy-key' } });
+
+    const response = await post({ name: 'run-now-yt-1', dueTime: '1s', data: { platform: 'youtube', urls: ['https://youtube.com/@a'], sourceJobId: 'src-1' } });
+
+    expect(invoke).toHaveBeenCalledWith('telegram-scraper', 'scheduleJob', 'POST', expect.objectContaining({ platform: 'youtube', youtubeApiKey: 'stored-legacy-key' }));
+    expect(JSON.stringify(await response.json())).not.toContain('stored-legacy-key');
+  });
+
+  it('opens the sealed key from the source job for a re-run and seals it for the new job', async () => {
+    store.getJobState.mockResolvedValueOnce({ id: 'src-1', jobData: { youtubeApiKeyEnc: sealForStore('stored-sealed-key', 'src-1') } });
+
+    const response = await post({ name: 'run-now-yt-2', dueTime: '1s', data: { platform: 'youtube', urls: ['https://youtube.com/@a'], sourceJobId: 'src-1' } });
+
+    expect(invoke).toHaveBeenCalledWith('telegram-scraper', 'scheduleJob', 'POST', expect.objectContaining({ youtubeApiKey: 'stored-sealed-key' }));
+    const storedData = store.createJobState.mock.calls[0][4];
+    expect(storedData.youtubeApiKeyEnc).toMatch(/^v1:/);
+    expect(JSON.stringify(await response.json())).not.toContain('stored-sealed-key');
+  });
+
+  it('redacts the key fields from every job-state response, for any role', async () => {
+    const stateWithKey = { id: 'j1', name: 'crawl-1', jobData: { youtubeApiKey: 'stated-key', maxPosts: 5 } };
+
+    store.getAllJobStates.mockResolvedValue([stateWithKey]);
+    const stateOnly = await (await get('?state=true')).json();
+    expect(JSON.stringify(stateOnly)).not.toContain('stated-key');
+    expect(stateOnly.data[0].jobData).toEqual({ maxPosts: 5 });
+
+    store.getAllJobStates.mockResolvedValue([stateWithKey]);
+    const combined = await (await get()).json();
+    expect(JSON.stringify(combined)).not.toContain('stated-key');
+    expect(combined.jobStates[0].jobData).toEqual({ maxPosts: 5 });
+
+    store.getJobState.mockResolvedValue(stateWithKey);
+    const single = await (await get('?state=true&name=j1')).json();
+    expect(JSON.stringify(single)).not.toContain('stated-key');
+  });
 });
 
 describe('POST /api/jobs', () => {
@@ -138,6 +192,18 @@ describe('GET /api/jobs', () => {
 
     expect(body).toMatchObject({ success: true, jobStates: [{ id: 'j1' }], combined: [{ id: 'j1' }], serviceStatus: { stateAvailable: true } });
     expect(body.data.jobStates).toEqual(body.jobStates);
+  });
+
+  it('strips YouTube keys out of the Dapr job payloads it returns', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [{ name: 'crawl-1', payload: { youtubeApiKey: 'dapr-key' }, data: { value: JSON.stringify({ youtubeApiKey: 'dapr-string-key' }) } }] }));
+
+    const body = await (await get()).json();
+    const text = JSON.stringify(body);
+
+    expect(text).not.toContain('dapr-key');
+    expect(text).not.toContain('dapr-string-key');
+    expect(body.daprJobs[0].payload).toEqual({});
+    expect(JSON.parse(body.daprJobs[0].data.value)).toEqual({});
   });
 
   it('is a 503 only when both Dapr and the state store are down, without internal text', async () => {

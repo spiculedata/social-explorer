@@ -114,9 +114,12 @@ describe('buildRunNowPayload', () => {
       name: 'job',
       status: 'scheduled',
       platform: 'youtube',
-      jobData: { droid: 'd', urls: ['u'], crawlId: 'c', maxPosts: 5, timeAgo: '1d', skipMedia: false }
+      jobData: { droid: 'd', urls: ['u'], crawlId: 'c', maxPosts: 5, timeAgo: '1d', skipMedia: false, youtubeApiKey: 'never-returned' }
     };
-    expect(buildRunNowPayload(job, 'j1', 1).data).toMatchObject({
+    const data = buildRunNowPayload(job, 'j1', 1).data;
+    expect(data).not.toHaveProperty('youtubeApiKey');
+    expect(data).toHaveProperty('sourceJobId', 'j1');
+    expect(data).toMatchObject({
       droid: 'd',
       task: 'crawl youtube channels',
       platform: 'youtube',

@@ -87,8 +87,8 @@ export function buildRunNowPayload(job: UiJob, jobId: string, nowMs: number = Da
       maxPosts: job.jobData?.maxPosts || 100,
       maxDepth: job.jobData?.maxDepth || 2,
       concurrency: job.jobData?.concurrency || 1,
-      // YouTube specific
-      youtubeApiKey: job.jobData?.youtubeApiKey,
+      // YouTube specific — the API key stays on the server; the re-run resolves it from this job by id
+      sourceJobId: jobId,
       samplingMethod: job.jobData?.samplingMethod,
       minChannelVideos: job.jobData?.minChannelVideos,
       sampleSize: job.jobData?.sampleSize,

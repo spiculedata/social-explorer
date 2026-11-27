@@ -20,7 +20,6 @@ export interface JobState {
 		maxDepth?: number;
 		concurrency?: number;
 		maxPosts?: number;
-		youtubeApiKey?: string;
 		samplingMethod?: string;
 		minChannelVideos?: number;
 		sampleSize?: number;
@@ -31,6 +30,8 @@ export interface JobState {
 		maxPages?: number;
 		skipMedia?: boolean;
 		timeAgo?: string;
+		/** Sealed by the server (see `src/lib/server/secrets/secretBox.ts`); never returned by an API route. */
+		youtubeApiKeyEnc?: string;
 	};
 	executionLog?: string[];
 	result?: {

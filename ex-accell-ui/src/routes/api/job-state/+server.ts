@@ -1,6 +1,7 @@
 import type { RequestHandler } from './$types';
 import { apiFail, apiOk, apiServerError, readJsonObject } from '#lib/server/apiResponse.ts';
 import { jobStateStore, type JobState } from '#lib/services/jobStateStore.ts';
+import { redactJobState, redactJobStates } from '#lib/services/jobStateRedaction.ts';
 
 /**
  * Job State API - Dedicated endpoint for managing job state updates
@@ -89,10 +90,10 @@ export const GET: RequestHandler = async ({ url }) => {
 		if (jobId) {
 			const jobState = await jobStateStore.getJobState(jobId);
 			if (!jobState) return apiFail('Job not found', 404);
-			return apiOk(jobState);
+			return apiOk(redactJobState(jobState));
 		}
-		if (status) return apiOk(await jobStateStore.getJobsByStatus(status as JobState['status']));
-		return apiOk(await jobStateStore.getAllJobStates());
+		if (status) return apiOk(redactJobStates(await jobStateStore.getJobsByStatus(status as JobState['status'])));
+		return apiOk(redactJobStates(await jobStateStore.getAllJobStates()));
 	} catch (err) {
 		return storeFailure('GET /api/job-state', err, 'Internal server error while retrieving job state');
 	}
