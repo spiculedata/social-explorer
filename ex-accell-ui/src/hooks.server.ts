@@ -8,6 +8,7 @@ import { checkAccess } from '#lib/server/auth/accessCheck.ts';
 import { resourcesInRequest } from '#lib/server/auth/access.ts';
 import { isCrossSiteWrite, requestHosts } from '#lib/server/auth/csrf.ts';
 import { createRateLimiter, parseRateLimit } from '#lib/server/rateLimit.ts';
+import { routedPath } from '#lib/server/auth/routedPath.ts';
 
 const denial = (error: string, status: number) =>
   new Response(JSON.stringify({ success: false, data: null, error }), {
@@ -61,7 +62,7 @@ async function refuseUnlessMember(event: Parameters<Handle>[0]['event']): Promis
   try {
     const result = await checkAccess(user, resources);
     if (result.allowed) return null;
-    return event.url.pathname.startsWith('/api/')
+    return routedPath(event.url.pathname).startsWith('/api/')
       ? denial(`You do not have access to this ${result.what}`, 403)
       : forbiddenPage();
   } catch {
@@ -85,7 +86,10 @@ const authorize: Handle = async ({ event, resolve }) => {
   // redirect or denial built below carries no cookie changes. An outage ('unknown') never clears anything.
   if (session && status === 'revoked') event.cookies.delete(SESSION_COOKIE, { path: '/' });
 
-  if (event.locals.user && event.url.pathname.startsWith('/api/') && !RATE_LIMIT_EXEMPT.has(event.url.pathname)) {
+  // API-ness and the health-check exemption follow the routed path: the router decodes `/%61pi/posts` to `/api/posts`, so an
+  // encoded form must count against the same limit (and hit the same exemption) as the plain one.
+  const routed = routedPath(event.url.pathname);
+  if (event.locals.user && routed.startsWith('/api/') && !RATE_LIMIT_EXEMPT.has(routed)) {
     const verdict = apiLimiter.hit(`user:${event.locals.user.id}`);
     if (!verdict.allowed) {
       const limited = denial('Too many requests. Slow down and try again shortly.', 429);

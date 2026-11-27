@@ -18,6 +18,7 @@ import { createSessionToken, type SessionUser } from '#lib/server/auth/session.t
 const SECRET = 's'.repeat(32);
 const ada: SessionUser = { id: 'ada', email: 'ada@example.com', name: 'Ada', role: 'user' };
 const bob: SessionUser = { id: 'bob', email: 'bob@example.com', name: 'Bob', role: 'user' };
+const carla: SessionUser = { id: 'carla', email: 'carla@example.com', name: 'Carla', role: 'user' };
 
 async function run(path: string, { user, address = '10.0.0.1', method = 'GET' }: { user?: SessionUser; address?: string; method?: string } = {}) {
   const resolve = vi.fn().mockResolvedValue(new Response('ok'));
@@ -64,6 +65,17 @@ describe('API rate limit', () => {
       expect((await run('/login', { address: '10.0.0.3' })).response.status).toBe(200);
       expect((await run('/', { user: ada, address: '10.0.0.3' })).response.status).toBe(200);
     }
+  });
+
+  it('counts an encoded API path against the same limit as the plain one, because the router decodes it', async () => {
+    for (let i = 0; i < 3; i++) expect((await run('/api/posts', { user: carla })).response.status).toBe(200);
+    expect((await run('/%61pi/posts', { user: carla })).response.status).toBe(429);
+  });
+
+  it('answers an unauthenticated request to an encoded API path with the JSON 401, not a redirect', async () => {
+    const { response } = await run('/%61pi/posts', { address: '10.0.0.5' });
+    expect(response.status).toBe(401);
+    expect(response.headers.get('content-type')).toBe('application/json');
   });
 
   it('does not count anonymous requests, so one noisy address (or a proxy shared by everyone) cannot lock people out of signing in', async () => {

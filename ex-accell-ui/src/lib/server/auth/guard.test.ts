@@ -29,8 +29,20 @@ describe('decideAccess: anonymous', () => {
     });
   });
 
+  it('treats an encoded API path as an API request, not a page', () => {
+    expect(req('/%61pi/projects').action).toBe('unauthorized');
+  });
+
+  it('allows the encoded form of a public path, because the router decodes it', () => {
+    expect(req('/%61pi/health').action).toBe('allow');
+    expect(req('/%61pi/auth/login', 'POST').action).toBe('allow');
+  });
+
   it('does not treat lookalike paths as public', () => {
     expect(req('/api/health/../projects').action).toBe('unauthorized');
+    expect(req('/api/health/%2e%2e/projects').action).toBe('unauthorized');
+    // a path that does not decode is handled as it was sent, and this one is not public either way
+    expect(req('/%E0%A4%A').action).toBe('redirect');
     expect(req('/loginx').action).toBe('redirect');
     expect(req('/api/auth/me').action).toBe('unauthorized');
   });

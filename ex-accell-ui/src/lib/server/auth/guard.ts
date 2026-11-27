@@ -1,4 +1,5 @@
 import type { SessionUser } from './session';
+import { routedPath, pathVariants } from './routedPath.ts';
 
 export type AccessDecision =
   | { action: 'allow' }
@@ -40,27 +41,17 @@ const ADMIN_ONLY_PATTERNS = [
  */
 const ADMIN_ONLY_WRITE_PATTERNS = [/^\/api\/workflow-executions(\/|$)/, /^\/api\/data-sharing(\/|$)/];
 
-/**
- * `event.url.pathname` stays percent-encoded while SvelteKit routes on the decoded path, so
- * `/api/%64eploy-workflow` reaches the deploy handler. Match the patterns against the decoded,
- * slash-collapsed form as well as the raw one.
- */
-function pathVariants(pathname: string): string[] {
-  try {
-    return [pathname, decodeURIComponent(pathname).replace(/\/{2,}/g, '/')];
-  } catch {
-    return [pathname];
-  }
-}
-
+/** Endpoints that deploy or run code, start processes or manage user accounts are admin-only, in either path form. */
 function isAdminOnly(pathname: string, verb: string): boolean {
   const patterns = READ_METHODS.has(verb) ? ADMIN_ONLY_PATTERNS : [...ADMIN_ONLY_PATTERNS, ...ADMIN_ONLY_WRITE_PATTERNS];
   return pathVariants(pathname).some((path) => patterns.some((pattern) => pattern.test(path)));
 }
 
 function isPublic(pathname: string): boolean {
-  if (pathname.includes('..')) return false;
-  return PUBLIC_EXACT.has(pathname) || PUBLIC_PATTERNS.some((pattern) => pattern.test(pathname));
+  // The router decodes the path, so an encoded form of a public path is that public path; a traversal ('..') is refused in either form.
+  const variants = pathVariants(pathname);
+  if (variants.some((path) => path.includes('..'))) return false;
+  return variants.some((path) => PUBLIC_EXACT.has(path) || PUBLIC_PATTERNS.some((pattern) => pattern.test(path)));
 }
 
 /** Returns a same-origin path to redirect to after login, or `/` if the target is unsafe. */
@@ -73,7 +64,8 @@ export function safeRedirectTarget(target: string | null | undefined): string {
 /** Decides what to do with a request before any route code runs. */
 export function decideAccess({ pathname, search, method, user }: AccessRequest): AccessDecision {
   const verb = method.toUpperCase();
-  const isApi = pathname.startsWith('/api/');
+  // API-ness follows the routed path: `/%61pi/...` is an API request like `/api/...` and gets the same treatment
+  const isApi = routedPath(pathname).startsWith('/api/');
 
   if (!user) {
     if (isPublic(pathname)) return { action: 'allow' };

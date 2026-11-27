@@ -3,6 +3,7 @@
 // (its owner is a placeholder like "default_user"), so it stays open to every signed-in user rather than becoming
 // invisible to everyone; it closes as soon as a real person is added.
 import type { SessionUser } from './session';
+import { pathVariants } from './routedPath.ts';
 
 export interface ProjectAccessInfo {
   createdBy: string | null;
@@ -60,15 +61,6 @@ const PROJECT_PARAMS = ['project_id', 'project', 'projectId'];
 /** Endpoints whose own `id` parameter is the project or workspace they are about. */
 const PROJECT_ID_ENDPOINTS = new Set(['/api/projects', '/api/project-overview']);
 const WORKSPACE_ID_ENDPOINTS = new Set(['/api/workspaces', '/api/workspace-overview']);
-
-/** The path as it was sent and as the router sees it: percent-decoded, with doubled slashes collapsed. */
-function pathVariants(pathname: string): string[] {
-  try {
-    return [pathname, decodeURIComponent(pathname).replace(/\/{2,}/g, '/')];
-  } catch {
-    return [pathname];
-  }
-}
 
 /** The projects and workspaces a request names, in its path or query string, and any id that is named but malformed. */
 export function resourcesInRequest(url: URL): RequestResources {
