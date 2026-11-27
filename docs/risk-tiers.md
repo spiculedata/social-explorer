@@ -68,4 +68,5 @@ default tier).
 also tries to create or refresh them and carries on if it is not permitted to. Path labels
 (`documentation`, `dependencies`, `github_actions`, `docker`, `javascript`, `python`, `database`, `tests`)
 come from [`.github/labeler.yml`](../.github/labeler.yml) through `labeler.yml`; both workflows are
-advisory and run on `pull_request` only, so a fork's read-only token never turns a pull request red.
+advisory and run on `pull_request` only. `labeler.yml` skips pull requests from forks (their read-only
+token cannot label anyway), so a fork's read-only token never turns a pull request red.
