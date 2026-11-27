@@ -135,7 +135,7 @@ jobs:
                say so in a comment on the issue and stop.
             5. Run the checks for what you changed (`npm --prefix ex-accell-ui run lint`,
                `npm --prefix ex-accell-ui run test:unit:coverage`, `npm --prefix ex-accell-ui run build`,
-               `.venv/bin/python -m pytest jupyter/tests` and `.venv/bin/python -m pytest etl/test_safe_http.py`, `node --test "scripts/tests/*.test.mjs"`)
+               `.venv/bin/python -m pytest jupyter/tests` and `.venv/bin/python -m pytest etl/test_safe_http.py etl/test_image_pipeline_clip.py`, `node --test "scripts/tests/*.test.mjs"`)
                and fix what you broke. If you cannot make them pass, stop and say why in a comment on
                the issue instead of opening a PR.
             6. Push the branch and open a pull request that says "Fixes #${{ github.event.issue.number }}",

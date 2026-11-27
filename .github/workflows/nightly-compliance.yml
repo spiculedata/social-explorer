@@ -105,7 +105,7 @@ jobs:
           python3 -m venv .venv
           .venv/bin/pip install --quiet pytest requests
           (cd jupyter && ../.venv/bin/python -m pytest -q)
-          (cd etl && ../.venv/bin/python -m pytest -q test_safe_http.py)
+          (cd etl && ../.venv/bin/python -m pytest -q test_safe_http.py test_image_pipeline_clip.py)
 
   report:
     name: Nightly report

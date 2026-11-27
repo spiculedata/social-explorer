@@ -59,7 +59,7 @@ jobs:
           (cd ex-accell-ui && npm audit --json > ../quality/web-audit-all.json) || true
           python3 -m venv .venv
           .venv/bin/pip install --quiet pytest requests
-          PYTHONPATH=jupyter:etl .venv/bin/python -m pytest -q --junitxml=quality/python-junit.xml jupyter/tests etl/test_safe_http.py || true
+          PYTHONPATH=jupyter:etl .venv/bin/python -m pytest -q --junitxml=quality/python-junit.xml jupyter/tests etl/test_safe_http.py etl/test_image_pipeline_clip.py || true
 
       - name: Render the report
         run: |
