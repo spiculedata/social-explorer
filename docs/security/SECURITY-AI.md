@@ -2,8 +2,9 @@
 
 How AI is allowed to operate in Social Explorer: coding agents working in this repository, AI
 workflows in CI, and the AI features the product itself has. It states boundaries, gates and who
-decides. Where it describes the code it describes `main` as of 2026-11-20 and says so when
-something is a known gap. The searches behind section 2 were not exhaustive; a destination missing
+decides. Where it describes the code it describes `main`, refreshed 2026-11-25 (issue #373)
+against the 2026-11-20 audit, and says so when something is a known gap. The searches behind
+section 2 were not exhaustive; a destination missing
 from the table is not proof that none exists.
 
 Read it with [`AGENTS.md`](../../AGENTS.md), [`CONTRIBUTING.md`](../../CONTRIBUTING.md) and
@@ -43,7 +44,7 @@ calls and AI providers on 2026-11-20. Destinations are configured by the operato
 
 | Destination | What is sent | Notes |
 | --- | --- | --- |
-| Anthropic | Repository source, issue, PR and comment text | Only when `claude.yml` runs (it uses the `ANTHROPIC_API_KEY` secret, which is set) |
+| Anthropic | Repository source, issue, PR and comment text | When `claude.yml` runs (a maintainer's `@claude` mention) or `ai-fix.yml` runs (a maintainer's `ai-fix-requested` label); both use the `ANTHROPIC_API_KEY` secret, which is set |
 | Scaleway container registry and the production server (SSH) | Built images, a deploy script | `deploy.yml`, manual only (`workflow_dispatch`) |
 
 Rules:
@@ -57,16 +58,22 @@ Rules:
 
 ## 3. Known gaps
 
-Each of these was checked on `main` on 2026-11-20. They are listed so nobody assumes otherwise;
-fixing one is a separate change, and repository settings are the maintainers' to change.
+Each of these was checked on `main` on 2026-11-20 unless a later date is given. They are listed so
+nobody assumes otherwise; fixing one is a separate change, and repository settings are the
+maintainers' to change.
 
-1. **No ruleset protects `main`.** `gh api repos/spiculedata/social-explorer/rules/branches/main`
-   returned `[]` and the branch reports `protected: false`. `ci` is a rule, not yet enforced by
-   GitHub. The maintainers plan a ruleset that requires `ci`.
-2. **The repository default workflow token is read-write** and Actions may approve pull requests
-   (`gh api repos/spiculedata/social-explorer/actions/permissions/workflow`). Workflows that do not
-   declare `permissions:` get write access. `test.yml` and `claude.yml`
-   have no workflow-level `permissions:` block (`claude.yml` sets it per job).
+1. **`main` is protected by a ruleset since 2026-11-20** (re-checked 2026-11-25 with
+   `gh api repos/spiculedata/social-explorer/rules/branches/main`): `protect main` requires a
+   pull request (no approving review required) with the `ci` status check required, and disallows
+   deletion and force-push. This closed the earlier gap that nothing on GitHub enforced a pull
+   request or a green `ci`; re-check the API before citing the current rules.
+2. **Default workflow permissions were read-write** (checked 2026-11-20, re-checked in the
+   2026-11-25 audit) and Actions could approve pull requests
+   (`gh api repos/spiculedata/social-explorer/actions/permissions/workflow`; needs admin
+   access). The 2026-11-25 audit reports the default workflow token is now read-only; the
+   audit's API check could not be reproduced with a read-only token. Workflows that do not
+   declare `permissions:` inherit the default; `claude.yml` sets it per job and now also passes
+   `github_token` so the model receives the job-scoped token and nothing broader (section 4).
 3. **The `production` environment has no protection rules**
    (`gh api repos/spiculedata/social-explorer/environments`), so nothing but the manual trigger
    stands between a write-access user and `deploy.yml` reaching the deploy secrets.
@@ -87,8 +94,9 @@ An agent is held to the same rules as a human contributor, with the burden of pr
 is not explicitly allowed, it is not allowed. `.claude/settings.json` enforces the core of this
 table in three layers, evaluated deny, then ask, then allow.
 
-**What is and is not enforced.** At the time of writing nothing on GitHub enforces a pull request
-or a green `ci` for `main` (known gap 1). Enforced today: the tool allowlists in
+**What is and is not enforced.** A GitHub ruleset (`protect main`, known gap 1 as it stood on
+2026-11-20) now enforces a pull request and a green `ci` for `main`. Also enforced today: the
+tool allowlists in
 `.claude/settings.json` and in any CI agent, maintainer-only triggers, and the `author_association`
 check in `claude.yml`. "A human reviews" is convention.
 
@@ -113,9 +121,24 @@ never discard them and never commit them.
 **`claude.yml`** answers `@claude` in issue and PR comments, reviews and new issues, and only for
 authors with OWNER, MEMBER or COLLABORATOR association. (An automatic per-PR review workflow existed and was removed because it failed on nearly every run.)
 It runs `anthropics/claude-code-action` pinned to a commit SHA with the
-`ANTHROPIC_API_KEY` secret and read-only content permissions. Issue, PR and comment text is
+`ANTHROPIC_API_KEY` secret. It passes `github_token: ${{ github.token }}` to the action, so the
+model receives the job-scoped workflow token bounded by the workflow's own `permissions:` block
+(`contents: read`: it cannot push; `issues` and `pull-requests: write` exist only so it can post
+its answer; `actions: read` to read CI results). The workflow declares no `id-token: write`, so
+no OIDC exchange for the broader Claude GitHub App token can happen. Issue, PR and comment text is
 untrusted input that this workflow passes to a model with Bash tools limited by the action's
 defaults.
+
+**`ai-fix.yml`** attempts a fix autonomously when a user with write access adds the
+`ai-fix-requested` label to an issue (a bot only when its login is listed in the
+`AI_FIX_ALLOWED_BOTS` repository variable, empty by default). It sends the issue text to
+Anthropic using the `ANTHROPIC_API_KEY` secret, works on one `ai-fix/...` branch and opens a pull
+request; it never merges. Its tools are an allowlist (edit files, the repository's check
+commands, git add/commit, pushing its own branch, opening a PR or a comment), its runs are
+bounded (30 turns, 30 minutes, one at a time), and a deny list keeps it away from workflows,
+agent settings, the security docs, deployment files, migrations, authentication and data sharing.
+It sends repository source and issue text to the model provider exactly as `claude.yml` does; see
+section 2. Full detail in [`docs/ai-workflows.md`](../ai-workflows.md).
 
 ## 5. Prompts and untrusted content
 

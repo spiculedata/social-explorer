@@ -8,12 +8,13 @@ under is [`docs/security/SECURITY-AI.md`](security/SECURITY-AI.md).
 | --- | --- | --- | --- |
 | `ai-fix.yml` | A user with write access adds the **`ai-fix-requested`** label to an issue | Attempts the fix on a new `ai-fix/...` branch and opens a pull request that says `Fixes #N` | **Live as soon as it merges**: the `ANTHROPIC_API_KEY` secret already exists |
 | `auto-review.yml` | **Disabled.** Was: a maintainer adds **`apply-review`** to a same-repository pull request | Applied the changes reviewers asked for as a new commit on that PR's branch | Disabled (`if: ${{ false }}`) because it ran PR-controlled install scripts with write credentials |
-| `claude.yml` (existing) | `@claude` in an issue, comment, review or new issue, by an OWNER, MEMBER or COLLABORATOR | Answers in the thread; the token is read-only (`contents: read`), so it cannot push | Live, untouched |
+| `claude.yml` (existing) | `@claude` in an issue, comment, review or new issue, by an OWNER, MEMBER or COLLABORATOR | Answers in the thread; the token is the job-scoped workflow token with `contents: read`, so it cannot push (`issues` and `pull-requests: write` exist only so it can post its answer, `actions: read` so it can read CI results) | Live, untouched |
 
 ## Overlap between the existing workflows and the new ones
 
 - **`claude.yml` vs `ai-fix.yml`.** Same action and same secret, different jobs. `claude.yml` is
-  interactive and read-only: a maintainer asks a question or for a review and gets a comment. `ai-fix.yml`
+  interactive and cannot push (`contents: read`): a maintainer asks a question or for a review and
+  gets a comment. `ai-fix.yml`
   is the autonomous writer: label-gated, write token, tool allowlist, one branch, one pull request. They do
   not conflict. The one thing to watch is that an issue containing `@claude` from a maintainer starts
   `claude.yml` on `opened`, and the same issue labelled `ai-fix-requested` starts `ai-fix.yml`; they can run

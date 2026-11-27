@@ -25,11 +25,15 @@ jobs:
       (github.event_name == 'issues' && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association) && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
     runs-on: ubuntu-latest
     permissions:
+      # The model receives this job-scoped GITHUB_TOKEN (passed to the action below), so this block
+      # IS its actual permission boundary: contents: read means it cannot push; issues and
+      # pull-requests: write exist only so it can post its answer in the thread; actions: read lets
+      # it read CI results on pull requests. No id-token: write: that was only for the OIDC
+      # exchange that minted the write-scoped Claude GitHub App token, which is no longer used.
       contents: read
-      pull-requests: read
-      issues: read
-      id-token: write
-      actions: read # Required for Claude to read CI results on PRs
+      pull-requests: write
+      issues: write
+      actions: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -42,9 +46,10 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
 
-          # This is an optional setting that allows Claude to read CI results on PRs
-          additional_permissions: |
-            actions: read
+          # The default would exchange id-token for a write-scoped Claude GitHub App token that
+          # this permissions block does not bound. Passing the job-scoped GITHUB_TOKEN makes the
+          # token the model actually uses exactly what the block above declares.
+          github_token: ${{ github.token }}
 
           # Optional: Give a custom prompt to Claude. If this is not specified, Claude will perform the instructions specified in the comment that tagged it.
           # prompt: 'Update the pull request description to include a summary of changes.'

@@ -1,0 +1,24 @@
+{
+  "issue": 373,
+  "title": "[Security] claude.yml runs with a write-scoped app token while the docs say read-only; AI policy docs are stale",
+  "kind": "command",
+  "criteria": [
+    {
+      "id": "C1",
+      "given": "claude.yml runs and its model asks GitHub for something",
+      "then": "the action receives github_token: ${{ github.token }}, so the token it actually uses is the job-scoped workflow token bounded by the workflow's own permissions block (contents: read, issues/pull-requests: write, actions: read), and the workflow declares no id-token: write so no OIDC exchange for the write-scoped Claude GitHub App token can happen"
+    },
+    {
+      "id": "C2",
+      "given": "the AI policy docs describe claude.yml's token and destinations",
+      "then": "docs/ai-workflows.md and docs/security/SECURITY-AI.md describe the job-scoped workflow token (contents: read, so it cannot push) instead of claiming a read-only app token, and SECURITY-AI.md section 2 lists ai-fix.yml as a second path that sends issue text to the model provider"
+    },
+    {
+      "id": "C3",
+      "given": "SECURITY-AI.md and AGENTS.md describe what protects main",
+      "then": "SECURITY-AI.md section 4 describes the protect main ruleset (pull request with a green ci required, deletion and force-push disallowed) instead of 'no ruleset protects main', lists ai-fix.yml among the CI agents, and AGENTS.md invariant 10 and the 'Merging, the ruleset, and bot PRs' section state the current ruleset"
+    }
+  ],
+  "command": ["node", "check.mjs"],
+  "timeoutSeconds": 60
+}

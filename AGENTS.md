@@ -109,9 +109,10 @@ suite without a database, the Jupyter image, a real deployment).
 9. **`wavepulse/` keeps its notices.** Files derived from WavePulse keep their copyright headers
    and modification notices.
 10. **State exactly what protects `main`.** Check
-    `gh api repos/spiculedata/social-explorer/rules/branches/main` before saying more. When this
-    file was written that returned no rules; the maintainers plan a ruleset that requires a pull
-    request and a green `ci`.
+    `gh api repos/spiculedata/social-explorer/rules/branches/main` before saying more. Since
+    2026-11-20 a `protect main` ruleset enforces a pull request with a green `ci` (no approving
+    review required) and disallows deletion and force-push. Check the API again before citing the
+    current rules; do not describe `main` as unprotected.
 11. **Check ported guidance against this repository.** This file was adapted from the template
     repositories; verify each claim here (workflows, labels, secrets by name, the stack) rather
     than copying it. `etl/CLAUDE.md` still names a personal virtual-environment path and a
@@ -228,9 +229,9 @@ machine and the known gaps, is [`docs/security/SECURITY-AI.md`](docs/security/SE
 
 ## Merging, the ruleset, and bot PRs
 
-- There is no ruleset on `main` yet (invariant 10). The intended one requires a pull request and a
-  green `ci`. Until it exists `ci` is a rule, and `main-guard.yml` is the only thing that notices a
-  direct push. Never push to `main`, and never use `--admin` to merge.
+- A ruleset protects `main` (invariant 10): it requires a pull request with a green `ci` (no
+  approving review required) and disallows deletion and force-push. `main-guard.yml` remains as
+  detection in depth. Never push to `main`, and never use `--admin` to merge.
 - Bot PRs: `auto-qa.yml` (the weekly retune PR) mints a Hive GitHub App token from
   `vars.BOT_APP_ID` and `secrets.BOT_APP_PRIVATE_KEY` when they exist, so the PR is App-authored
   and its `pull_request` workflows run immediately. Without them it falls back to `GITHUB_TOKEN`,
